@@ -8,18 +8,59 @@
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.SectionTopMargin}"
                 Spacing="{DynamicResource MAA.Spacing.Small}">
+      <TextBlock Classes="settings-centered-text"
+                 FontWeight="SemiBold"
+                 Text="{Binding AchievementLevelText}" />
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   Spacing="{DynamicResource MAA.Spacing.Small}">
         <Button Classes="wpf-button wpf-button-secondary" Content="刷新成就状态" Click="OnRefreshAchievementClick" />
         <Button Classes="wpf-button wpf-button-secondary"
-                Content="{Binding RootTexts[Settings.Action.ShowAchievement]}"
+                Content="查看成就"
                 Click="OnShowAchievementListClick" />
       </StackPanel>
-      <Button Classes="wpf-button wpf-button-secondary"
+      <StackPanel Orientation="Horizontal"
+                  HorizontalAlignment="Center"
+                  Spacing="{DynamicResource MAA.Spacing.Small}">
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="备份成就"
+                Click="OnBackupAchievementClick" />
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="加载备份"
+                Click="OnRestoreAchievementClick" />
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="打开成就说明"
+                Click="OnOpenAchievementGuideClick" />
+      </StackPanel>
+      <Border Width="108"
+              Height="108"
+              Padding="8"
+              CornerRadius="54"
               HorizontalAlignment="Center"
-              Content="打开成就说明"
-              Click="OnOpenAchievementGuideClick" />
+              Background="#1AFFFFFF"
+              BorderBrush="{Binding AchievementDebugMedalColor}"
+              BorderThickness="2"
+              PointerPressed="OnAchievementDebugPointerPressed">
+        <TextBlock HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="{Binding AchievementDebugMedalColor}"
+                   Text="MAA" />
+      </Border>
+      <TextBlock Classes="settings-centered-text subtle"
+                 Text="{Binding AchievementDebugTip}" />
+      <StackPanel Orientation="Horizontal"
+                  HorizontalAlignment="Center"
+                  Spacing="{DynamicResource MAA.Spacing.Small}"
+                  IsVisible="{Binding CanUseAchievementDebugActions}">
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="Unlock All"
+                Click="OnUnlockAllAchievementClick" />
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="Lock All"
+                Click="OnLockAllAchievementClick" />
+      </StackPanel>
     </StackPanel>
 
     <StackPanel Grid.Row="2"

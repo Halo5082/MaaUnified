@@ -106,4 +106,69 @@ public sealed class StartupProgramTests
         Assert.Contains("Runtime creation failed.", payload, StringComparison.Ordinal);
         Assert.Contains("InvalidOperationException: boom", payload, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void ResolveSoftwareRenderingPreference_WhenAvaloniaConfigExists_ReturnsConfiguredValue()
+    {
+        var root = CreateTempConfigDirectory(
+            """
+            {
+              "GlobalValues": {
+                "GUI.IgnoreBadModulesAndUseSoftwareRendering": true
+              }
+            }
+            """);
+
+        try
+        {
+            Assert.True(Program.ResolveSoftwareRenderingPreference(root));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolveSoftwareRenderingPreference_WhenAvaloniaConfigMissing_FallsBackToGuiNew()
+    {
+        var root = CreateTempConfigDirectory(
+            avaloniaJson: null,
+            guiNewJson:
+            """
+            {
+              "GUI": {
+                "IgnoreBadModulesAndUseSoftwareRendering": "true"
+              }
+            }
+            """);
+
+        try
+        {
+            Assert.True(Program.ResolveSoftwareRenderingPreference(root));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private static string CreateTempConfigDirectory(string? avaloniaJson = null, string? guiNewJson = null)
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"maa-unified-program-{Guid.NewGuid():N}");
+        var configDir = Path.Combine(root, "config");
+        Directory.CreateDirectory(configDir);
+
+        if (avaloniaJson is not null)
+        {
+            File.WriteAllText(Path.Combine(configDir, "avalonia.json"), avaloniaJson);
+        }
+
+        if (guiNewJson is not null)
+        {
+            File.WriteAllText(Path.Combine(configDir, "gui.new.json"), guiNewJson);
+        }
+
+        return root;
+    }
 }

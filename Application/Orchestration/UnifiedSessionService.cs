@@ -145,6 +145,14 @@ public sealed class UnifiedSessionService
         return result;
     }
 
+    public Task<CoreResult<bool>> ApplyInstanceOptionsAsync(
+        CoreInstanceOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return _bridge.ApplyInstanceOptionsAsync(options, cancellationToken);
+    }
+
     public async Task<CoreResult<int>> AppendTasksFromCurrentProfileAsync(CancellationToken cancellationToken = default)
     {
         if (!_configService.CurrentConfig.Profiles.TryGetValue(_configService.CurrentConfig.CurrentProfile, out var profile))

@@ -27,9 +27,9 @@ public sealed class WorkPackageQ1BlockingCoverageTests
     }
 
     [Fact]
-    public void SettingsHotKeyEditor_BlockedPath_ShouldBeDefinedWithFailureAndNonCrashEvidence()
+    public void SettingsHotKey_BlockedPath_ShouldBeDefinedWithFailureAndNonCrashEvidence()
     {
-        AssertBlockedPathCoverage("Settings.HotKeyEditor");
+        AssertBlockedPathCoverage("Settings.HotKey");
     }
 
     [Fact]

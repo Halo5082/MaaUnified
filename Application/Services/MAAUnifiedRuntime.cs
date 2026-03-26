@@ -48,6 +48,8 @@ public sealed class MAAUnifiedRuntime : IAsyncDisposable
 
     public IAchievementFeatureService AchievementFeatureService { get; init; } = new AchievementFeatureService();
 
+    public IAchievementTrackerService AchievementTrackerService { get; init; } = new AchievementTrackerService();
+
     public IAnnouncementFeatureService AnnouncementFeatureService { get; init; } = new AnnouncementFeatureService();
 
     public IStageManagerFeatureService StageManagerFeatureService { get; init; } = new StageManagerFeatureService();
@@ -122,7 +124,8 @@ public static class MAAUnifiedRuntimeFactory
         var notificationProviderFeatureService = new NotificationProviderFeatureService();
         var settingsFeatureService = new SettingsFeatureService(configService, platformCapabilityService, diagnosticsService);
         var configurationProfileFeatureService = new ConfigurationProfileFeatureService(configService);
-        var versionUpdateFeatureService = new VersionUpdateFeatureService(configService, diagnosticsService);
+        var achievementTrackerService = new AchievementTrackerService(configService, baseDirectory);
+        var versionUpdateFeatureService = new VersionUpdateFeatureService(configService, diagnosticsService, achievementTrackerService);
         var achievementFeatureService = new AchievementFeatureService(configService);
         var announcementFeatureService = new AnnouncementFeatureService(configService);
         var stageManagerFeatureService = new StageManagerFeatureService(configService);
@@ -158,6 +161,7 @@ public static class MAAUnifiedRuntimeFactory
             ConfigurationProfileFeatureService = configurationProfileFeatureService,
             VersionUpdateFeatureService = versionUpdateFeatureService,
             AchievementFeatureService = achievementFeatureService,
+            AchievementTrackerService = achievementTrackerService,
             AnnouncementFeatureService = announcementFeatureService,
             StageManagerFeatureService = stageManagerFeatureService,
             WebApiFeatureService = webApiFeatureService,

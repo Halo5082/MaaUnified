@@ -50,6 +50,21 @@ public sealed class MaaCoreBridgeStub : IMaaCoreBridge
                 : CoreResult<bool>.Fail(new CoreError(CoreErrorCode.ConnectFailed, "Stub connect failed.")));
     }
 
+    public Task<CoreResult<bool>> ApplyInstanceOptionsAsync(CoreInstanceOptions options, CancellationToken cancellationToken = default)
+    {
+        if (_disposed)
+        {
+            return Task.FromResult(CoreResult<bool>.Fail(new CoreError(CoreErrorCode.Disposed, "Bridge is disposed.")));
+        }
+
+        if (!_initialized)
+        {
+            return Task.FromResult(CoreResult<bool>.Fail(new CoreError(CoreErrorCode.NotInitialized, "Bridge not initialized.")));
+        }
+
+        return Task.FromResult(CoreResult<bool>.Ok(true));
+    }
+
     public Task<CoreResult<int>> AppendTaskAsync(CoreTaskRequest task, CancellationToken cancellationToken = default)
     {
         if (!_connected)

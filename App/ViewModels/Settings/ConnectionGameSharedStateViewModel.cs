@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Services.Localization;
+using MAAUnified.CoreBridge;
 
 namespace MAAUnified.App.ViewModels.Settings;
 
@@ -589,6 +590,19 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         }
 
         return resolved;
+    }
+
+    public CoreInstanceOptions BuildCoreInstanceOptions(bool? deploymentWithPause = null)
+    {
+        var touchMode = string.IsNullOrWhiteSpace(TouchMode)
+            ? null
+            : TouchMode.Trim();
+
+        return new CoreInstanceOptions(
+            TouchMode: touchMode,
+            DeploymentWithPause: deploymentWithPause,
+            AdbLiteEnabled: AdbLiteEnabled,
+            KillAdbOnExit: KillAdbOnExit);
     }
 
     public void RemoveAddressFromHistory(string? address)

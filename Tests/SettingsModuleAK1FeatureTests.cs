@@ -9,6 +9,7 @@ using MAAUnified.Application.Models;
 using MAAUnified.Application.Orchestration;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.Features;
+using MAAUnified.Compat.Constants;
 using MAAUnified.CoreBridge;
 using MAAUnified.Platform;
 
@@ -230,6 +231,68 @@ public sealed class SettingsModuleAK1FeatureTests
         Assert.Null(fixture.Bridge.LastConnectionInfo!.AdbPath);
     }
 
+    [Fact]
+    public async Task ConnectAsync_ShouldApplyLiveTouchModeAndAdbFlagsBeforeConnect()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        var state = fixture.Shell.ConnectionGameSharedState;
+        state.ConnectAddress = "127.0.0.1:5555";
+        state.ConnectConfig = "General";
+        state.TouchMode = "maatouch";
+        state.AdbLiteEnabled = true;
+        state.KillAdbOnExit = true;
+
+        await fixture.Shell.ConnectAsync();
+
+        var applied = Assert.IsType<CoreInstanceOptions>(fixture.Bridge.LastAppliedInstanceOptions);
+        Assert.Equal("maatouch", applied.TouchMode);
+        Assert.True(applied.AdbLiteEnabled);
+        Assert.True(applied.KillAdbOnExit);
+    }
+
+    [Fact]
+    public async Task SaveConnectionGameSettings_ShouldSyncCoreInstanceOptions()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        var settings = fixture.Shell.SettingsPage;
+        var state = settings.ConnectionGameSharedState;
+        state.TouchMode = "adb";
+        state.AdbLiteEnabled = true;
+        state.KillAdbOnExit = true;
+        settings.DeploymentWithPause = true;
+
+        await settings.SaveConnectionGameSettingsAsync();
+
+        var applied = Assert.IsType<CoreInstanceOptions>(fixture.Bridge.LastAppliedInstanceOptions);
+        Assert.Equal("adb", applied.TouchMode);
+        Assert.True(applied.AdbLiteEnabled);
+        Assert.True(applied.KillAdbOnExit);
+        Assert.True(applied.DeploymentWithPause);
+    }
+
+    [Fact]
+    public async Task SaveStartPerformanceSettings_ShouldSyncDeploymentWithPauseToCore()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        fixture.Shell.SettingsPage.DeploymentWithPause = true;
+
+        await fixture.Shell.SettingsPage.SaveStartPerformanceSettingsAsync();
+
+        Assert.True(fixture.Bridge.LastAppliedInstanceOptions?.DeploymentWithPause);
+    }
+
+    [Fact]
+    public async Task StartAsync_ShouldApplySavedDeploymentWithPauseBeforeRun()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        fixture.GetCurrentProfile().Values[ConfigurationKeys.RoguelikeDeploymentWithPause] = JsonValue.Create(true);
+
+        var result = await fixture.Runtime.ConnectFeatureService.StartAsync();
+
+        Assert.True(result.Success);
+        Assert.True(fixture.Bridge.LastAppliedInstanceOptions?.DeploymentWithPause);
+    }
+
     private static void AssertStartUpModuleConnectionValues(
         MainShellViewModel shell,
         string connectAddress,
@@ -438,12 +501,20 @@ public sealed class SettingsModuleAK1FeatureTests
 
         public CoreConnectionInfo? LastConnectionInfo { get; private set; }
 
+        public CoreInstanceOptions? LastAppliedInstanceOptions { get; private set; }
+
         public Task<CoreResult<CoreInitializeInfo>> InitializeAsync(CoreInitializeRequest request, CancellationToken cancellationToken = default)
             => Task.FromResult(CoreResult<CoreInitializeInfo>.Ok(new CoreInitializeInfo(request.BaseDirectory, "fake", "fake", request.ClientType)));
 
         public Task<CoreResult<bool>> ConnectAsync(CoreConnectionInfo connectionInfo, CancellationToken cancellationToken = default)
         {
             LastConnectionInfo = connectionInfo;
+            return Task.FromResult(CoreResult<bool>.Ok(true));
+        }
+
+        public Task<CoreResult<bool>> ApplyInstanceOptionsAsync(CoreInstanceOptions options, CancellationToken cancellationToken = default)
+        {
+            LastAppliedInstanceOptions = options;
             return Task.FromResult(CoreResult<bool>.Ok(true));
         }
 

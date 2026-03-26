@@ -1014,6 +1014,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
             await PersistBridgeSettingsForToolAsync(ToolboxToolKind.VideoRecognition, cancellationToken);
             _peepWasAutoStarted = false;
+            _ = Runtime.AchievementTrackerService.Unlock("PeekScreen");
             StartPeepPolling();
             ResultText = "已开启窥屏。";
             ExecutionState = ToolboxExecutionState.Succeeded;
@@ -1055,6 +1056,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public void AgreeGachaDisclaimer()
     {
+        _ = Runtime.AchievementTrackerService.Unlock("RealGacha");
         GachaShowDisclaimer = false;
         if (GachaShowDisclaimerNoMore)
         {
@@ -1627,6 +1629,11 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 rarity = asset.Rarity;
             }
 
+            if (string.Equals(id, "char_485_pallas", StringComparison.Ordinal))
+            {
+                _ = Runtime.AchievementTrackerService.Unlock("WarehouseKeeper");
+            }
+
             _operBoxOwnedById[id] = new ToolboxOwnedOperatorState(id, name, rarity, elite, level, potential);
             _operBoxPotential[id] = potential;
         }
@@ -1693,6 +1700,11 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
         foreach (var pair in counts.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
+            if (pair.Value > Runtime.AchievementTrackerService.GetProgress("WarehouseMiser"))
+            {
+                _ = Runtime.AchievementTrackerService.SetProgress("WarehouseMiser", pair.Value);
+            }
+
             DepotResult.Add(new DepotItemViewModel(
                 pair.Key,
                 itemNames.TryGetValue(pair.Key, out var name) ? name : pair.Key,
@@ -1807,6 +1819,10 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             if (byId.TryGetValue(itemId, out var existing))
             {
                 existing.Count += addQuantity;
+                if (existing.Count > Runtime.AchievementTrackerService.GetProgress("WarehouseMiser"))
+                {
+                    _ = Runtime.AchievementTrackerService.SetProgress("WarehouseMiser", existing.Count);
+                }
             }
             else
             {
@@ -1814,6 +1830,10 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 var created = new DepotItemViewModel(itemId, name, addQuantity, ToolboxAssetCatalog.ResolveItemImagePath(itemId));
                 byId[itemId] = created;
                 DepotResult.Add(created);
+                if (addQuantity > Runtime.AchievementTrackerService.GetProgress("WarehouseMiser"))
+                {
+                    _ = Runtime.AchievementTrackerService.SetProgress("WarehouseMiser", addQuantity);
+                }
             }
 
             changed = true;

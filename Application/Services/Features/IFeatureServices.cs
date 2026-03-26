@@ -11,7 +11,27 @@ public interface IConnectFeatureService
 {
     Task<CoreResult<bool>> ValidateAndConnectAsync(string address, string config, string? adbPath, CancellationToken cancellationToken = default);
 
+    Task<CoreResult<bool>> ValidateAndConnectAsync(
+        string address,
+        string config,
+        string? adbPath,
+        CoreInstanceOptions? instanceOptions,
+        CancellationToken cancellationToken = default)
+        => ValidateAndConnectAsync(address, config, adbPath, cancellationToken);
+
     Task<UiOperationResult> ConnectAsync(string address, string config, string? adbPath, CancellationToken cancellationToken = default);
+
+    Task<UiOperationResult> ConnectAsync(
+        string address,
+        string config,
+        string? adbPath,
+        CoreInstanceOptions? instanceOptions,
+        CancellationToken cancellationToken = default)
+        => ConnectAsync(address, config, adbPath, cancellationToken);
+
+    Task<CoreResult<bool>> ApplyInstanceOptionsAsync(
+        CoreInstanceOptions? instanceOptions = null,
+        CancellationToken cancellationToken = default);
 
     Task<UiOperationResult> StartAsync(CancellationToken cancellationToken = default);
 
@@ -25,6 +45,14 @@ public interface IConnectFeatureService
 public interface IShellFeatureService
 {
     Task<UiOperationResult> ConnectAsync(string address, string config, string? adbPath, CancellationToken cancellationToken = default);
+
+    Task<UiOperationResult> ConnectAsync(
+        string address,
+        string config,
+        string? adbPath,
+        CoreInstanceOptions? instanceOptions,
+        CancellationToken cancellationToken = default)
+        => ConnectAsync(address, config, adbPath, cancellationToken);
 
     Task<UiOperationResult<ImportReport>> ImportLegacyConfigAsync(ImportSource source, bool manualImport, CancellationToken cancellationToken = default);
 
@@ -284,7 +312,17 @@ public interface IPlatformCapabilityService
 
     Task<UiOperationResult> RegisterGlobalHotkeyAsync(string name, string gesture, CancellationToken cancellationToken = default);
 
+    Task<UiOperationResult<IReadOnlyList<HotkeyRegistrationOutcome>>> RegisterGlobalHotkeysAsync(
+        IReadOnlyList<HotkeyBindingRequest> requests,
+        CancellationToken cancellationToken = default);
+
     Task<UiOperationResult> UnregisterGlobalHotkeyAsync(string name, CancellationToken cancellationToken = default);
+
+    Task<UiOperationResult> ConfigureHotkeyHostContextAsync(
+        HotkeyHostContext context,
+        CancellationToken cancellationToken = default);
+
+    bool TryDispatchWindowScopedHotkey(HotkeyGesture gesture);
 
     Task<UiOperationResult<bool>> GetAutostartEnabledAsync(CancellationToken cancellationToken = default);
 

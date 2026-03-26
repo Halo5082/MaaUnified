@@ -3014,6 +3014,20 @@
       "mapping_target": "SettingsPageViewModel.WindowTitleScrollable"
     },
     {
+      "key": "GUI.IgnoreBadModulesAndUseSoftwareRendering",
+      "owner_item_id": "Settings.Gui",
+      "parity_status": "Aligned",
+      "priority": "P0",
+      "notes": "Mapped to SettingsPageViewModel.UseSoftwareRendering and applied during Avalonia startup.",
+      "evidence": {
+        "ui_path": "App/Features/Settings/GuiSettingsView.axaml",
+        "log_path": "debug/avalonia-ui-startup.log",
+        "scope": "Config.GUI.IgnoreBadModulesAndUseSoftwareRendering",
+        "case_id": "CFG-012A"
+      },
+      "mapping_target": "SettingsPageViewModel.UseSoftwareRendering"
+    },
+    {
       "key": "GUI.LogItemDateFormatString",
       "owner_item_id": "Settings.Gui",
       "parity_status": "Aligned",
@@ -7165,7 +7179,7 @@
   "metadata": {
     "feature_item_count": 44,
     "system_item_count": 13,
-    "config_key_count": 292,
+    "config_key_count": 293,
     "fallback_record_count": 15
   }
 }

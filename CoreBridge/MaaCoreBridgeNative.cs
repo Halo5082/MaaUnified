@@ -12,6 +12,10 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
     private const int MsgAsyncCallInfo = 4;
     private const int AsstStaticOptionCpuOcr = 1;
     private const int AsstStaticOptionGpuOcr = 2;
+    private const int AsstInstanceOptionTouchMode = 2;
+    private const int AsstInstanceOptionDeploymentWithPause = 3;
+    private const int AsstInstanceOptionAdbLiteEnabled = 4;
+    private const int AsstInstanceOptionKillAdbOnExit = 5;
     private static readonly HashSet<string> DefaultClientTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         string.Empty,
@@ -245,6 +249,75 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
         {
             _connectLock.Release();
         }
+    }
+
+    public Task<CoreResult<bool>> ApplyInstanceOptionsAsync(
+        CoreInstanceOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var status = EnsureReady();
+        if (!status.Success)
+        {
+            return Task.FromResult(CoreResult<bool>.Fail(status.Error!));
+        }
+
+        if (options is null || options.IsEmpty)
+        {
+            return Task.FromResult(CoreResult<bool>.Ok(true));
+        }
+
+        var exports = _exports!;
+        if (exports.AsstSetInstanceOption is null)
+        {
+            return Task.FromResult(Fail<bool>(CoreErrorCode.NotSupported, "AsstSetInstanceOption export is unavailable."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.TouchMode))
+        {
+            var normalizedTouchMode = options.TouchMode.Trim();
+            if (!AsBool(exports.AsstSetInstanceOption(_instance, AsstInstanceOptionTouchMode, normalizedTouchMode)))
+            {
+                return Task.FromResult(Fail<bool>(
+                    CoreErrorCode.InvalidRequest,
+                    $"Failed to set touch mode to `{normalizedTouchMode}`."));
+            }
+        }
+
+        if (options.DeploymentWithPause is bool deploymentWithPause
+            && !AsBool(exports.AsstSetInstanceOption(
+                _instance,
+                AsstInstanceOptionDeploymentWithPause,
+                deploymentWithPause ? "1" : "0")))
+        {
+            return Task.FromResult(Fail<bool>(
+                CoreErrorCode.InvalidRequest,
+                $"Failed to set deployment with pause to `{deploymentWithPause}`."));
+        }
+
+        if (options.AdbLiteEnabled is bool adbLiteEnabled
+            && !AsBool(exports.AsstSetInstanceOption(
+                _instance,
+                AsstInstanceOptionAdbLiteEnabled,
+                adbLiteEnabled ? "1" : "0")))
+        {
+            return Task.FromResult(Fail<bool>(
+                CoreErrorCode.InvalidRequest,
+                $"Failed to set ADB Lite enabled to `{adbLiteEnabled}`."));
+        }
+
+        if (options.KillAdbOnExit is bool killAdbOnExit
+            && !AsBool(exports.AsstSetInstanceOption(
+                _instance,
+                AsstInstanceOptionKillAdbOnExit,
+                killAdbOnExit ? "1" : "0")))
+        {
+            return Task.FromResult(Fail<bool>(
+                CoreErrorCode.InvalidRequest,
+                $"Failed to set kill ADB on exit to `{killAdbOnExit}`."));
+        }
+
+        return Task.FromResult(CoreResult<bool>.Ok(true));
     }
 
     public Task<CoreResult<int>> AppendTaskAsync(CoreTaskRequest task, CancellationToken cancellationToken = default)
@@ -586,6 +659,7 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
             }
 
             if (string.Equals(what, "ConnectFailed", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(what, "TouchModeNotAvailable", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(what, "Disconnect", StringComparison.OrdinalIgnoreCase))
             {
                 pending.TryComplete(Fail<bool>(
@@ -782,6 +856,7 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
     {
         missingSymbol = string.Empty;
         TryLoadExport<AsstSetStaticOptionDelegate>(library, "AsstSetStaticOption", out var asstSetStaticOption);
+        TryLoadExport<AsstSetInstanceOptionDelegate>(library, "AsstSetInstanceOption", out var asstSetInstanceOption);
 
         if (!TryLoadExport<AsstSetUserDirDelegate>(library, "AsstSetUserDir", out var asstSetUserDir))
         {
@@ -883,6 +958,7 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
 
         exports = new AsstExports(
             asstSetStaticOption,
+            asstSetInstanceOption,
             asstSetUserDir!,
             asstLoadResource!,
             asstCreateEx!,
@@ -1047,6 +1123,11 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
             return reason.Trim();
         }
 
+        if (string.Equals(what, "TouchModeNotAvailable", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Touch mode is not available. Switch to a different touch mode in Settings > Connect.";
+        }
+
         return string.IsNullOrWhiteSpace(what) ? "ConnectionInfo" : what.Trim();
     }
 
@@ -1109,6 +1190,7 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
 
     private sealed record AsstExports(
         AsstSetStaticOptionDelegate? AsstSetStaticOption,
+        AsstSetInstanceOptionDelegate? AsstSetInstanceOption,
         AsstSetUserDirDelegate AsstSetUserDir,
         AsstLoadResourceDelegate AsstLoadResource,
         AsstCreateExDelegate AsstCreateEx,
@@ -1126,6 +1208,12 @@ public sealed class MaaCoreBridgeNative : IMaaCoreBridge
 
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate byte AsstSetStaticOptionDelegate(int key, [MarshalAs(UnmanagedType.LPUTF8Str)] string value);
+
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate byte AsstSetInstanceOptionDelegate(
+        nint handle,
+        int key,
+        [MarshalAs(UnmanagedType.LPUTF8Str)] string value);
 
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate byte AsstSetUserDirDelegate([MarshalAs(UnmanagedType.LPUTF8Str)] string path);

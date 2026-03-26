@@ -154,4 +154,28 @@ public sealed class MaaCoreBridgeNativeClientTypeTests
 
         Assert.Equal("ConfigNotFound", message);
     }
+
+    [Fact]
+    public void BuildConnectionFailureMessage_ShouldExplainTouchModeNotAvailable()
+    {
+        var method = typeof(MaaCoreBridgeNative).GetMethod(
+            "BuildConnectionFailureMessage",
+            BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(method);
+
+        using var doc = JsonDocument.Parse(
+            """
+            {
+              "what": "TouchModeNotAvailable",
+              "why": "",
+              "details": {}
+            }
+            """);
+
+        var message = method!.Invoke(null, [doc.RootElement.Clone(), "TouchModeNotAvailable"]) as string;
+
+        Assert.Equal(
+            "Touch mode is not available. Switch to a different touch mode in Settings > Connect.",
+            message);
+    }
 }

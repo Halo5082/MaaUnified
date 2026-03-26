@@ -1,7 +1,11 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json.Nodes;
 using Avalonia;
+using Avalonia.Win32;
+using Avalonia.X11;
+using MAAUnified.Compat.Constants;
 
 namespace MAAUnified.App;
 
@@ -12,6 +16,9 @@ internal static class Program
     private const string StartupUnhandledCode = "UiStartupUnhandled";
     internal const string StartupTraceLogName = "avalonia-ui-startup.log";
     internal const string StartupErrorLogName = "avalonia-ui-errors.log";
+    private const string ConfigDirectoryName = "config";
+    private const string AvaloniaConfigFileName = "avalonia.json";
+    private const string GuiNewConfigFileName = "gui.new.json";
 
     [STAThread]
     public static int Main(string[] args)
@@ -51,10 +58,20 @@ internal static class Program
     }
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        var useSoftwareRendering = ResolveSoftwareRenderingPreference(AppContext.BaseDirectory);
+        RecordStartupStage(
+            "Main.RenderingPreference",
+            $"softwareRendering={useSoftwareRendering}; baseDir={AppContext.BaseDirectory}");
+
+        var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+        ApplySoftwareRenderingPreference(builder, useSoftwareRendering);
+        return builder;
+    }
 
     internal static bool HasLinuxDesktopDisplay()
     {
@@ -121,6 +138,162 @@ internal static class Program
         }
 
         TryAppendDebugLog(StartupTraceLogName, payload);
+    }
+
+    internal static bool ResolveSoftwareRenderingPreference(string baseDirectory)
+    {
+        var configDirectory = Path.Combine(baseDirectory, ConfigDirectoryName);
+
+        if (TryReadSoftwareRenderingFromAvaloniaConfig(
+            Path.Combine(configDirectory, AvaloniaConfigFileName),
+            out var avaloniaValue))
+        {
+            return avaloniaValue;
+        }
+
+        if (TryReadSoftwareRenderingFromGuiNewConfig(
+            Path.Combine(configDirectory, GuiNewConfigFileName),
+            out var legacyValue))
+        {
+            return legacyValue;
+        }
+
+        return false;
+    }
+
+    internal static void ApplySoftwareRenderingPreference(AppBuilder builder, bool useSoftwareRendering)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        if (!useSoftwareRendering)
+        {
+            return;
+        }
+
+        if (OperatingSystem.IsWindows())
+        {
+            builder.With(new Win32PlatformOptions
+            {
+                RenderingMode = [Win32RenderingMode.Software],
+                CompositionMode = [Win32CompositionMode.RedirectionSurface],
+            });
+            return;
+        }
+
+        if (OperatingSystem.IsLinux())
+        {
+            builder.With(new X11PlatformOptions
+            {
+                RenderingMode = [X11RenderingMode.Software],
+            });
+            return;
+        }
+
+        if (OperatingSystem.IsMacOS())
+        {
+            builder.With(new AvaloniaNativePlatformOptions
+            {
+                RenderingMode = [AvaloniaNativeRenderingMode.Software],
+            });
+        }
+    }
+
+    private static bool TryReadSoftwareRenderingFromAvaloniaConfig(string path, out bool value)
+    {
+        value = false;
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject;
+            return TryReadBooleanNode(
+                root?["GlobalValues"]?[ConfigurationKeys.IgnoreBadModulesAndUseSoftwareRendering],
+                out value);
+        }
+        catch (Exception ex)
+        {
+            RecordStartupStage("Main.RenderingPreference.AvaloniaConfigError", $"path={path}", ex);
+            return false;
+        }
+    }
+
+    private static bool TryReadSoftwareRenderingFromGuiNewConfig(string path, out bool value)
+    {
+        value = false;
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject;
+            return TryReadBooleanNode(
+                root?["GUI"]?["IgnoreBadModulesAndUseSoftwareRendering"],
+                out value);
+        }
+        catch (Exception ex)
+        {
+            RecordStartupStage("Main.RenderingPreference.GuiNewConfigError", $"path={path}", ex);
+            return false;
+        }
+    }
+
+    private static bool TryReadBooleanNode(JsonNode? node, out bool value)
+    {
+        value = false;
+        if (node is null)
+        {
+            return false;
+        }
+
+        if (node is JsonValue jsonValue)
+        {
+            if (jsonValue.TryGetValue(out bool boolValue))
+            {
+                value = boolValue;
+                return true;
+            }
+
+            if (jsonValue.TryGetValue(out int intValue))
+            {
+                value = intValue != 0;
+                return true;
+            }
+
+            if (jsonValue.TryGetValue(out string? stringValue))
+            {
+                if (bool.TryParse(stringValue, out var parsedBool))
+                {
+                    value = parsedBool;
+                    return true;
+                }
+
+                if (int.TryParse(stringValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedInt))
+                {
+                    value = parsedInt != 0;
+                    return true;
+                }
+            }
+        }
+
+        var raw = node.ToString();
+        if (bool.TryParse(raw, out var fallbackBool))
+        {
+            value = fallbackBool;
+            return true;
+        }
+
+        if (int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fallbackInt))
+        {
+            value = fallbackInt != 0;
+            return true;
+        }
+
+        return false;
     }
 
     private static bool ContainsMessage(Exception? exception, string fragment)

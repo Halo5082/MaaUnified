@@ -9,7 +9,7 @@
 - Locales: `zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas`
 - Feature items: `44`
 - System items: `13`
-- Config keys: `292`
+- Config keys: `293`
 - Fallback records: `15`
 
 ## Feature Parity
@@ -82,7 +82,7 @@
 | `System.PageErrorChannel` | Aligned | `App/ViewModels/Infrastructure/PageViewModelBase.cs` |
 
 ## Config Key Mapping Summary
-- Aligned: `292`
+- Aligned: `293`
 - Gap: `0`
 - Waived: `0`
 
@@ -111,6 +111,7 @@
 - `GUI.Background.BlurEffectRadius` -> `SettingsPageViewModel.BackgroundBlur`
 - `GUI.Background.ImagePath` -> `SettingsPageViewModel.BackgroundImagePath`
 - `GUI.Background.Opacity` -> `SettingsPageViewModel.BackgroundOpacity`
+- `GUI.IgnoreBadModulesAndUseSoftwareRendering` -> `SettingsPageViewModel.UseSoftwareRendering`
 - `GUI.Localization` -> `SettingsPageViewModel.Language`
 - `GUI.MinimizeToTray` -> `SettingsPageViewModel.MinimizeToTray`
 - `GUI.UseTray` -> `SettingsPageViewModel.UseTray`

@@ -25,6 +25,7 @@ namespace MAAUnified.App.ViewModels.TaskQueue;
 
 public sealed class TaskQueuePageViewModel : PageViewModelBase
 {
+    private const string DefaultLogItemDateFormat = "HH:mm:ss";
     private const string TaskQueueRunOwner = "TaskQueue";
     private const string TaskSelectedIndexConfigKey = "TaskSelectedIndex";
     private static readonly string[] WpfDefaultTaskOrder =
@@ -133,6 +134,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     private int _medicineUsedTimes;
     private int _expiringMedicineUsedTimes;
     private int _stoneUsedTimes;
+    private string _logTimestampFormat = DefaultLogItemDateFormat;
 
     public TaskQueuePageViewModel(
         MAAUnifiedRuntime runtime,
@@ -166,6 +168,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             Language = ResolveLanguage(),
         };
         RootTexts.FallbackReported += info => _localizationFallbackReporter?.Invoke(info);
+        _logTimestampFormat = ResolveLogTimestampFormat();
         _dailyStageHint = Texts.GetOrDefault("TaskQueue.DailyStageHintDefault", "Daily stage hints will be shown after resources are loaded.");
         _overlayStatusText = string.IsNullOrWhiteSpace(_overlaySharedState.StatusMessage)
             ? Texts.GetOrDefault("TaskQueue.OverlayDisconnected", "Overlay disconnected")
@@ -207,7 +210,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             Dispatcher.UIThread.Post(() =>
             {
                 SetLanguage(ResolveLanguage());
-                RefreshSelectionBatchModeFromConfig();
+                ApplyGuiSettingsFromConfig();
                 RefreshConfigValidationState(runtime.ConfigurationService.CurrentValidationIssues);
             });
         };
@@ -789,7 +792,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         await ReloadTasksAsync(cancellationToken, preferProfileSelectedIndex: true);
         await InfrastModule.ReloadPersistentConfigAsync(cancellationToken);
         await RoguelikeModule.ReloadPersistentConfigAsync(cancellationToken);
-        RefreshSelectionBatchModeFromConfig();
+        ApplyGuiSettingsFromConfig();
         RefreshStagePresentation();
         UpdatePostActionSummary();
     }
@@ -809,7 +812,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         await ReloadTasksAsync(cancellationToken, preferProfileSelectedIndex: true);
         await InfrastModule.ReloadPersistentConfigAsync(cancellationToken);
         await RoguelikeModule.ReloadPersistentConfigAsync(cancellationToken);
-        RefreshSelectionBatchModeFromConfig();
+        ApplyGuiSettingsFromConfig();
         await PostActionModule.InitializeAsync(cancellationToken);
         RefreshStagePresentation(forceReloadStageOptions);
         UpdatePostActionSummary();
@@ -844,6 +847,15 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         OnPropertyChanged(nameof(OverlayTargetSummaryText));
         OnPropertyChanged(nameof(OverlayButtonToolTip));
         _ = RefreshOverlayStatusTextAsync();
+    }
+
+    public void ApplyGuiSettingsPreview(GuiSettingsSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        _logTimestampFormat = NormalizeLogTimestampFormat(snapshot.LogItemDateFormatString);
+        ApplySelectionBatchMode(snapshot.InverseClearMode);
+        RoguelikeModule.RefreshGuiDependentOptions();
     }
 
     public void SetCoreAvailability(bool isReady, string? message = null)
@@ -1719,6 +1731,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
                 CurrentSessionState = Runtime.SessionService.CurrentState;
                 _currentRunId = Guid.NewGuid().ToString("N");
                 _lastPostActionRunId = string.Empty;
+                TrackAchievementsAfterStart(appendResult.Value);
                 keepRunOwner = true;
             }
             finally
@@ -1878,6 +1891,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     {
         var effectiveAdbPath = _connectionGameSharedState.ResolveEffectiveAdbPath(updateStateWhenResolved: true);
         var adbPath = string.IsNullOrWhiteSpace(effectiveAdbPath) ? null : effectiveAdbPath;
+        var instanceOptions = _connectionGameSharedState.BuildCoreInstanceOptions();
         var candidates = _connectionGameSharedState.BuildConnectAddressCandidates(includeConfiguredAddress: true);
         Runtime.LogService.Debug(
             $"TaskQueue connect candidates prepared: count={candidates.Count}, config={_connectionGameSharedState.ConnectConfig}, adb={adbPath ?? "<null>"}");
@@ -1890,6 +1904,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
                 candidate,
                 _connectionGameSharedState.ConnectConfig,
                 adbPath,
+                instanceOptions,
                 cancellationToken);
             if (result.Success)
             {
@@ -2225,7 +2240,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         return -1;
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken = default)
+    public async Task StopAsync(CancellationToken cancellationToken = default, bool userInitiated = true)
     {
         await _runTransitionLock.WaitAsync(cancellationToken);
         try
@@ -2273,6 +2288,11 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             }
 
             _clearTaskStatusesWhenStopped = true;
+            if (userInitiated)
+            {
+                _ = Runtime.AchievementTrackerService.Unlock("TacticalRetreat");
+            }
+
             if (!await ApplyResultAsync(await Runtime.ConnectFeatureService.StopAsync(cancellationToken), "TaskQueue.Stop", cancellationToken))
             {
                 CurrentSessionState = Runtime.SessionService.CurrentState;
@@ -3104,9 +3124,9 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             || message.Contains("下载", StringComparison.Ordinal))
         {
             DownloadLogEntry = new TaskQueueLogEntryViewModel(
-                timestamp.ToLocalTime().ToString("HH:mm:ss"),
+                FormatLogTimestamp(timestamp),
                 message,
-            NormalizeLogLevel(level));
+                NormalizeLogLevel(level));
         }
     }
 
@@ -3172,7 +3192,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         bool updateThumbnail,
         bool forceScreenshot = false)
     {
-        var logTime = timestamp.ToLocalTime().ToString("HH:mm:ss");
+        var logTime = FormatLogTimestamp(timestamp);
         var hasContent = !string.IsNullOrWhiteSpace(content);
         var needsBeforeSplit = splitMode is TaskQueueLogSplitMode.Before or TaskQueueLogSplitMode.Both;
         var needsAfterSplit = splitMode is TaskQueueLogSplitMode.After or TaskQueueLogSplitMode.Both;
@@ -4401,6 +4421,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
                 UpdateTaskStatus(taskIndex, taskChain, TaskQueueItemStatus.Running);
                 StatusMessage = $"{taskChain ?? "Task"}::{metadata.SubTask ?? "SubTask"} completed.";
                 await UpdateMallDailyExecutionMarkerAsync(metadata, taskIndex);
+                TrackAchievementsFromCallback(metadata, callback.MsgName);
                 AppendWpfCallbackLog(callback, metadata, taskIndex);
                 await RecordRuntimeStatusAsync(
                     runId,
@@ -4414,6 +4435,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             case "TaskChainCompleted":
                 UpdateTaskStatus(taskIndex, taskChain, TaskQueueItemStatus.Success);
                 ClearRoguelikeCombatStateIfTaskCompleted(taskChain);
+                TrackAchievementsFromCallback(metadata, callback.MsgName);
                 AppendWpfCallbackLog(callback, metadata, taskIndex);
                 await RecordRuntimeStatusAsync(
                     runId,
@@ -4493,6 +4515,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
                 break;
             case "TaskChainExtraInfo":
             case "SubTaskExtraInfo":
+                TrackAchievementsFromCallback(metadata, callback.MsgName);
                 AppendWpfCallbackLog(callback, metadata, taskIndex);
                 await RecordRuntimeStatusAsync(
                     runId,
@@ -4581,6 +4604,46 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         catch (Exception ex)
         {
             Runtime.LogService.Warn($"Failed to persist mall daily marker: {ex.Message}");
+        }
+    }
+
+    private void TrackAchievementsAfterStart(int enabledTaskCount)
+    {
+        if (enabledTaskCount > 0)
+        {
+            _ = Runtime.AchievementTrackerService.SetProgress("TaskChainKing", enabledTaskCount);
+        }
+
+        Runtime.AchievementTrackerService.MissionStartCountAdd();
+        Runtime.AchievementTrackerService.UseDailyAdd();
+    }
+
+    private void TrackAchievementsFromCallback(CallbackPayload payload, string callbackName)
+    {
+        if (!string.Equals(callbackName, "SubTaskCompleted", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(callbackName, "TaskChainCompleted", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(callbackName, "SubTaskExtraInfo", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (string.Equals(callbackName, "SubTaskCompleted", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(payload.SubTask, "ProcessTask", StringComparison.OrdinalIgnoreCase))
+        {
+            var taskChain = TaskModuleTypes.Normalize(payload.TaskChain);
+            var taskName = GetStringValue(payload.Details, "task");
+            if (string.Equals(taskChain, TaskModuleTypes.Infrast, StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.Equals(taskName, "UnlockClues", StringComparison.Ordinal))
+                {
+                    _ = Runtime.AchievementTrackerService.AddProgressToGroup("ClueUse");
+                    Runtime.AchievementTrackerService.ClueObsessionAdd();
+                }
+                else if (string.Equals(taskName, "SendClues", StringComparison.Ordinal))
+                {
+                    _ = Runtime.AchievementTrackerService.AddProgressToGroup("ClueSend");
+                }
+            }
         }
     }
 
@@ -5074,14 +5137,10 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     private void RefreshSelectionBatchModeFromConfig()
     {
         var config = Runtime.ConfigurationService.CurrentConfig;
-        var showToggle = TryReadProfileString(config, ConfigurationKeys.InverseClearMode, "Clear")
-            .Equals("ClearInverse", StringComparison.OrdinalIgnoreCase);
         var inverseMode = TryReadProfileBool(config, ConfigurationKeys.MainFunctionInverseMode, false);
-
-        ShowBatchModeToggle = showToggle;
-        SelectionBatchMode = showToggle && inverseMode
-            ? SelectionBatchMode.Inverse
-            : SelectionBatchMode.Clear;
+        ApplySelectionBatchMode(
+            TryReadProfileString(config, ConfigurationKeys.InverseClearMode, "Clear"),
+            inverseMode);
     }
 
     private async Task PersistSelectionBatchModeAsync(CancellationToken cancellationToken = default)
@@ -5259,6 +5318,69 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
 
         value = string.Empty;
         return false;
+    }
+
+    private void ApplyGuiSettingsFromConfig()
+    {
+        _logTimestampFormat = ResolveLogTimestampFormat();
+        RefreshSelectionBatchModeFromConfig();
+        RoguelikeModule.RefreshGuiDependentOptions();
+    }
+
+    private void ApplySelectionBatchMode(string inverseClearMode, bool? persistedInverseMode = null)
+    {
+        var normalized = string.IsNullOrWhiteSpace(inverseClearMode)
+            ? "Clear"
+            : inverseClearMode.Trim();
+
+        if (string.Equals(normalized, "Inverse", StringComparison.OrdinalIgnoreCase))
+        {
+            ShowBatchModeToggle = false;
+            SelectionBatchMode = SelectionBatchMode.Inverse;
+            return;
+        }
+
+        if (string.Equals(normalized, "ClearInverse", StringComparison.OrdinalIgnoreCase))
+        {
+            ShowBatchModeToggle = true;
+            if (persistedInverseMode.HasValue)
+            {
+                SelectionBatchMode = persistedInverseMode.Value
+                    ? SelectionBatchMode.Inverse
+                    : SelectionBatchMode.Clear;
+            }
+
+            return;
+        }
+
+        ShowBatchModeToggle = false;
+        SelectionBatchMode = SelectionBatchMode.Clear;
+    }
+
+    private string ResolveLogTimestampFormat()
+    {
+        return NormalizeLogTimestampFormat(
+            TryReadGlobalString(
+                Runtime.ConfigurationService.CurrentConfig.GlobalValues,
+                ConfigurationKeys.LogItemDateFormat,
+                DefaultLogItemDateFormat));
+    }
+
+    private string FormatLogTimestamp(DateTimeOffset timestamp)
+    {
+        try
+        {
+            return timestamp.ToLocalTime().ToString(_logTimestampFormat, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch (FormatException)
+        {
+            return timestamp.ToLocalTime().ToString(DefaultLogItemDateFormat, System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    private static string NormalizeLogTimestampFormat(string? format)
+    {
+        return string.IsNullOrWhiteSpace(format) ? DefaultLogItemDateFormat : format.Trim();
     }
 
     private static bool TryReadBoolNode(JsonNode? node, out bool value)

@@ -24,6 +24,7 @@ public partial class AchievementListDialogView : Window
         ConfirmButton.Content = request.ConfirmText;
         CancelButton.Content = request.CancelText;
         _allItems = request.Items;
+        FilterInput.Watermark = request.FilterWatermark;
         FilterInput.Text = request.InitialFilter ?? string.Empty;
         ApplyFilter(FilterInput.Text ?? string.Empty);
     }
@@ -48,7 +49,8 @@ public partial class AchievementListDialogView : Window
             filtered = filtered.Where(item =>
                 item.Title.Contains(normalized, StringComparison.OrdinalIgnoreCase)
                 || item.Description.Contains(normalized, StringComparison.OrdinalIgnoreCase)
-                || item.Status.Contains(normalized, StringComparison.OrdinalIgnoreCase));
+                || item.Status.Contains(normalized, StringComparison.OrdinalIgnoreCase)
+                || item.Conditions.Contains(normalized, StringComparison.OrdinalIgnoreCase));
         }
 
         foreach (var item in filtered)

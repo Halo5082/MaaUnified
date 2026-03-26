@@ -324,18 +324,19 @@ public sealed class SettingsGuiBackgroundFeatureTests
             Assert.NotNull(applyMethod);
 
             var snapshot = new GuiSettingsSnapshot(
-                Theme: "Light",
-                Language: "ja-jp",
-                UseTray: true,
-                MinimizeToTray: false,
-                WindowTitleScrollable: true,
-                LogItemDateFormatString: "HH:mm:ss",
-                OperNameLanguage: "OperNameLanguageMAA",
-                InverseClearMode: "Clear",
-                BackgroundImagePath: string.Empty,
-                BackgroundOpacity: 45,
-                BackgroundBlur: 12,
-                BackgroundStretchMode: "UniformToFill");
+                "Light",
+                "ja-jp",
+                true,
+                false,
+                true,
+                false,
+                "HH:mm:ss",
+                "OperNameLanguageMAA",
+                "Clear",
+                string.Empty,
+                45,
+                12,
+                "UniformToFill");
 
             var task = applyMethod!.Invoke(vm, [snapshot, CancellationToken.None]) as Task;
             Assert.NotNull(task);

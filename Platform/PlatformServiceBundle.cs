@@ -76,9 +76,20 @@ public static class PlatformServicesFactory
 
         try
         {
-            if (!forceFallback && SharpHookGlobalHotkeyService.TryCreate(out var nativeHotkey))
+            if (!forceFallback
+                && OperatingSystem.IsLinux()
+                && LinuxDesktopSessionDetector.Detect() == LinuxDesktopSessionKind.Wayland
+                && LinuxPortalGlobalHotkeyService.TryCreate(out var waylandPortalHotkey))
             {
-                hotkeyService = nativeHotkey;
+                hotkeyService = new CompositeGlobalHotkeyService(
+                    waylandPortalHotkey,
+                    new WindowScopedHotkeyService());
+            }
+            else if (!forceFallback && SharpHookGlobalHotkeyService.TryCreate(out var nativeHotkey))
+            {
+                hotkeyService = new CompositeGlobalHotkeyService(
+                    nativeHotkey,
+                    new WindowScopedHotkeyService());
             }
             else
             {

@@ -18,6 +18,11 @@ public interface IMaaCoreBridge : IAsyncDisposable
         CoreConnectionInfo connectionInfo,
         CancellationToken cancellationToken = default);
 
+    Task<CoreResult<bool>> ApplyInstanceOptionsAsync(
+        CoreInstanceOptions options,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(CoreResult<bool>.Fail(new CoreError(CoreErrorCode.NotSupported, "Instance options are unsupported by current bridge.")));
+
     Task<CoreResult<int>> AppendTaskAsync(
         CoreTaskRequest task,
         CancellationToken cancellationToken = default);

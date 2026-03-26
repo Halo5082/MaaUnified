@@ -110,6 +110,28 @@ public sealed record GlobalHotkeyTriggeredEvent(
     string Gesture,
     DateTimeOffset Timestamp);
 
+public sealed record HotkeyBindingRequest(
+    string Name,
+    string Gesture);
+
+public sealed record HotkeyRegistrationOutcome(
+    string Name,
+    string Gesture,
+    PlatformOperationResult Result,
+    string? EffectiveGestureDisplay = null);
+
+public sealed record RegisteredHotkeyState(
+    string Name,
+    string Gesture,
+    string DisplayGesture,
+    string Provider,
+    PlatformExecutionMode ExecutionMode);
+
+public sealed record HotkeyHostContext(
+    nint WindowHandle,
+    string ParentWindowIdentifier,
+    string SessionType);
+
 public enum OverlayRuntimeMode
 {
     Hidden = 0,
@@ -173,6 +195,52 @@ public interface IGlobalHotkeyService
     Task<PlatformOperationResult> RegisterAsync(string name, string gesture, CancellationToken cancellationToken = default);
 
     Task<PlatformOperationResult> UnregisterAsync(string name, CancellationToken cancellationToken = default);
+
+    async Task<IReadOnlyList<HotkeyRegistrationOutcome>> RegisterBatchAsync(
+        IReadOnlyList<HotkeyBindingRequest> requests,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(requests);
+
+        var results = new List<HotkeyRegistrationOutcome>(requests.Count);
+        foreach (var request in requests)
+        {
+            PlatformOperationResult operation;
+            string? displayGesture;
+            if (string.IsNullOrWhiteSpace(request.Gesture))
+            {
+                operation = await UnregisterAsync(request.Name, cancellationToken);
+                displayGesture = string.Empty;
+            }
+            else
+            {
+                operation = await RegisterAsync(request.Name, request.Gesture, cancellationToken);
+                displayGesture = TryGetRegisteredHotkey(request.Name, out var registeredState)
+                    ? registeredState.DisplayGesture
+                    : null;
+            }
+
+            results.Add(new HotkeyRegistrationOutcome(request.Name, request.Gesture, operation, displayGesture));
+        }
+
+        return results;
+    }
+
+    Task<PlatformOperationResult> ConfigureHostContextAsync(
+        HotkeyHostContext context,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult(PlatformOperation.NativeSuccess(
+            Capability.Provider,
+            "Hotkey host context ignored by current provider.",
+            "hotkey.configure-host"));
+
+    bool TryDispatchWindowScopedHotkey(HotkeyGesture gesture) => false;
+
+    bool TryGetRegisteredHotkey(string name, out RegisteredHotkeyState state)
+    {
+        state = default!;
+        return false;
+    }
 }
 
 public interface IAutostartService

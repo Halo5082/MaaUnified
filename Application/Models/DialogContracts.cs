@@ -106,14 +106,29 @@ public sealed record AchievementListItem(
     string Id,
     string Title,
     string Description,
-    string Status);
+    string Status,
+    string Conditions = "",
+    bool IsUnlocked = false,
+    bool IsHidden = false,
+    bool IsProgressive = false,
+    bool ShowProgress = false,
+    int Progress = 0,
+    int Target = 0,
+    string MedalColor = "#B0B0B0",
+    string UnlockedAtText = "",
+    bool IsNewUnlock = false,
+    bool CanShow = true,
+    int SortCategory = 0,
+    string SortGroup = "",
+    int SortGroupIndex = int.MaxValue);
 
 public sealed record AchievementListDialogRequest(
     string Title,
     IReadOnlyList<AchievementListItem> Items,
     string? InitialFilter,
     string ConfirmText = "Confirm",
-    string CancelText = "Cancel");
+    string CancelText = "Cancel",
+    string FilterWatermark = "Filter");
 
 public sealed record AchievementListDialogPayload(
     string FilterText,

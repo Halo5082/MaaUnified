@@ -282,6 +282,21 @@ public sealed class TaskQueueG1FeatureTests
     }
 
     [Fact]
+    public async Task TaskQueuePage_InverseClearModeSetToInverse_ShouldUseInverseAndHideToggle()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        fixture.Config.CurrentConfig.GlobalValues[ConfigurationKeys.InverseClearMode] = JsonValue.Create("Inverse");
+        fixture.Config.CurrentConfig.GlobalValues[ConfigurationKeys.MainFunctionInverseMode] = JsonValue.Create(false);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        Assert.False(vm.ShowBatchModeToggle);
+        Assert.Equal(SelectionBatchMode.Inverse, vm.SelectionBatchMode);
+        Assert.Equal("反选", vm.BatchActionText);
+    }
+
+    [Fact]
     public async Task TaskQueuePage_StopAsync_ShouldMarkRunningTasksAsSkipped()
     {
         await using var fixture = await TestFixture.CreateAsync();

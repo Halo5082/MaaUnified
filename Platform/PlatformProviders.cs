@@ -32,37 +32,7 @@ internal static class HotkeyGestureNormalizer
 {
     public static bool TryNormalize(string gesture, out string normalized)
     {
-        normalized = string.Empty;
-        if (string.IsNullOrWhiteSpace(gesture))
-        {
-            return false;
-        }
-
-        var parts = gesture.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length < 2)
-        {
-            return false;
-        }
-
-        var keyPart = parts[^1];
-        if (keyPart.Length == 0)
-        {
-            return false;
-        }
-
-        var modifiers = parts[..^1]
-            .Select(part => part.ToLowerInvariant())
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(part => part, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (modifiers.Any(mod => mod is not ("ctrl" or "control" or "shift" or "alt" or "meta" or "cmd" or "win")))
-        {
-            return false;
-        }
-
-        normalized = string.Join('+', modifiers.Append(keyPart.ToUpperInvariant()));
-        return true;
+        return HotkeyGestureCodec.TryNormalize(gesture, out normalized);
     }
 }
 
@@ -1375,54 +1345,27 @@ public sealed class SharpHookGlobalHotkeyService : IGlobalHotkeyService, IDispos
     private static bool TryParseGesture(string gesture, out RegisteredHotkey hotkey)
     {
         hotkey = default;
-        if (!HotkeyGestureNormalizer.TryNormalize(gesture, out var normalized))
+        if (!HotkeyGestureCodec.TryParse(gesture, out var parsed))
         {
             return false;
         }
 
-        var tokens = normalized.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (tokens.Length < 2)
+        var normalized = parsed.ToStorageString();
+        if (!TryParseKeyCode(parsed.Key, out var keyCode))
         {
             return false;
         }
 
-        var keyToken = tokens[^1];
-        if (!TryParseKeyCode(keyToken, out var keyCode))
-        {
-            return false;
-        }
-
-        bool ctrl = false;
-        bool shift = false;
-        bool alt = false;
-        bool meta = false;
-
-        foreach (var modifier in tokens[..^1])
-        {
-            switch (modifier.ToLowerInvariant())
-            {
-                case "ctrl":
-                case "control":
-                    ctrl = true;
-                    break;
-                case "shift":
-                    shift = true;
-                    break;
-                case "alt":
-                    alt = true;
-                    break;
-                case "meta":
-                case "cmd":
-                case "win":
-                    meta = true;
-                    break;
-                default:
-                    return false;
-            }
-        }
-
-        var chord = $"{(int)keyCode}:{ctrl}:{shift}:{alt}:{meta}";
-        hotkey = new RegisteredHotkey(string.Empty, normalized, keyCode, ctrl, shift, alt, meta, chord);
+        var chord = $"{(int)keyCode}:{parsed.Ctrl}:{parsed.Shift}:{parsed.Alt}:{parsed.Meta}";
+        hotkey = new RegisteredHotkey(
+            string.Empty,
+            normalized,
+            keyCode,
+            parsed.Ctrl,
+            parsed.Shift,
+            parsed.Alt,
+            parsed.Meta,
+            chord);
         return true;
     }
 
@@ -1458,8 +1401,41 @@ public sealed class SharpHookGlobalHotkeyService : IGlobalHotkeyService, IDispos
             "TAB" => Enum.TryParse("VcTab", out keyCode),
             "SPACE" => Enum.TryParse("VcSpace", out keyCode),
             "ESC" or "ESCAPE" => Enum.TryParse("VcEscape", out keyCode),
+            "BACKSPACE" => Enum.TryParse("VcBackspace", out keyCode),
+            "DELETE" => Enum.TryParse("VcDelete", out keyCode),
+            "INSERT" => Enum.TryParse("VcInsert", out keyCode),
+            "HOME" => Enum.TryParse("VcHome", out keyCode),
+            "END" => Enum.TryParse("VcEnd", out keyCode),
+            "PAGEUP" => Enum.TryParse("VcPageUp", out keyCode),
+            "PAGEDOWN" => Enum.TryParse("VcPageDown", out keyCode),
+            "LEFT" => Enum.TryParse("VcLeft", out keyCode),
+            "UP" => Enum.TryParse("VcUp", out keyCode),
+            "RIGHT" => Enum.TryParse("VcRight", out keyCode),
+            "DOWN" => Enum.TryParse("VcDown", out keyCode),
+            "PLUS" => Enum.TryParse("VcEquals", out keyCode),
+            "MINUS" => Enum.TryParse("VcMinus", out keyCode),
             _ => false,
         };
+    }
+
+    public bool TryGetRegisteredHotkey(string name, out RegisteredHotkeyState state)
+    {
+        lock (_syncRoot)
+        {
+            if (!_registeredByName.TryGetValue(name, out var registered))
+            {
+                state = default!;
+                return false;
+            }
+
+            state = new RegisteredHotkeyState(
+                registered.Name,
+                registered.NormalizedGesture,
+                HotkeyGestureCodec.FormatDisplay(registered.NormalizedGesture),
+                Capability.Provider,
+                PlatformExecutionMode.Native);
+            return true;
+        }
     }
 
     private readonly record struct RegisteredHotkey(
@@ -1768,7 +1744,7 @@ public sealed class CommandNotificationService : INotificationService
 
 public sealed class WindowScopedHotkeyService : IGlobalHotkeyService
 {
-    private readonly Dictionary<string, string> _registeredByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, HotkeyGesture> _registeredByName = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _registeredGestures = new(StringComparer.OrdinalIgnoreCase);
 
     public event EventHandler<GlobalHotkeyTriggeredEvent>? Triggered;
@@ -1789,23 +1765,25 @@ public sealed class WindowScopedHotkeyService : IGlobalHotkeyService
             return Task.FromResult(PlatformOperation.Failed(Capability.Provider, "Hotkey name cannot be empty.", PlatformErrorCodes.HotkeyNameMissing, "hotkey.register"));
         }
 
-        if (!HotkeyGestureNormalizer.TryNormalize(gesture, out var normalizedGesture))
+        if (!HotkeyGestureCodec.TryParse(gesture, out var parsed))
         {
             return Task.FromResult(PlatformOperation.Failed(Capability.Provider, "Invalid hotkey gesture format.", PlatformErrorCodes.HotkeyInvalidGesture, "hotkey.register"));
         }
 
+        var normalizedGesture = parsed.ToStorageString();
         if (_registeredByName.TryGetValue(name, out var existingGesture))
         {
-            _registeredGestures.Remove(existingGesture);
+            _registeredGestures.Remove(existingGesture.ToChordKey());
         }
 
-        if (_registeredGestures.Contains(normalizedGesture))
+        var chordKey = parsed.ToChordKey();
+        if (_registeredGestures.Contains(chordKey))
         {
             return Task.FromResult(PlatformOperation.Failed(Capability.Provider, "Hotkey gesture already in use.", PlatformErrorCodes.HotkeyConflict, "hotkey.register", usedFallback: true));
         }
 
-        _registeredByName[name] = normalizedGesture;
-        _registeredGestures.Add(normalizedGesture);
+        _registeredByName[name] = parsed;
+        _registeredGestures.Add(chordKey);
 
         return Task.FromResult(PlatformOperation.FallbackSuccess(
             Capability.Provider,
@@ -1826,7 +1804,7 @@ public sealed class WindowScopedHotkeyService : IGlobalHotkeyService
         if (_registeredByName.TryGetValue(name, out var existingGesture))
         {
             _registeredByName.Remove(name);
-            _registeredGestures.Remove(existingGesture);
+            _registeredGestures.Remove(existingGesture.ToChordKey());
             return Task.FromResult(PlatformOperation.FallbackSuccess(
                 Capability.Provider,
                 $"Window-scoped hotkey unregistered: {name}",
@@ -1840,6 +1818,54 @@ public sealed class WindowScopedHotkeyService : IGlobalHotkeyService
             PlatformErrorCodes.HotkeyNotFound,
             operationId: "hotkey.unregister",
             usedFallback: true));
+    }
+
+    public bool TryDispatchWindowScopedHotkey(HotkeyGesture gesture)
+    {
+        KeyValuePair<string, HotkeyGesture>? matched = null;
+        foreach (var item in _registeredByName)
+        {
+            if (item.Value.ToChordKey() == gesture.ToChordKey())
+            {
+                matched = item;
+                break;
+            }
+        }
+
+        if (matched is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            Triggered?.Invoke(this, new GlobalHotkeyTriggeredEvent(
+                matched.Value.Key,
+                matched.Value.Value.ToStorageString(),
+                DateTimeOffset.UtcNow));
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public bool TryGetRegisteredHotkey(string name, out RegisteredHotkeyState state)
+    {
+        if (_registeredByName.TryGetValue(name, out var gesture))
+        {
+            state = new RegisteredHotkeyState(
+                name,
+                gesture.ToStorageString(),
+                HotkeyGestureCodec.FormatDisplay(gesture.ToStorageString()),
+                Capability.Provider,
+                PlatformExecutionMode.Fallback);
+            return true;
+        }
+
+        state = default!;
+        return false;
     }
 }
 

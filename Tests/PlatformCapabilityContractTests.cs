@@ -95,6 +95,28 @@ public sealed class PlatformCapabilityContractTests
     }
 
     [Fact]
+    public async Task WindowScopedHotkeyService_DispatchesRegisteredGesture()
+    {
+        var service = new WindowScopedHotkeyService();
+        GlobalHotkeyTriggeredEvent? triggered = null;
+        service.Triggered += (_, args) => triggered = args;
+
+        var registered = await service.RegisterAsync("ShowGui", "Ctrl+Shift+Alt+M");
+        Assert.True(registered.Success);
+
+        var dispatched = service.TryDispatchWindowScopedHotkey(new HotkeyGesture(
+            Ctrl: true,
+            Shift: true,
+            Alt: true,
+            Meta: false,
+            Key: "M"));
+
+        Assert.True(dispatched);
+        Assert.NotNull(triggered);
+        Assert.Equal("ShowGui", triggered!.Name);
+    }
+
+    [Fact]
     public async Task WindowMenuTrayService_InitializeAndShutdown_ReturnFallbackSuccess()
     {
         var service = new WindowMenuTrayService();
@@ -161,7 +183,7 @@ public sealed class PlatformCapabilityContractTests
         var bundle = PlatformServicesFactory.CreateDefaults();
         Assert.True(bundle.TrayService is WindowsNotifyIconTrayService or AvaloniaTrayIconTrayService or WindowMenuTrayService or NoOpTrayService);
         Assert.True(bundle.NotificationService is DesktopNotificationService or CommandNotificationService or NoOpNotificationService);
-        Assert.True(bundle.HotkeyService is SharpHookGlobalHotkeyService or WindowScopedHotkeyService or NoOpGlobalHotkeyService);
+        Assert.True(bundle.HotkeyService is SharpHookGlobalHotkeyService or LinuxPortalGlobalHotkeyService or CompositeGlobalHotkeyService or WindowScopedHotkeyService or NoOpGlobalHotkeyService);
         Assert.True(bundle.AutostartService is CrossPlatformAutostartService or NoOpAutostartService);
         Assert.True(bundle.OverlayService is WindowsOverlayCapabilityService or NoOpOverlayCapabilityService);
     }

@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private bool _platformBound;
     private bool _dialogErrorBound;
     private bool _processingDialogErrors;
+    private bool _processingMinimizeToTray;
     private bool _allowLifecycleClose;
     private bool _closeRequestPending;
     private readonly object _dialogErrorGate = new();
@@ -42,8 +43,10 @@ public partial class MainWindow : Window
         _closeConfirmationService = new ShellCloseConfirmationService(_dialogService);
         BindDialogErrorEvents();
         Opened += OnWindowOpened;
+        KeyDown += OnWindowKeyDown;
         Closing += OnWindowClosing;
         Closed += OnWindowClosed;
+        PropertyChanged += OnWindowPropertyChanged;
     }
 
     private MainShellViewModel? VM => DataContext as MainShellViewModel;
@@ -89,6 +92,7 @@ public partial class MainWindow : Window
     private async void OnWindowOpened(object? sender, EventArgs e)
     {
         Program.RecordStartupStage("MainWindow.Opened", "Main window opened.");
+        UpdateAchievementToastVisibility();
         StartDialogErrorPumpIfNeeded();
         var vm = VM;
         if (vm is null || _platformBound)
@@ -112,10 +116,17 @@ public partial class MainWindow : Window
         vm.PlatformCapabilityService.OverlayStateChanged += OnPlatformOverlayStateChanged;
         _platformBound = true;
 
+        var hotkeyHostContext = await vm.PlatformCapabilityService.ConfigureHotkeyHostContextAsync(
+            BuildHotkeyHostContext());
+        await HandlePlatformResultAsync("PlatformCapability.Hotkey.ConfigureHost", hotkeyHostContext);
+
         var trayInit = await vm.PlatformCapabilityService.InitializeTrayAsync(
             "MaaAssistantArknights",
             PlatformCapabilityTextMap.CreateTrayMenuText(vm.SettingsPage.Language, vm.ReportLocalizationFallback));
         await HandlePlatformResultAsync("PlatformCapability.Tray.Initialize", trayInit);
+
+        var trayVisible = await vm.PlatformCapabilityService.SetTrayVisibleAsync(vm.SettingsPage.UseTray);
+        await HandlePlatformResultAsync("PlatformCapability.Tray.InitialVisibility", trayVisible);
 
         await vm.RegisterHotkeysAtStartupAsync();
         try
@@ -135,6 +146,7 @@ public partial class MainWindow : Window
 
     private async void OnWindowClosed(object? sender, EventArgs e)
     {
+        UpdateAchievementToastVisibility();
         if (_dialogErrorBound)
         {
             App.Runtime.DialogFeatureService.ErrorRaised -= OnDialogErrorRaised;
@@ -175,6 +187,24 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == IsVisibleProperty || e.Property == WindowStateProperty)
+        {
+            UpdateAchievementToastVisibility();
+        }
+
+        if (e.Property == WindowStateProperty)
+        {
+            await HandleMinimizeToTrayAsync();
+        }
+    }
+
+    private void UpdateAchievementToastVisibility()
+    {
+        VM?.SetAchievementToastWindowVisible(IsVisible && WindowState != WindowState.Minimized);
+    }
+
     private async void OnConnectClick(object? sender, RoutedEventArgs e)
     {
         if (VM is not null)
@@ -199,6 +229,14 @@ public partial class MainWindow : Window
     private async void OnStopClick(object? sender, RoutedEventArgs e)
     {
         await DispatchTrayCommandAsync(TrayCommandId.Stop, "window-shell-menu");
+    }
+
+    private void OnDismissAchievementToastClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string toastId)
+        {
+            VM?.DismissAchievementToast(toastId);
+        }
     }
 
     private async void OnSwitchLanguageToClick(object? sender, RoutedEventArgs e)
@@ -431,8 +469,7 @@ public partial class MainWindow : Window
                 case ShellUiAction.None:
                     break;
                 case ShellUiAction.ShowMainWindow:
-                    Show();
-                    Activate();
+                    ShowAndActivateMainWindow();
                     break;
                 case ShellUiAction.CloseMainWindow:
                     var exitScope = command == TrayCommandId.Restart
@@ -464,8 +501,7 @@ public partial class MainWindow : Window
         {
             if (string.Equals(e.Name, "ShowGui", StringComparison.OrdinalIgnoreCase))
             {
-                Show();
-                Activate();
+                ShowAndActivateMainWindow();
                 return;
             }
 
@@ -481,6 +517,91 @@ public partial class MainWindow : Window
                 "Global hotkey execution failed.",
                 ex);
         }
+    }
+
+    private async Task HandleMinimizeToTrayAsync(CancellationToken cancellationToken = default)
+    {
+        var vm = VM;
+        if (_processingMinimizeToTray
+            || vm is null
+            || WindowState != WindowState.Minimized
+            || !vm.SettingsPage.UseTray
+            || !vm.SettingsPage.MinimizeToTray)
+        {
+            return;
+        }
+
+        try
+        {
+            _processingMinimizeToTray = true;
+            var trayVisible = await vm.PlatformCapabilityService.SetTrayVisibleAsync(true, cancellationToken);
+            await HandlePlatformResultAsync("PlatformCapability.Tray.MinimizeToTray", trayVisible, cancellationToken);
+            WindowState = WindowState.Normal;
+            Hide();
+        }
+        finally
+        {
+            _processingMinimizeToTray = false;
+            UpdateAchievementToastVisibility();
+        }
+    }
+
+    private void ShowAndActivateMainWindow()
+    {
+        if (!IsVisible)
+        {
+            Show();
+        }
+
+        if (WindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+
+        Activate();
+    }
+
+    private void OnWindowKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Handled || VM is null)
+        {
+            return;
+        }
+
+        var capture = HotkeyGestureCodec.Capture(e.Key, e.KeyModifiers);
+        if (capture.Kind != HotkeyCaptureResultKind.Captured || capture.Gesture is null)
+        {
+            return;
+        }
+
+        if (VM.PlatformCapabilityService.TryDispatchWindowScopedHotkey(capture.Gesture))
+        {
+            e.Handled = true;
+        }
+    }
+
+    private HotkeyHostContext BuildHotkeyHostContext()
+    {
+        var platformHandle = TryGetPlatformHandle();
+        var nativeHandle = platformHandle?.Handle ?? nint.Zero;
+        var descriptor = platformHandle?.HandleDescriptor ?? string.Empty;
+        var parentWindowIdentifier = string.Empty;
+
+        if (OperatingSystem.IsLinux()
+            && nativeHandle != nint.Zero
+            && descriptor.Equals("XID", StringComparison.OrdinalIgnoreCase))
+        {
+            parentWindowIdentifier = $"x11:{nativeHandle.ToInt64():x}";
+        }
+
+        var sessionType = OperatingSystem.IsWindows()
+            ? "windows"
+            : OperatingSystem.IsMacOS()
+                ? "macos"
+                : OperatingSystem.IsLinux()
+                    ? LinuxDesktopSessionDetector.Detect().ToString().ToLowerInvariant()
+                    : "unknown";
+        return new HotkeyHostContext(nativeHandle, parentWindowIdentifier, sessionType);
     }
 
     private Task<bool> ConfirmCloseAsync(string sourceScope, CancellationToken cancellationToken = default)
@@ -624,6 +745,8 @@ public partial class MainWindow : Window
     private async Task ShowErrorDialogAsync(DialogErrorRaisedEvent dialogError)
     {
         var language = VM?.SettingsPage.Language ?? UiLanguageCatalog.FallbackLanguage;
+        App.Runtime.AchievementTrackerService.SetCurrentLanguage(language);
+        _ = App.Runtime.AchievementTrackerService.Unlock("CongratulationError");
         var localizedResult = DialogTextCatalog.LocalizeErrorResult(language, dialogError.Result);
         var request = new ErrorDialogRequest(
             Title: DialogTextCatalog.ErrorDialogTitle(language),

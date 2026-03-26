@@ -13,6 +13,8 @@ public sealed record StartupShellSnapshot(
     bool MinimizeToTray,
     bool DeveloperModeEnabled,
     bool WindowTitleScrollable,
+    bool UseSoftwareRendering,
+    string LogItemDateFormatString,
     string BackgroundImagePath,
     int BackgroundOpacity,
     int BackgroundBlur,
@@ -23,11 +25,10 @@ public sealed record StartupShellSnapshot(
     private const string ThemeModeKey = "Theme.Mode";
     private const string DefaultTheme = "Light";
     private const string DefaultBackgroundStretchMode = "Fill";
+    private const string DefaultLogItemDateFormat = "HH:mm:ss";
     private const string DeveloperModeConfigKey = "GUI.DeveloperMode";
-    private const string ShowGuiHotkeyName = "ShowGui";
-    private const string LinkStartHotkeyName = "LinkStart";
-    private const string DefaultHotkeyShowGui = "Ctrl+Shift+Alt+M";
-    private const string DefaultHotkeyLinkStart = "Ctrl+Shift+Alt+L";
+    private const string DefaultHotkeyShowGui = HotkeyConfigurationCodec.DefaultHotkeyShowGui;
+    private const string DefaultHotkeyLinkStart = HotkeyConfigurationCodec.DefaultHotkeyLinkStart;
     private const int BackgroundOpacityMin = 0;
     private const int BackgroundOpacityMax = 100;
     private const int BackgroundBlurMin = 0;
@@ -40,6 +41,8 @@ public sealed record StartupShellSnapshot(
         MinimizeToTray: false,
         DeveloperModeEnabled: false,
         WindowTitleScrollable: false,
+        UseSoftwareRendering: false,
+        LogItemDateFormatString: DefaultLogItemDateFormat,
         BackgroundImagePath: string.Empty,
         BackgroundOpacity: 45,
         BackgroundBlur: 12,
@@ -51,9 +54,8 @@ public sealed record StartupShellSnapshot(
     {
         ArgumentNullException.ThrowIfNull(config);
 
-        var hotkeyWarnings = new List<string>();
         var rawHotkeys = ReadGlobalString(config, ConfigurationKeys.HotKeys, string.Empty);
-        var parsedHotkeys = ParseHotkeys(rawHotkeys, hotkeyWarnings);
+        var parsedHotkeys = HotkeyConfigurationCodec.Parse(rawHotkeys);
         var useTray = ReadGlobalBool(config, ConfigurationKeys.UseTray, true);
 
         return new StartupShellSnapshot(
@@ -63,6 +65,9 @@ public sealed record StartupShellSnapshot(
             MinimizeToTray: useTray && ReadGlobalBool(config, ConfigurationKeys.MinimizeToTray, false),
             DeveloperModeEnabled: ReadGlobalBool(config, DeveloperModeConfigKey, false),
             WindowTitleScrollable: ReadGlobalBool(config, ConfigurationKeys.WindowTitleScrollable, false),
+            UseSoftwareRendering: ReadGlobalBool(config, ConfigurationKeys.IgnoreBadModulesAndUseSoftwareRendering, false),
+            LogItemDateFormatString: NormalizeLogItemDateFormat(
+                ReadGlobalString(config, ConfigurationKeys.LogItemDateFormat, DefaultLogItemDateFormat)),
             BackgroundImagePath: NormalizeBackgroundPath(ReadGlobalString(config, ConfigurationKeys.BackgroundImagePath, string.Empty)),
             BackgroundOpacity: Math.Clamp(
                 ReadGlobalInt(config, ConfigurationKeys.BackgroundOpacity, Default.BackgroundOpacity),
@@ -74,16 +79,8 @@ public sealed record StartupShellSnapshot(
                 BackgroundBlurMax),
             BackgroundStretchMode: NormalizeBackgroundStretchMode(
                 ReadGlobalString(config, ConfigurationKeys.BackgroundImageStretchMode, DefaultBackgroundStretchMode)),
-            HotkeyShowGui: NormalizeHotkeyGesture(
-                parsedHotkeys.TryGetValue(ShowGuiHotkeyName, out var showGui)
-                    ? showGui
-                    : DefaultHotkeyShowGui,
-                DefaultHotkeyShowGui),
-            HotkeyLinkStart: NormalizeHotkeyGesture(
-                parsedHotkeys.TryGetValue(LinkStartHotkeyName, out var linkStart)
-                    ? linkStart
-                    : DefaultHotkeyLinkStart,
-                DefaultHotkeyLinkStart));
+            HotkeyShowGui: parsedHotkeys.ShowGui,
+            HotkeyLinkStart: parsedHotkeys.LinkStart);
     }
 
     private static string ReadGlobalString(UnifiedConfig config, string key, string fallback)
@@ -162,55 +159,6 @@ public sealed record StartupShellSnapshot(
         return bool.TryParse(node.ToString(), out var parsedFallback) ? parsedFallback : fallback;
     }
 
-    private static IReadOnlyDictionary<string, string> ParseHotkeys(string raw, ICollection<string> warnings)
-    {
-        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            return result;
-        }
-
-        foreach (var segment in raw.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            var pair = segment.Split('=', 2, StringSplitOptions.TrimEntries);
-            if (pair.Length != 2)
-            {
-                warnings.Add($"Ignored malformed hotkey entry `{segment}`.");
-                continue;
-            }
-
-            var key = pair[0];
-            var value = pair[1];
-            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
-            {
-                warnings.Add($"Ignored empty hotkey entry `{segment}`.");
-                continue;
-            }
-
-            var canonicalKey = string.Equals(key, ShowGuiHotkeyName, StringComparison.OrdinalIgnoreCase)
-                ? ShowGuiHotkeyName
-                : string.Equals(key, LinkStartHotkeyName, StringComparison.OrdinalIgnoreCase)
-                    ? LinkStartHotkeyName
-                    : string.Empty;
-
-            if (string.IsNullOrWhiteSpace(canonicalKey))
-            {
-                warnings.Add($"Ignored unsupported hotkey key `{key}`.");
-                continue;
-            }
-
-            result[canonicalKey] = value;
-        }
-
-        return result;
-    }
-
-    private static string NormalizeHotkeyGesture(string? value, string fallback)
-    {
-        var trimmed = value?.Trim();
-        return string.IsNullOrWhiteSpace(trimmed) ? fallback : trimmed;
-    }
-
     private static string NormalizeTheme(string? value)
     {
         var normalized = value?.Trim();
@@ -232,5 +180,10 @@ public sealed record StartupShellSnapshot(
     private static string NormalizeBackgroundPath(string? value)
     {
         return value?.Trim() ?? string.Empty;
+    }
+
+    private static string NormalizeLogItemDateFormat(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? DefaultLogItemDateFormat : value.Trim();
     }
 }

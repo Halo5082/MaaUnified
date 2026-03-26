@@ -368,6 +368,11 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
         return Task.CompletedTask;
     }
 
+    public void RefreshGuiDependentOptions()
+    {
+        RebuildOptionState();
+    }
+
     public string CoreCharTipText => Texts.GetOrDefault("Roguelike.CoreCharTip", "根据当前主题选择开局核心干员。");
 
     public string Theme

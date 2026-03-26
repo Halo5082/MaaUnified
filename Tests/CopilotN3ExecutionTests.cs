@@ -62,6 +62,7 @@ public sealed class CopilotN3ExecutionTests
         await fixture.ViewModel.SendLikeAsync(true);
         Assert.Contains("点赞", fixture.ViewModel.StatusMessage, StringComparison.Ordinal);
         Assert.Equal(string.Empty, fixture.ViewModel.LastErrorMessage);
+        Assert.Equal(1, fixture.Runtime.AchievementTrackerService.GetProgressToGroup("CopilotLikeGiven"));
         Assert.True(await WaitForLogContainsAsync(
             fixture.Runtime.DiagnosticsService.EventLogPath,
             "Copilot.Feedback"));
@@ -103,6 +104,39 @@ public sealed class CopilotN3ExecutionTests
         await fixture.ViewModel.SendLikeAsync(false);
         Assert.Contains("点踩", fixture.ViewModel.StatusMessage, StringComparison.Ordinal);
         Assert.Equal(string.Empty, fixture.ViewModel.LastErrorMessage);
+    }
+
+    [Fact]
+    public async Task RuntimeCallbacks_ShouldTrackUseCopilotAndMapOutdatedAchievements()
+    {
+        await using var fixture = await CopilotN3Fixture.CreateAsync();
+        Assert.True((await fixture.Runtime.ConnectFeatureService.ConnectAsync("127.0.0.1:5555", "General", null)).Success);
+
+        fixture.ViewModel.FilePath = fixture.CreateCopilotFile();
+        await fixture.ViewModel.ImportFromFileAsync();
+        await fixture.ViewModel.StartAsync();
+
+        var taskId = fixture.Bridge.LastAppendedTaskId;
+        fixture.ViewModel.ApplyRuntimeCallback(new CoreCallbackEvent(
+            10001,
+            "TaskChainStart",
+            $$"""{"task_chain":"Copilot","task_id":{{taskId}}}""",
+            DateTimeOffset.UtcNow));
+        fixture.ViewModel.ApplyRuntimeCallback(new CoreCallbackEvent(
+            10002,
+            "SubTaskExtraInfo",
+            $$$"""{"task_chain":"Copilot","task_id":{{{taskId}}},"what":"UnsupportedLevel","details":{}}""",
+            DateTimeOffset.UtcNow));
+        fixture.ViewModel.ApplyRuntimeCallback(new CoreCallbackEvent(
+            10003,
+            "TaskChainCompleted",
+            $$"""{"task_chain":"Copilot","task_id":{{taskId}}}""",
+            DateTimeOffset.UtcNow));
+
+        Assert.Equal(1, fixture.Runtime.AchievementTrackerService.GetProgressToGroup("UseCopilot"));
+        var snapshot = await fixture.Runtime.AchievementTrackerService.GetSnapshotAsync("zh-cn");
+        Assert.True(snapshot.Success);
+        Assert.Contains(snapshot.Value!.Items, item => item.Id == "MapOutdated" && item.IsUnlocked);
     }
 
     [Fact]
@@ -467,6 +501,7 @@ public sealed class CopilotN3ExecutionTests
 
             var capability = new PlatformCapabilityFeatureService(platform, diagnostics);
             var connect = new ConnectFeatureService(session, config);
+            var achievementTracker = new AchievementTrackerService(config, root);
             var runtime = new MAAUnifiedRuntime
             {
                 CoreBridge = bridge,
@@ -486,6 +521,7 @@ public sealed class CopilotN3ExecutionTests
                 OverlayFeatureService = new OverlayFeatureService(capability),
                 NotificationProviderFeatureService = new NotificationProviderFeatureService(),
                 SettingsFeatureService = new SettingsFeatureService(config, capability, diagnostics),
+                AchievementTrackerService = achievementTracker,
                 DialogFeatureService = new DialogFeatureService(diagnostics),
                 PostActionFeatureService = new PostActionFeatureService(
                     config,

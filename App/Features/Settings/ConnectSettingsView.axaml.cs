@@ -193,6 +193,7 @@ public partial class ConnectSettingsView : UserControl
     {
         var effectiveAdbPath = vm.ResolveEffectiveAdbPath(updateStateWhenResolved: true);
         var adbPath = string.IsNullOrWhiteSpace(effectiveAdbPath) ? null : effectiveAdbPath;
+        var instanceOptions = vm.BuildCoreInstanceOptions();
         var candidates = vm.BuildConnectAddressCandidates(includeConfiguredAddress: true);
         App.Runtime.LogService.Debug(
             $"Settings connect candidates prepared: count={candidates.Count}, config={vm.ConnectConfig}, adb={adbPath ?? "<null>"}");
@@ -201,7 +202,7 @@ public partial class ConnectSettingsView : UserControl
         foreach (var candidate in candidates)
         {
             App.Runtime.LogService.Debug($"Settings trying connect candidate: {candidate}");
-            var result = await App.Runtime.ShellFeatureService.ConnectAsync(candidate, vm.ConnectConfig, adbPath);
+            var result = await App.Runtime.ShellFeatureService.ConnectAsync(candidate, vm.ConnectConfig, adbPath, instanceOptions);
             if (result.Success)
             {
                 App.Runtime.LogService.Debug($"Settings connect succeeded: {candidate}");

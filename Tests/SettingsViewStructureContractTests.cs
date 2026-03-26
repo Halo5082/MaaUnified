@@ -44,6 +44,10 @@ public sealed class SettingsViewStructureContractTests
 
         var achievement = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "AchievementSettingsView.axaml"));
         Assert.Contains("IsVisible=\"{Binding CanEditAchievementPopupAutoClose}\"", achievement, StringComparison.Ordinal);
+        Assert.Contains("OnBackupAchievementClick", achievement, StringComparison.Ordinal);
+        Assert.Contains("OnRestoreAchievementClick", achievement, StringComparison.Ordinal);
+        Assert.Contains("OnAchievementDebugPointerPressed", achievement, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding CanUseAchievementDebugActions}\"", achievement, StringComparison.Ordinal);
 
         var external = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "ExternalNotificationSettingsView.axaml"));
         Assert.Contains("IsEnabled=\"{Binding CanEditExternalNotification}\"", external, StringComparison.Ordinal);

@@ -11,4 +11,12 @@
     <ProjectReference Include="..\CoreBridge\MAAUnified.CoreBridge.csproj" />
     <ProjectReference Include="..\Platform\MAAUnified.Platform.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\zh-cn.xaml" Link="AchievementLocalizations\zh-cn.xaml" />
+    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\zh-tw.xaml" Link="AchievementLocalizations\zh-tw.xaml" />
+    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\en-us.xaml" Link="AchievementLocalizations\en-us.xaml" />
+    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\ja-jp.xaml" Link="AchievementLocalizations\ja-jp.xaml" />
+    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\ko-kr.xaml" Link="AchievementLocalizations\ko-kr.xaml" />
+  </ItemGroup>
 </Project>

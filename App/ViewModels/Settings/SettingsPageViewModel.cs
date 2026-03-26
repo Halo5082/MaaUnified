@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Avalonia.Threading;
 using LegacyConfigurationKeys = MAAUnified.Compat.Constants.ConfigurationKeys;
 using MAAUnified.App.Features.Dialogs;
 using MAAUnified.App.ViewModels.Infrastructure;
@@ -13,6 +14,7 @@ using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.Localization;
 using MAAUnified.Compat.Constants;
+using MAAUnified.CoreBridge;
 using MAAUnified.Platform;
 
 namespace MAAUnified.App.ViewModels.Settings;
@@ -27,10 +29,11 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     private const string DefaultOperNameLanguage = "OperNameLanguageMAA";
     private const string DefaultInverseClearMode = "Clear";
     private const string DeveloperModeConfigKey = "GUI.DeveloperMode";
-    private const string ShowGuiHotkeyName = "ShowGui";
-    private const string LinkStartHotkeyName = "LinkStart";
-    private const string DefaultHotkeyShowGui = "Ctrl+Shift+Alt+M";
-    private const string DefaultHotkeyLinkStart = "Ctrl+Shift+Alt+L";
+    private const string SoftwareRenderingConfigKey = ConfigurationKeys.IgnoreBadModulesAndUseSoftwareRendering;
+    private const string ShowGuiHotkeyName = HotkeyConfigurationCodec.ShowGuiHotkeyName;
+    private const string LinkStartHotkeyName = HotkeyConfigurationCodec.LinkStartHotkeyName;
+    private const string DefaultHotkeyShowGui = HotkeyConfigurationCodec.DefaultHotkeyShowGui;
+    private const string DefaultHotkeyLinkStart = HotkeyConfigurationCodec.DefaultHotkeyLinkStart;
     private const int EmulatorWaitSecondsMin = 0;
     private const int EmulatorWaitSecondsMax = 600;
     private const int DefaultEmulatorWaitSeconds = 60;
@@ -169,6 +172,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     private CancellationTokenSource? _autostartFeedbackCts;
     private bool _suppressPageAutoSave;
     private bool _suppressGuiAutoSave;
+    private bool _suppressGuiPreview;
     private bool _suppressStartPerformanceDirtyTracking;
     private bool _suppressConfigurationProfileSelectionHandling;
     private string _theme = DefaultTheme;
@@ -179,6 +183,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     private bool _useTray = true;
     private bool _minimizeToTray;
     private bool _windowTitleScrollable;
+    private bool _useSoftwareRendering;
     private bool _developerModeEnabled;
     private bool _startSelf;
     private string _autostartStatus = string.Empty;
@@ -192,6 +197,8 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     private string _hotkeyStatusMessage = string.Empty;
     private string _hotkeyWarningMessage = string.Empty;
     private string _hotkeyErrorMessage = string.Empty;
+    private readonly HotkeySettingItemViewModel _showGuiHotkeyState = new(ShowGuiHotkeyName);
+    private readonly HotkeySettingItemViewModel _linkStartHotkeyState = new(LinkStartHotkeyName);
     private string _notificationTitle = "MAA 外部通知测试";
     private string _notificationMessage = "这是 MAA 外部通知测试信息。如果你看到了这段内容，就说明通知发送成功了！";
     private string _issueReportPath = string.Empty;
@@ -310,6 +317,12 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     private string _configurationManagerErrorMessage = string.Empty;
     private bool _achievementPopupDisabled;
     private bool _achievementPopupAutoClose;
+    private int _achievementUnlockedCount;
+    private int _achievementTotalCount;
+    private bool _achievementDebugEnabled;
+    private int _achievementDebugClickCount;
+    private string _achievementDebugMedalColor = "#B0B0B0";
+    private string _achievementDebugTip = "MAA";
     private string _achievementStatusMessage = string.Empty;
     private string _achievementErrorMessage = string.Empty;
     private string _achievementPolicySummary = string.Empty;
@@ -337,13 +350,19 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         RootTexts.Language = _language;
         ConnectionGameSharedState = connectionGameSharedState;
         ConnectionGameSharedState.SetLanguage(_language);
+        runtime.AchievementTrackerService.SetCurrentLanguage(_language);
+        runtime.AchievementTrackerService.StateChanged += OnAchievementTrackerStateChanged;
         (_updatePanelUiVersion, _updatePanelBuildTime) = BuildVersionUpdateUiMetadata();
         RebuildGuiOptionLists();
         RebuildVersionUpdateOptionLists();
         _aboutVersionInfo = BuildAboutVersionInfo();
+        _achievementDebugTip = AchievementTextCatalog.GetPallasString(1, 10);
         UpdateAchievementPolicySummary(AchievementPolicy.Default);
         Sections = new ObservableCollection<SettingsSectionViewModel>();
         CurrentSectionActions = new ObservableCollection<SettingsSectionActionItem>();
+        RefreshHotkeyUiText();
+        ApplyHotkeyDraft(_showGuiHotkeyState, DefaultHotkeyShowGui, nameof(HotkeyShowGui), clearFeedback: false);
+        ApplyHotkeyDraft(_linkStartHotkeyState, DefaultHotkeyLinkStart, nameof(HotkeyLinkStart), clearFeedback: false);
         RebuildSections();
 
         Timers = new ObservableCollection<TimerSlotViewModel>(
@@ -362,6 +381,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     public RootLocalizationTextMap RootTexts { get; }
 
     public event EventHandler<GuiSettingsAppliedEventArgs>? GuiSettingsApplied;
+    public event EventHandler<GuiSettingsPreviewChangedEventArgs>? GuiSettingsPreviewChanged;
     public event EventHandler? ResourceVersionUpdated;
     public event EventHandler<ConfigurationContextChangedEventArgs>? ConfigurationContextChanged;
 
@@ -619,6 +639,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             {
                 OnPropertyChanged(nameof(SelectedThemeOption));
                 MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
@@ -633,11 +654,17 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             {
                 RootTexts.Language = normalized;
                 ConnectionGameSharedState.SetLanguage(normalized);
+                Runtime.AchievementTrackerService.SetCurrentLanguage(normalized);
+                RefreshHotkeyUiText();
+                OnPropertyChanged(nameof(HotkeyCaptureGuideText));
                 RebuildGuiOptionLists();
                 RebuildSections(SelectedSection?.Key);
                 RebuildVersionUpdateOptionLists();
                 RefreshGpuUiState();
+                RefreshAchievementUiState();
+                UpdateAchievementPolicySummary(new AchievementPolicy(AchievementPopupDisabled, AchievementPopupAutoClose));
                 MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
@@ -651,9 +678,14 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             if (SetProperty(ref _logItemDateFormatString, normalized))
             {
                 MarkGuiSettingsDirty();
+                OnPropertyChanged(nameof(GuiLogItemDateFormatPreview));
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
+
+    public string GuiLogItemDateFormatPreview
+        => FormatGuiLogTimestampPreview(LogItemDateFormatString);
 
     public string OperNameLanguage
     {
@@ -665,6 +697,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             {
                 OnPropertyChanged(nameof(SelectedOperNameLanguageOption));
                 MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
@@ -679,6 +712,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             {
                 OnPropertyChanged(nameof(SelectedInverseClearModeOption));
                 MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
@@ -698,6 +732,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
                 OnPropertyChanged(nameof(CanMinimizeToTray));
                 MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
@@ -713,6 +748,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             if (SetProperty(ref _minimizeToTray, normalized))
             {
                 MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
@@ -725,6 +761,20 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             if (SetProperty(ref _windowTitleScrollable, value))
             {
                 MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
+            }
+        }
+    }
+
+    public bool UseSoftwareRendering
+    {
+        get => _useSoftwareRendering;
+        set
+        {
+            if (SetProperty(ref _useSoftwareRendering, value))
+            {
+                MarkGuiSettingsDirty();
+                NotifyGuiSettingsPreviewChanged();
             }
         }
     }
@@ -782,16 +832,22 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
     public bool HasAutostartErrorMessage => !string.IsNullOrWhiteSpace(AutostartErrorMessage);
 
+    public HotkeySettingItemViewModel ShowGuiHotkeyState => _showGuiHotkeyState;
+
+    public HotkeySettingItemViewModel LinkStartHotkeyState => _linkStartHotkeyState;
+
+    public string HotkeyCaptureGuideText => GetHotkeyCaptureGuideText();
+
     public string HotkeyShowGui
     {
         get => _hotkeyShowGui;
-        set => SetProperty(ref _hotkeyShowGui, value);
+        set => ApplyHotkeyDraft(_showGuiHotkeyState, value, nameof(HotkeyShowGui));
     }
 
     public string HotkeyLinkStart
     {
         get => _hotkeyLinkStart;
-        set => SetProperty(ref _hotkeyLinkStart, value);
+        set => ApplyHotkeyDraft(_linkStartHotkeyState, value, nameof(HotkeyLinkStart));
     }
 
     public string HotkeyStatusMessage
@@ -827,6 +883,84 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     public bool HasHotkeyWarningMessage => !string.IsNullOrWhiteSpace(HotkeyWarningMessage);
 
     public bool HasHotkeyErrorMessage => !string.IsNullOrWhiteSpace(HotkeyErrorMessage);
+
+    public void BeginHotkeyCapture(string hotkeyName)
+    {
+        _showGuiHotkeyState.EndCapture();
+        _linkStartHotkeyState.EndCapture();
+        GetHotkeyState(hotkeyName)?.BeginCapture();
+    }
+
+    public void ClearHotkeyBinding(string hotkeyName)
+    {
+        var state = GetHotkeyState(hotkeyName);
+        if (state is null)
+        {
+            return;
+        }
+
+        state.EndCapture();
+        if (string.Equals(hotkeyName, ShowGuiHotkeyName, StringComparison.OrdinalIgnoreCase))
+        {
+            HotkeyShowGui = string.Empty;
+        }
+        else if (string.Equals(hotkeyName, LinkStartHotkeyName, StringComparison.OrdinalIgnoreCase))
+        {
+            HotkeyLinkStart = string.Empty;
+        }
+
+        state.SetWarning(GetHotkeyDraftPendingText(cleared: true));
+        HotkeyStatusMessage = GetHotkeyDraftPendingText(cleared: false);
+        HotkeyErrorMessage = string.Empty;
+        StatusMessage = HotkeyStatusMessage;
+    }
+
+    public void HandleHotkeyCapture(string hotkeyName, HotkeyCaptureResult capture)
+    {
+        var state = GetHotkeyState(hotkeyName);
+        if (state is null)
+        {
+            return;
+        }
+
+        switch (capture.Kind)
+        {
+            case HotkeyCaptureResultKind.Pending:
+                state.SetWarning(string.Empty);
+                break;
+            case HotkeyCaptureResultKind.Cancelled:
+                state.EndCapture();
+                state.SetWarning(GetHotkeyCaptureCancelledText());
+                break;
+            case HotkeyCaptureResultKind.Cleared:
+                ClearHotkeyBinding(hotkeyName);
+                break;
+            case HotkeyCaptureResultKind.Captured:
+                state.EndCapture();
+                if (capture.Gesture is not null)
+                {
+                    if (string.Equals(hotkeyName, ShowGuiHotkeyName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        HotkeyShowGui = capture.Gesture.ToStorageString();
+                    }
+                    else
+                    {
+                        HotkeyLinkStart = capture.Gesture.ToStorageString();
+                    }
+                }
+
+                state.SetWarning(GetHotkeyDraftPendingText(cleared: false));
+                HotkeyStatusMessage = GetHotkeyDraftPendingText(cleared: false);
+                HotkeyErrorMessage = string.Empty;
+                StatusMessage = HotkeyStatusMessage;
+                break;
+            case HotkeyCaptureResultKind.Rejected:
+                state.SetWarning(LocalizeHotkeyCaptureMessage(capture.Message));
+                break;
+            default:
+                break;
+        }
+    }
 
     public string NotificationTitle
     {
@@ -1359,6 +1493,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             if (SetProperty(ref _achievementPopupDisabled, value))
             {
                 OnPropertyChanged(nameof(CanEditAchievementPopupAutoClose));
+                UpdateAchievementPolicySummary(new AchievementPolicy(_achievementPopupDisabled, _achievementPopupAutoClose));
             }
         }
     }
@@ -1366,10 +1501,69 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     public bool AchievementPopupAutoClose
     {
         get => _achievementPopupAutoClose;
-        set => SetProperty(ref _achievementPopupAutoClose, value);
+        set
+        {
+            if (SetProperty(ref _achievementPopupAutoClose, value))
+            {
+                UpdateAchievementPolicySummary(new AchievementPolicy(_achievementPopupDisabled, _achievementPopupAutoClose));
+            }
+        }
     }
 
     public bool CanEditAchievementPopupAutoClose => !AchievementPopupDisabled;
+
+    public int AchievementUnlockedCount
+    {
+        get => _achievementUnlockedCount;
+        private set
+        {
+            if (SetProperty(ref _achievementUnlockedCount, value))
+            {
+                OnPropertyChanged(nameof(AchievementLevelText));
+            }
+        }
+    }
+
+    public int AchievementTotalCount
+    {
+        get => _achievementTotalCount;
+        private set
+        {
+            if (SetProperty(ref _achievementTotalCount, value))
+            {
+                OnPropertyChanged(nameof(AchievementLevelText));
+            }
+        }
+    }
+
+    public string AchievementLevelText
+        => $"{AchievementTextCatalog.GetString("AchievementLevel", Language, "成就等级：")}{AchievementUnlockedCount}/{AchievementTotalCount}";
+
+    public bool AchievementDebugEnabled
+    {
+        get => _achievementDebugEnabled;
+        private set
+        {
+            if (SetProperty(ref _achievementDebugEnabled, value))
+            {
+                OnPropertyChanged(nameof(CanUseAchievementDebugActions));
+            }
+        }
+    }
+
+    public bool CanUseAchievementDebugActions => AchievementDebugEnabled;
+
+    public string AchievementDebugMedalColor
+    {
+        get => _achievementDebugMedalColor;
+        private set => SetProperty(ref _achievementDebugMedalColor, value);
+    }
+
+    public string AchievementDebugTip
+    {
+        get => _achievementDebugTip;
+        private set => SetProperty(ref _achievementDebugTip, value);
+    }
 
     public string AchievementStatusMessage
     {
@@ -2195,6 +2389,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
         _suppressPageAutoSave = true;
         _suppressGuiAutoSave = true;
+        _suppressGuiPreview = true;
         try
         {
             Theme = snapshot.Theme;
@@ -2202,6 +2397,8 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             UseTray = snapshot.UseTray;
             MinimizeToTray = snapshot.MinimizeToTray;
             WindowTitleScrollable = snapshot.WindowTitleScrollable;
+            UseSoftwareRendering = snapshot.UseSoftwareRendering;
+            LogItemDateFormatString = snapshot.LogItemDateFormatString;
             DeveloperModeEnabled = snapshot.DeveloperModeEnabled;
             BackgroundImagePath = snapshot.BackgroundImagePath;
             BackgroundOpacity = snapshot.BackgroundOpacity;
@@ -2215,6 +2412,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         }
         finally
         {
+            _suppressGuiPreview = false;
             _suppressGuiAutoSave = false;
             _suppressPageAutoSave = false;
         }
@@ -3213,6 +3411,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         UpdateAchievementPolicySummary(policy);
         AchievementStatusMessage = "成就配置保存成功。";
         AchievementErrorMessage = string.Empty;
+        await RefreshAchievementSnapshotAsync("Settings.Achievement.Save.Refresh", cancellationToken);
     }
 
     public async Task RefreshAchievementPolicyAsync(CancellationToken cancellationToken = default)
@@ -3232,6 +3431,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         UpdateAchievementPolicySummary(policy);
         AchievementStatusMessage = "成就配置已刷新。";
         AchievementErrorMessage = string.Empty;
+        await RefreshAchievementSnapshotAsync("Settings.Achievement.Refresh.Snapshot", cancellationToken);
     }
 
     public async Task OpenAchievementGuideAsync(CancellationToken cancellationToken = default)
@@ -3250,30 +3450,21 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
     public async Task ShowAchievementListDialogAsync(CancellationToken cancellationToken = default)
     {
-        var items = new[]
+        var snapshot = await RefreshAchievementSnapshotAsync("Settings.Achievement.Dialog.Snapshot", cancellationToken);
+        if (snapshot is null)
         {
-            new AchievementListItem(
-                Id: "achievement-popup-disabled",
-                Title: "Popup Disabled",
-                Description: "Whether achievement popup is disabled.",
-                Status: AchievementPopupDisabled ? "enabled" : "disabled"),
-            new AchievementListItem(
-                Id: "achievement-popup-auto-close",
-                Title: "Popup Auto Close",
-                Description: "Whether achievement popup auto closes.",
-                Status: AchievementPopupAutoClose ? "enabled" : "disabled"),
-            new AchievementListItem(
-                Id: "achievement-policy-summary",
-                Title: "Policy Summary",
-                Description: AchievementPolicySummary ?? string.Empty,
-                Status: "snapshot"),
-        };
+            AchievementStatusMessage = "成就列表弹窗打开失败。";
+            AchievementErrorMessage = LastErrorMessage;
+            return;
+        }
+
         var request = new AchievementListDialogRequest(
-            Title: "Achievement List",
-            Items: items,
+            Title: AchievementTextCatalog.GetString("AchievementList", Language, "成就列表"),
+            Items: snapshot.Items,
             InitialFilter: string.Empty,
-            ConfirmText: "Confirm",
-            CancelText: "Cancel");
+            ConfirmText: DialogTextCatalog.WarningDialogConfirmButton(Language),
+            CancelText: DialogTextCatalog.WarningDialogCancelButton(Language),
+            FilterWatermark: DialogTextCatalog.Select(Language, "搜索成就", "Filter achievements"));
         var dialogResult = await _dialogService.ShowAchievementListAsync(request, "Settings.Achievement.Dialog", cancellationToken);
         AchievementStatusMessage = dialogResult.Return switch
         {
@@ -3282,6 +3473,99 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             _ => "成就列表弹窗已关闭。",
         };
         AchievementErrorMessage = string.Empty;
+    }
+
+    public async Task ExportAchievementsAsync(string path, CancellationToken cancellationToken = default)
+    {
+        AchievementStatusMessage = string.Empty;
+        AchievementErrorMessage = string.Empty;
+
+        var result = await Runtime.AchievementTrackerService.BackupAsync(path, cancellationToken);
+        if (!await ApplyResultAsync(result, "Settings.Achievement.Backup", cancellationToken))
+        {
+            AchievementStatusMessage = "成就备份失败。";
+            AchievementErrorMessage = result.Message;
+            return;
+        }
+
+        AchievementStatusMessage = $"{AchievementTextCatalog.GetString("AchievementBackupSuccess", Language, "已备份到")} {path}";
+        AchievementErrorMessage = string.Empty;
+    }
+
+    public async Task ImportAchievementsAsync(string path, CancellationToken cancellationToken = default)
+    {
+        AchievementStatusMessage = string.Empty;
+        AchievementErrorMessage = string.Empty;
+
+        var result = await Runtime.AchievementTrackerService.RestoreAsync(path, cancellationToken);
+        if (!await ApplyResultAsync(result, "Settings.Achievement.Restore", cancellationToken))
+        {
+            AchievementStatusMessage = "成就恢复失败。";
+            AchievementErrorMessage = result.Message;
+            return;
+        }
+
+        AchievementStatusMessage = AchievementTextCatalog.GetString("AchievementRestoreSuccess", Language, "已恢复成就进度");
+        AchievementErrorMessage = string.Empty;
+        await RefreshAchievementSnapshotAsync("Settings.Achievement.Restore.Refresh", cancellationToken);
+    }
+
+    public async Task UnlockAllAchievementsAsync(CancellationToken cancellationToken = default)
+    {
+        AchievementStatusMessage = string.Empty;
+        AchievementErrorMessage = string.Empty;
+
+        var result = await Runtime.AchievementTrackerService.UnlockAllAsync(cancellationToken);
+        if (!await ApplyResultAsync(result, "Settings.Achievement.UnlockAll", cancellationToken))
+        {
+            AchievementStatusMessage = "批量解锁成就失败。";
+            AchievementErrorMessage = result.Message;
+            return;
+        }
+
+        AchievementStatusMessage = "已批量解锁成就。";
+        AchievementErrorMessage = string.Empty;
+        await RefreshAchievementSnapshotAsync("Settings.Achievement.UnlockAll.Refresh", cancellationToken);
+    }
+
+    public async Task LockAllAchievementsAsync(CancellationToken cancellationToken = default)
+    {
+        AchievementStatusMessage = string.Empty;
+        AchievementErrorMessage = string.Empty;
+
+        var result = await Runtime.AchievementTrackerService.LockAllAsync(cancellationToken);
+        if (!await ApplyResultAsync(result, "Settings.Achievement.LockAll", cancellationToken))
+        {
+            AchievementStatusMessage = "批量重置成就失败。";
+            AchievementErrorMessage = result.Message;
+            return;
+        }
+
+        AchievementStatusMessage = "已重置全部成就。";
+        AchievementErrorMessage = string.Empty;
+        await RefreshAchievementSnapshotAsync("Settings.Achievement.LockAll.Refresh", cancellationToken);
+    }
+
+    public void HandleAchievementDebugClick()
+    {
+        AchievementDebugTip = AchievementTextCatalog.GetPallasString(1, 10);
+        if (AchievementDebugEnabled)
+        {
+            AchievementDebugEnabled = false;
+            _achievementDebugClickCount = 0;
+            AchievementDebugMedalColor = "#B0B0B0";
+            return;
+        }
+
+        _achievementDebugClickCount += 1;
+        if (_achievementDebugClickCount < 10)
+        {
+            return;
+        }
+
+        AchievementDebugEnabled = true;
+        _achievementDebugClickCount = 0;
+        AchievementDebugMedalColor = "#D4AF37";
     }
 
     public async Task SaveConnectionGameSettingsAsync(CancellationToken cancellationToken = default)
@@ -3298,10 +3582,13 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
         ConnectionGameProfileSync.WriteToProfile(profile, ConnectionGameSharedState);
 
-        await ApplyResultAsync(
-            await Runtime.TaskQueueFeatureService.SaveAsync(cancellationToken),
-            "Settings.ConnectionGame.Save",
-            cancellationToken);
+        var saveResult = await Runtime.TaskQueueFeatureService.SaveAsync(cancellationToken);
+        if (!await ApplyResultAsync(saveResult, "Settings.ConnectionGame.Save", cancellationToken))
+        {
+            return;
+        }
+
+        await TrySyncCoreInstanceOptionsAsync("Settings.ConnectionGame.SyncInstanceOptions", cancellationToken);
     }
 
     public async Task SaveTimerSettingsAsync(CancellationToken cancellationToken = default)
@@ -3467,10 +3754,35 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             : string.Empty;
         LastSuccessfulStartPerformanceSaveAt = DateTimeOffset.Now;
 
+        await TrySyncCoreInstanceOptionsAsync("Settings.StartPerformance.SyncInstanceOptions", cancellationToken);
+
         if (ShouldPromptForGpuRestart(persistedSnapshot, readBackSnapshot))
         {
             await PromptForGpuRestartAsync(cancellationToken);
         }
+    }
+
+    private CoreInstanceOptions BuildCurrentCoreInstanceOptions()
+    {
+        return ConnectionGameSharedState.BuildCoreInstanceOptions(DeploymentWithPause);
+    }
+
+    private async Task TrySyncCoreInstanceOptionsAsync(string scope, CancellationToken cancellationToken)
+    {
+        var result = await Runtime.ConnectFeatureService.ApplyInstanceOptionsAsync(
+            BuildCurrentCoreInstanceOptions(),
+            cancellationToken);
+
+        if (result.Success || result.Error?.Code is CoreErrorCode.NotInitialized or CoreErrorCode.NotSupported or CoreErrorCode.Disposed)
+        {
+            return;
+        }
+
+        Runtime.LogService.Warn($"{scope}: {result.Error?.Code} {result.Error?.Message}");
+        await RecordEventAsync(
+            scope,
+            $"Failed to sync core instance options: {result.Error?.Code} {result.Error?.Message}",
+            cancellationToken);
     }
 
     public async Task SelectEmulatorPathWithDialogAsync(CancellationToken cancellationToken = default)
@@ -3501,49 +3813,62 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     {
         ClearHotkeyStatus();
 
-        var showGesture = NormalizeHotkeyGesture(HotkeyShowGui, DefaultHotkeyShowGui);
-        var showResult = await Runtime.SettingsFeatureService.RegisterHotkeyAsync(
-            ShowGuiHotkeyName,
-            showGesture,
-            cancellationToken);
-        await RecordHotkeyRegistrationResultAsync(
-            ShowGuiHotkeyName,
-            showGesture,
-            showResult,
-            cancellationToken);
-
-        if (!showResult.Success)
+        var requests = new[]
         {
-            HotkeyErrorMessage = BuildHotkeyErrorMessage(ShowGuiHotkeyName, showResult);
-            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: {ShowGuiHotkeyName} 注册失败，未继续注册 {LinkStartHotkeyName}。";
+            new HotkeyBindingRequest(ShowGuiHotkeyName, HotkeyConfigurationCodec.NormalizeDraftGesture(HotkeyShowGui)),
+            new HotkeyBindingRequest(LinkStartHotkeyName, HotkeyConfigurationCodec.NormalizeDraftGesture(HotkeyLinkStart)),
+        };
+
+        HotkeyShowGui = requests[0].Gesture;
+        HotkeyLinkStart = requests[1].Gesture;
+
+        var batchResult = await Runtime.PlatformCapabilityService.RegisterGlobalHotkeysAsync(requests, cancellationToken);
+        if (!batchResult.Success || batchResult.Value is null)
+        {
+            HotkeyErrorMessage = batchResult.Message;
+            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: 热键注册失败。";
             LastErrorMessage = HotkeyErrorMessage;
             StatusMessage = HotkeyStatusMessage;
             await RecordFailedResultAsync(
                 "Settings.Hotkey.Batch",
-                UiOperationResult.Fail(showResult.Error?.Code ?? UiErrorCode.HotkeyRegistrationFailed, HotkeyStatusMessage),
+                UiOperationResult.Fail(
+                    batchResult.Error?.Code ?? UiErrorCode.HotkeyRegistrationFailed,
+                    HotkeyStatusMessage,
+                    batchResult.Error?.Details),
                 cancellationToken);
+            await RefreshHotkeyRuntimeStateAsync(cancellationToken);
             await RefreshHotkeyFallbackWarningAsync(source, cancellationToken);
             return;
         }
 
-        HotkeyShowGui = showGesture;
+        var outcomesByName = batchResult.Value.ToDictionary(
+            outcome => outcome.Name,
+            StringComparer.OrdinalIgnoreCase);
+        foreach (var request in requests)
+        {
+            if (!outcomesByName.TryGetValue(request.Name, out var outcome))
+            {
+                GetHotkeyState(request.Name)?.SetError("Skipped because the platform provider returned no result.");
+                continue;
+            }
 
-        var linkGesture = NormalizeHotkeyGesture(HotkeyLinkStart, DefaultHotkeyLinkStart);
-        var linkResult = await Runtime.SettingsFeatureService.RegisterHotkeyAsync(
-            LinkStartHotkeyName,
-            linkGesture,
-            cancellationToken);
-        await RecordHotkeyRegistrationResultAsync(
-            LinkStartHotkeyName,
-            linkGesture,
-            linkResult,
-            cancellationToken);
+            await RecordHotkeyRegistrationResultAsync(
+                request.Name,
+                request.Gesture,
+                ToUiOperationResult(outcome.Result),
+                cancellationToken);
+            ApplyHotkeyOutcome(request.Name, request.Gesture, outcome);
+        }
 
-        HotkeyLinkStart = linkGesture;
-
-        var serializedHotkeys = SerializeHotkeys(
-            persistedShowGui: showGesture,
-            persistedLinkStart: linkResult.Success ? linkGesture : _persistedHotkeyLinkStart);
+        var persistedShowGui = outcomesByName.TryGetValue(ShowGuiHotkeyName, out var showOutcome) && showOutcome.Result.Success
+            ? requests[0].Gesture
+            : _persistedHotkeyShowGui;
+        var persistedLinkStart = outcomesByName.TryGetValue(LinkStartHotkeyName, out var linkOutcome) && linkOutcome.Result.Success
+            ? requests[1].Gesture
+            : _persistedHotkeyLinkStart;
+        var serializedHotkeys = HotkeyConfigurationCodec.Serialize(
+            persistedShowGui,
+            persistedLinkStart);
         var saveResult = await Runtime.SettingsFeatureService.SaveGlobalSettingsAsync(
             new Dictionary<string, string>(StringComparer.Ordinal)
             {
@@ -3553,8 +3878,8 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
         if (!saveResult.Success)
         {
-            HotkeyErrorMessage = $"Hotkeys were registered but configuration persistence failed: {saveResult.Message}";
-            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: 热键注册成功，但持久化失败。";
+            HotkeyErrorMessage = $"Hotkeys were applied but configuration persistence failed: {saveResult.Message}";
+            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: 热键已更新，但持久化失败。";
             LastErrorMessage = HotkeyErrorMessage;
             StatusMessage = HotkeyStatusMessage;
             await RecordErrorAsync(
@@ -3563,37 +3888,45 @@ public sealed class SettingsPageViewModel : PageViewModelBase
                 cancellationToken: cancellationToken);
             await RecordFailedResultAsync(
                 "Settings.Hotkey.Batch",
-                UiOperationResult.Fail(saveResult.Error?.Code ?? UiErrorCode.HotkeyPersistenceFailed, HotkeyStatusMessage),
+                UiOperationResult.Fail(
+                    saveResult.Error?.Code ?? UiErrorCode.HotkeyPersistenceFailed,
+                    HotkeyStatusMessage,
+                    saveResult.Error?.Details),
                 cancellationToken);
+            await RefreshHotkeyRuntimeStateAsync(cancellationToken);
             await RefreshHotkeyFallbackWarningAsync(source, cancellationToken);
             return;
         }
 
-        _persistedHotkeyShowGui = showGesture;
-        if (linkResult.Success)
-        {
-            _persistedHotkeyLinkStart = linkGesture;
-        }
+        _persistedHotkeyShowGui = persistedShowGui;
+        _persistedHotkeyLinkStart = persistedLinkStart;
 
-        if (linkResult.Success)
+        var failedOutcomes = batchResult.Value.Where(static outcome => !outcome.Result.Success).ToArray();
+        var successCount = batchResult.Value.Count - failedOutcomes.Length;
+        if (failedOutcomes.Length == 0)
         {
-            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: ShowGui / LinkStart 热键注册成功。";
+            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: {successCount} 个热键已应用。";
             HotkeyErrorMessage = string.Empty;
             LastErrorMessage = string.Empty;
             await RecordEventAsync("Settings.Hotkey.Batch", HotkeyStatusMessage, cancellationToken);
         }
         else
         {
-            HotkeyErrorMessage = BuildHotkeyErrorMessage(LinkStartHotkeyName, linkResult);
-            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: ShowGui 注册成功，LinkStart 注册失败（已保留历史配置值）。";
+            HotkeyStatusMessage = $"{GetHotkeySourceText(source)}: {successCount}/{batchResult.Value.Count} 个热键已应用。";
+            HotkeyErrorMessage = string.Join(
+                " ",
+                failedOutcomes.Select(outcome => BuildHotkeyErrorMessage(outcome.Name, ToUiOperationResult(outcome.Result))));
             LastErrorMessage = HotkeyErrorMessage;
             await RecordFailedResultAsync(
                 "Settings.Hotkey.Batch",
-                UiOperationResult.Fail(linkResult.Error?.Code ?? UiErrorCode.HotkeyRegistrationFailed, HotkeyStatusMessage),
+                UiOperationResult.Fail(
+                    failedOutcomes[0].Result.ErrorCode ?? UiErrorCode.HotkeyRegistrationFailed,
+                    HotkeyStatusMessage),
                 cancellationToken);
         }
 
         StatusMessage = HotkeyStatusMessage;
+        await RefreshHotkeyRuntimeStateAsync(cancellationToken);
         await RefreshHotkeyFallbackWarningAsync(source, cancellationToken);
     }
 
@@ -3653,11 +3986,18 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
         IssueReportStatusMessage = "已打开 Issue 入口。";
         IssueReportErrorMessage = string.Empty;
+        _ = Runtime.AchievementTrackerService.Unlock("ProblemFeedback");
     }
 
-    public Task<UiOperationResult> OpenIssueReportEntryForDialogAsync(CancellationToken cancellationToken = default)
+    public async Task<UiOperationResult> OpenIssueReportEntryForDialogAsync(CancellationToken cancellationToken = default)
     {
-        return _openExternalTargetAsync(IssueReportIssueEntryUrl, cancellationToken);
+        var result = await _openExternalTargetAsync(IssueReportIssueEntryUrl, cancellationToken);
+        if (result.Success)
+        {
+            _ = Runtime.AchievementTrackerService.Unlock("ProblemFeedback");
+        }
+
+        return result;
     }
 
     public async Task OpenIssueReportDebugDirectoryAsync(CancellationToken cancellationToken = default)
@@ -3833,6 +4173,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
         StatusMessage = setResult.Message;
         LastErrorMessage = string.Empty;
+        _ = Runtime.AchievementTrackerService.Unlock("StartupBoot");
         await RecordEventAsync("Settings.Autostart.Set", setResult.Message, cancellationToken);
         await RefreshAutostartStatusAsync(
             cancellationToken,
@@ -3922,6 +4263,9 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             lockAcquired = true;
 
             var snapshot = BuildNormalizedGuiSnapshot();
+            var previousSoftwareRendering = ReadGlobalBool(Runtime.ConfigurationService.CurrentConfig, SoftwareRenderingConfigKey, false);
+            var previousLanguage = ReadGlobalString(Runtime.ConfigurationService.CurrentConfig, ConfigurationKeys.Localization, DefaultLanguage);
+            var previousBackgroundImagePath = ReadGlobalString(Runtime.ConfigurationService.CurrentConfig, ConfigurationKeys.BackgroundImagePath, string.Empty);
             ApplyGuiSnapshotWithoutAutoSave(snapshot);
 
             var validation = ValidateGuiSnapshot(snapshot);
@@ -3950,6 +4294,22 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             ClearGuiValidationMessages();
             LastSuccessfulGuiSaveAt = DateTimeOffset.Now;
             RaiseGuiSettingsApplied(snapshot);
+
+            if (!string.Equals(previousLanguage, snapshot.Language, StringComparison.OrdinalIgnoreCase))
+            {
+                _ = Runtime.AchievementTrackerService.Unlock("Linguist");
+            }
+
+            if (!string.IsNullOrWhiteSpace(snapshot.BackgroundImagePath)
+                && !string.Equals(previousBackgroundImagePath, snapshot.BackgroundImagePath, StringComparison.OrdinalIgnoreCase))
+            {
+                _ = Runtime.AchievementTrackerService.Unlock("CustomizationMaster");
+            }
+
+            if (previousSoftwareRendering != snapshot.UseSoftwareRendering)
+            {
+                await PromptForSoftwareRenderingRestartAsync(cancellationToken);
+            }
 
             if (triggeredByAutoSave)
             {
@@ -4248,6 +4608,8 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         HotkeyStatusMessage = string.Empty;
         HotkeyWarningMessage = string.Empty;
         HotkeyErrorMessage = string.Empty;
+        _showGuiHotkeyState.ClearFeedback();
+        _linkStartHotkeyState.ClearFeedback();
     }
 
     private void ClearRemoteControlStatus()
@@ -4909,14 +5271,6 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             cancellationToken);
     }
 
-    private static string NormalizeHotkeyGesture(string? value, string fallback)
-    {
-        var normalized = value?.Trim();
-        return string.IsNullOrWhiteSpace(normalized)
-            ? fallback
-            : normalized;
-    }
-
     private async Task RecordHotkeyRegistrationResultAsync(
         string hotkeyName,
         string gesture,
@@ -4989,52 +5343,351 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             cancellationToken);
     }
 
-    private static IReadOnlyDictionary<string, string> ParseHotkeys(string raw, ICollection<string> warnings)
+    private void ApplyHotkeyDraft(
+        HotkeySettingItemViewModel state,
+        string? gesture,
+        string propertyName,
+        bool clearFeedback = true)
     {
-        var parsed = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        if (string.IsNullOrWhiteSpace(raw))
+        var normalized = HotkeyConfigurationCodec.NormalizeDraftGesture(gesture);
+        var changed = false;
+        if (state == _showGuiHotkeyState)
         {
-            return parsed;
+            changed = SetProperty(ref _hotkeyShowGui, normalized, propertyName);
+        }
+        else if (state == _linkStartHotkeyState)
+        {
+            changed = SetProperty(ref _hotkeyLinkStart, normalized, propertyName);
+        }
+        else
+        {
+            return;
         }
 
-        var segments = raw.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        foreach (var segment in segments)
+        state.SetGesture(normalized, FormatHotkeyDisplay(normalized));
+        if (clearFeedback)
         {
-            var index = segment.IndexOf('=');
-            if (index <= 0 || index >= segment.Length - 1)
-            {
-                warnings.Add($"Ignored malformed hotkey segment: `{segment}`.");
-                continue;
-            }
-
-            var key = segment[..index].Trim();
-            var value = segment[(index + 1)..].Trim();
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                warnings.Add($"Ignored empty hotkey gesture for `{key}`.");
-                continue;
-            }
-
-            var canonicalKey = string.Equals(key, ShowGuiHotkeyName, StringComparison.OrdinalIgnoreCase)
-                ? ShowGuiHotkeyName
-                : string.Equals(key, LinkStartHotkeyName, StringComparison.OrdinalIgnoreCase)
-                    ? LinkStartHotkeyName
-                    : null;
-            if (canonicalKey is null)
-            {
-                warnings.Add($"Ignored unknown hotkey key: `{key}`.");
-                continue;
-            }
-
-            parsed[canonicalKey] = value;
+            state.ClearFeedback();
         }
 
-        return parsed;
+        if (!changed)
+        {
+            return;
+        }
     }
 
-    private static string SerializeHotkeys(string persistedShowGui, string persistedLinkStart)
+    private HotkeySettingItemViewModel? GetHotkeyState(string hotkeyName)
     {
-        return $"{ShowGuiHotkeyName}={persistedShowGui};{LinkStartHotkeyName}={persistedLinkStart}";
+        return string.Equals(hotkeyName, ShowGuiHotkeyName, StringComparison.OrdinalIgnoreCase)
+            ? _showGuiHotkeyState
+            : string.Equals(hotkeyName, LinkStartHotkeyName, StringComparison.OrdinalIgnoreCase)
+                ? _linkStartHotkeyState
+                : null;
+    }
+
+    private void ApplyHotkeyOutcome(string hotkeyName, string requestedGesture, HotkeyRegistrationOutcome outcome)
+    {
+        var state = GetHotkeyState(hotkeyName);
+        if (state is null)
+        {
+            return;
+        }
+
+        if (outcome.Result.Success)
+        {
+            state.SetGesture(
+                requestedGesture,
+                string.IsNullOrWhiteSpace(outcome.EffectiveGestureDisplay)
+                    ? FormatHotkeyDisplay(requestedGesture)
+                    : outcome.EffectiveGestureDisplay);
+            state.SetError(string.Empty);
+            return;
+        }
+
+        state.SetError(BuildHotkeyErrorMessage(hotkeyName, ToUiOperationResult(outcome.Result)));
+    }
+
+    private UiOperationResult ToUiOperationResult(PlatformOperationResult result)
+    {
+        return result.Success
+            ? UiOperationResult.Ok(result.Message)
+            : UiOperationResult.Fail(
+                result.ErrorCode ?? UiErrorCode.HotkeyRegistrationFailed,
+                result.Message);
+    }
+
+    private async Task RefreshHotkeyRuntimeStateAsync(CancellationToken cancellationToken)
+    {
+        var snapshotResult = await Runtime.PlatformCapabilityService.GetSnapshotAsync(cancellationToken);
+        if (!snapshotResult.Success || snapshotResult.Value is null)
+        {
+            return;
+        }
+
+        ApplyRuntimeHotkeyState(_showGuiHotkeyState, _hotkeyShowGui, snapshotResult.Value.Hotkey);
+        ApplyRuntimeHotkeyState(_linkStartHotkeyState, _hotkeyLinkStart, snapshotResult.Value.Hotkey);
+    }
+
+    private void ApplyRuntimeHotkeyState(
+        HotkeySettingItemViewModel state,
+        string configuredGesture,
+        PlatformCapabilityStatus capability)
+    {
+        if (Runtime.Platform.HotkeyService.TryGetRegisteredHotkey(state.Name, out var registered))
+        {
+            state.SetGesture(
+                configuredGesture,
+                string.IsNullOrWhiteSpace(registered.DisplayGesture)
+                    ? FormatHotkeyDisplay(configuredGesture)
+                    : registered.DisplayGesture);
+            state.SetScope(
+                registered.ExecutionMode == PlatformExecutionMode.Fallback
+                    ? HotkeyScopePresentation.WindowScoped
+                    : HotkeyScopePresentation.Global,
+                GetHotkeyScopeText(
+                    registered.ExecutionMode == PlatformExecutionMode.Fallback
+                        ? HotkeyScopePresentation.WindowScoped
+                        : HotkeyScopePresentation.Global));
+            return;
+        }
+
+        var scope = capability.Supported
+            ? HotkeyScopePresentation.Global
+            : capability.HasFallback
+                ? HotkeyScopePresentation.WindowScoped
+                : HotkeyScopePresentation.Unsupported;
+        state.SetScope(scope, GetHotkeyScopeText(scope));
+    }
+
+    private void RefreshHotkeyUiText()
+    {
+        _showGuiHotkeyState.UpdateLocalization(
+            GetHotkeyTitleText(ShowGuiHotkeyName),
+            GetHotkeyUnboundText(),
+            GetHotkeyCapturePromptText(),
+            GetHotkeyRecordText(),
+            GetHotkeyReRecordText(),
+            GetHotkeyCapturingText(),
+            GetHotkeyClearText(),
+            GetHotkeyScopeText(_showGuiHotkeyState.ScopeKind));
+        _linkStartHotkeyState.UpdateLocalization(
+            GetHotkeyTitleText(LinkStartHotkeyName),
+            GetHotkeyUnboundText(),
+            GetHotkeyCapturePromptText(),
+            GetHotkeyRecordText(),
+            GetHotkeyReRecordText(),
+            GetHotkeyCapturingText(),
+            GetHotkeyClearText(),
+            GetHotkeyScopeText(_linkStartHotkeyState.ScopeKind));
+    }
+
+    private string GetHotkeyTitleText(string hotkeyName)
+    {
+        return hotkeyName switch
+        {
+            ShowGuiHotkeyName => Language switch
+            {
+                "en-us" => "[HotKey] Show/collapse MAA",
+                "ja-jp" => "[ホットキー] MAAの表示/最小化",
+                "ko-kr" => "[단축키] MAA 보이기/숨기기",
+                "zh-tw" => "[熱鍵] 顯示/收起 MAA",
+                _ => "[热键] 显示/收起 MAA",
+            },
+            _ => Language switch
+            {
+                "en-us" => "[HotKey] Link start/stop",
+                "ja-jp" => "[ホットキー] Link 開始/停止",
+                "ko-kr" => "[단축키] Link 시작/중지",
+                "zh-tw" => "[熱鍵] Link start/stop",
+                _ => "[热键] Link start/stop",
+            },
+        };
+    }
+
+    private string GetHotkeyCaptureGuideText()
+    {
+        return Language switch
+        {
+            "en-us" => "Recording rules: press at least one modifier plus one non-modifier key. Esc cancels. Backspace/Delete clears the binding.",
+            "ja-jp" => "録入規則: 修飾キー 1 つ以上と通常キー 1 つで確定します。Esc で取消、Backspace/Delete で解除します。",
+            "ko-kr" => "기록 규칙: 보조 키 1개 이상과 일반 키 1개를 함께 눌러야 합니다. Esc는 취소, Backspace/Delete는 해제입니다.",
+            "zh-tw" => "錄入規則：至少按下一個修飾鍵與一個普通鍵才會提交；Esc 取消；Backspace/Delete 清空綁定。",
+            _ => "录入规则：至少按下一个修饰键与一个普通键才会提交；Esc 取消；Backspace/Delete 清空绑定。",
+        };
+    }
+
+    private string GetHotkeyUnboundText()
+    {
+        return Language switch
+        {
+            "en-us" => "Unbound",
+            "ja-jp" => "未設定",
+            "ko-kr" => "미설정",
+            "zh-tw" => "未綁定",
+            _ => "未绑定",
+        };
+    }
+
+    private string GetHotkeyCapturePromptText()
+    {
+        return Language switch
+        {
+            "en-us" => "Press shortcut...",
+            "ja-jp" => "ショートカットを入力...",
+            "ko-kr" => "단축키를 눌러 주세요...",
+            "zh-tw" => "請按下快捷鍵...",
+            _ => "请按下快捷键...",
+        };
+    }
+
+    private string GetHotkeyRecordText()
+    {
+        return Language switch
+        {
+            "en-us" => "Record",
+            "ja-jp" => "録入",
+            "ko-kr" => "입력",
+            "zh-tw" => "錄入",
+            _ => "录入",
+        };
+    }
+
+    private string GetHotkeyReRecordText()
+    {
+        return Language switch
+        {
+            "en-us" => "Re-record",
+            "ja-jp" => "再録入",
+            "ko-kr" => "다시 입력",
+            "zh-tw" => "重新錄入",
+            _ => "重新录入",
+        };
+    }
+
+    private string GetHotkeyCapturingText()
+    {
+        return Language switch
+        {
+            "en-us" => "Listening...",
+            "ja-jp" => "入力待ち...",
+            "ko-kr" => "입력 대기 중...",
+            "zh-tw" => "等待錄入...",
+            _ => "等待录入...",
+        };
+    }
+
+    private string GetHotkeyClearText()
+    {
+        return Language switch
+        {
+            "en-us" => "Clear",
+            "ja-jp" => "解除",
+            "ko-kr" => "지우기",
+            "zh-tw" => "清除",
+            _ => "清除",
+        };
+    }
+
+    private string GetHotkeyScopeText(HotkeyScopePresentation scope)
+    {
+        return scope switch
+        {
+            HotkeyScopePresentation.Global => Language switch
+            {
+                "en-us" => "Global",
+                "ja-jp" => "Global",
+                "ko-kr" => "전역",
+                "zh-tw" => "全域",
+                _ => "全局",
+            },
+            HotkeyScopePresentation.WindowScoped => Language switch
+            {
+                "en-us" => "Window-scoped",
+                "ja-jp" => "Window-scoped",
+                "ko-kr" => "창 범위",
+                "zh-tw" => "視窗級",
+                _ => "窗口级",
+            },
+            _ => Language switch
+            {
+                "en-us" => "Unsupported",
+                "ja-jp" => "Unsupported",
+                "ko-kr" => "미지원",
+                "zh-tw" => "不支援",
+                _ => "不支持",
+            },
+        };
+    }
+
+    private string GetHotkeyDraftPendingText(bool cleared)
+    {
+        return Language switch
+        {
+            "en-us" => cleared
+                ? "Binding cleared. Click Register Hotkeys to apply the change."
+                : "Shortcut updated locally. Click Register Hotkeys to apply the change.",
+            "ja-jp" => cleared
+                ? "バインドを解除しました。「ホットキー登録」を押すと反映されます。"
+                : "ショートカットを更新しました。「ホットキー登録」を押すと反映されます。",
+            "ko-kr" => cleared
+                ? "바인딩을 지웠습니다. 단축키 등록을 눌러 적용하세요."
+                : "단축키를 수정했습니다. 단축키 등록을 눌러 적용하세요.",
+            "zh-tw" => cleared
+                ? "已清空綁定，點擊「註冊熱鍵」後生效。"
+                : "已更新快捷鍵，點擊「註冊熱鍵」後生效。",
+            _ => cleared
+                ? "已清空绑定，点击“注册热键”后生效。"
+                : "已更新快捷键，点击“注册热键”后生效。",
+        };
+    }
+
+    private string GetHotkeyCaptureCancelledText()
+    {
+        return Language switch
+        {
+            "en-us" => "Recording cancelled.",
+            "ja-jp" => "録入を取り消しました。",
+            "ko-kr" => "입력을 취소했습니다.",
+            "zh-tw" => "已取消錄入。",
+            _ => "已取消录入。",
+        };
+    }
+
+    private string LocalizeHotkeyCaptureMessage(string? message)
+    {
+        if (string.Equals(message, "At least one modifier key is required.", StringComparison.Ordinal))
+        {
+            return Language switch
+            {
+                "en-us" => "At least one modifier key is required.",
+                "ja-jp" => "少なくとも 1 つの修飾キーが必要です。",
+                "ko-kr" => "보조 키를 하나 이상 포함해야 합니다.",
+                "zh-tw" => "至少需要一個修飾鍵。",
+                _ => "至少需要一个修饰键。",
+            };
+        }
+
+        if (!string.IsNullOrWhiteSpace(message)
+            && message.StartsWith("Unsupported key `", StringComparison.Ordinal))
+        {
+            return Language switch
+            {
+                "en-us" => message,
+                "ja-jp" => $"暂不支持该按键：{message[17..]}",
+                "ko-kr" => $"아직 지원하지 않는 키입니다: {message[17..]}",
+                "zh-tw" => $"暫不支援該按鍵：{message[17..]}",
+                _ => $"暂不支持该按键：{message[17..]}",
+            };
+        }
+
+        return string.IsNullOrWhiteSpace(message)
+            ? GetHotkeyCaptureCancelledText()
+            : message;
+    }
+
+    private static string FormatHotkeyDisplay(string gesture)
+    {
+        return HotkeyGestureCodec.FormatDisplay(gesture);
     }
 
     private UiOperationResult ValidateGuiSnapshot(GuiSettingsSnapshot snapshot)
@@ -5057,6 +5710,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             UseTray: UseTray,
             MinimizeToTray: UseTray && MinimizeToTray,
             WindowTitleScrollable: WindowTitleScrollable,
+            UseSoftwareRendering: UseSoftwareRendering,
             DeveloperModeEnabled: DeveloperModeEnabled,
             LogItemDateFormatString: NormalizeLogItemDateFormat(LogItemDateFormatString),
             OperNameLanguage: NormalizeOperNameLanguage(OperNameLanguage),
@@ -5070,6 +5724,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
     private void ApplyGuiSnapshotWithoutAutoSave(GuiSettingsSnapshot snapshot)
     {
         _suppressGuiAutoSave = true;
+        _suppressGuiPreview = true;
         try
         {
             Theme = snapshot.Theme;
@@ -5077,6 +5732,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             UseTray = snapshot.UseTray;
             MinimizeToTray = snapshot.MinimizeToTray;
             WindowTitleScrollable = snapshot.WindowTitleScrollable;
+            UseSoftwareRendering = snapshot.UseSoftwareRendering;
             DeveloperModeEnabled = snapshot.DeveloperModeEnabled;
             LogItemDateFormatString = snapshot.LogItemDateFormatString;
             OperNameLanguage = snapshot.OperNameLanguage;
@@ -5088,13 +5744,29 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         }
         finally
         {
+            _suppressGuiPreview = false;
             _suppressGuiAutoSave = false;
         }
+    }
+
+    private void NotifyGuiSettingsPreviewChanged()
+    {
+        if (_suppressGuiPreview || _suppressPageAutoSave)
+        {
+            return;
+        }
+
+        RaiseGuiSettingsPreviewChanged(BuildNormalizedGuiSnapshot());
     }
 
     private void RaiseGuiSettingsApplied(GuiSettingsSnapshot snapshot)
     {
         GuiSettingsApplied?.Invoke(this, new GuiSettingsAppliedEventArgs(snapshot));
+    }
+
+    private void RaiseGuiSettingsPreviewChanged(GuiSettingsSnapshot snapshot)
+    {
+        GuiSettingsPreviewChanged?.Invoke(this, new GuiSettingsPreviewChangedEventArgs(snapshot));
     }
 
     private VersionUpdatePolicy BuildVersionUpdatePolicy()
@@ -5154,8 +5826,43 @@ public sealed class SettingsPageViewModel : PageViewModelBase
 
     private void UpdateAchievementPolicySummary(AchievementPolicy policy)
     {
-        AchievementPolicySummary =
-            $"当前策略：禁用弹窗={policy.PopupDisabled}；自动关闭={policy.PopupAutoClose}";
+        AchievementPolicySummary = DialogTextCatalog.Select(
+            Language,
+            $"当前策略：禁用弹窗={policy.PopupDisabled}；自动关闭={policy.PopupAutoClose}；已解锁 {AchievementUnlockedCount}/{AchievementTotalCount}",
+            $"Current policy: popup disabled={policy.PopupDisabled}; auto close={policy.PopupAutoClose}; unlocked {AchievementUnlockedCount}/{AchievementTotalCount}");
+    }
+
+    private async Task<AchievementTrackerSnapshot?> RefreshAchievementSnapshotAsync(string scope, CancellationToken cancellationToken)
+    {
+        Runtime.AchievementTrackerService.SetCurrentLanguage(Language);
+        var result = await Runtime.AchievementTrackerService.GetSnapshotAsync(Language, cancellationToken);
+        var snapshot = await ApplyResultAsync(result, scope, cancellationToken);
+        if (snapshot is null)
+        {
+            return null;
+        }
+
+        ApplyAchievementSnapshot(snapshot);
+        return snapshot;
+    }
+
+    private void ApplyAchievementSnapshot(AchievementTrackerSnapshot snapshot)
+    {
+        AchievementUnlockedCount = snapshot.UnlockedCount;
+        AchievementTotalCount = snapshot.TotalCount;
+        ApplyAchievementPolicy(snapshot.Policy);
+        UpdateAchievementPolicySummary(snapshot.Policy);
+    }
+
+    private void RefreshAchievementUiState()
+    {
+        OnPropertyChanged(nameof(AchievementLevelText));
+        UpdateAchievementPolicySummary(new AchievementPolicy(AchievementPopupDisabled, AchievementPopupAutoClose));
+    }
+
+    private void OnAchievementTrackerStateChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.Post(() => _ = RefreshAchievementSnapshotAsync("Settings.Achievement.StateChanged", CancellationToken.None));
     }
 
     private static string NormalizeVersionUpdateProxyType(string? value)
@@ -5434,18 +6141,12 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         var rawLogItemDateFormat = ReadGlobalString(config, ConfigurationKeys.LogItemDateFormat, DefaultLogItemDateFormat);
         var rawOperNameLanguage = ReadGlobalString(config, ConfigurationKeys.OperNameLanguage, DefaultOperNameLanguage);
         var rawInverseClearMode = ReadProfileString(config, ConfigurationKeys.InverseClearMode, DefaultInverseClearMode);
+        var rawUseSoftwareRendering = ReadGlobalBool(config, SoftwareRenderingConfigKey, false);
         var rawHotkeys = ReadGlobalString(config, ConfigurationKeys.HotKeys, string.Empty);
-        var parsedHotkeys = ParseHotkeys(rawHotkeys, hotkeyWarnings);
-        var loadedShowGui = NormalizeHotkeyGesture(
-            parsedHotkeys.TryGetValue(ShowGuiHotkeyName, out var configuredShowGui)
-                ? configuredShowGui
-                : DefaultHotkeyShowGui,
-            DefaultHotkeyShowGui);
-        var loadedLinkStart = NormalizeHotkeyGesture(
-            parsedHotkeys.TryGetValue(LinkStartHotkeyName, out var configuredLinkStart)
-                ? configuredLinkStart
-                : DefaultHotkeyLinkStart,
-            DefaultHotkeyLinkStart);
+        var parsedHotkeys = HotkeyConfigurationCodec.Parse(rawHotkeys);
+        hotkeyWarnings.AddRange(parsedHotkeys.Warnings);
+        var loadedShowGui = parsedHotkeys.ShowGui;
+        var loadedLinkStart = parsedHotkeys.LinkStart;
 
         var theme = NormalizeTheme(rawTheme);
         if (!string.Equals(rawTheme, theme, StringComparison.Ordinal))
@@ -5506,6 +6207,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         }
 
         _suppressGuiAutoSave = true;
+        _suppressGuiPreview = true;
         try
         {
             Theme = theme;
@@ -5513,6 +6215,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             UseTray = ReadGlobalBool(config, ConfigurationKeys.UseTray, true);
             MinimizeToTray = ReadGlobalBool(config, ConfigurationKeys.MinimizeToTray, false);
             WindowTitleScrollable = ReadGlobalBool(config, ConfigurationKeys.WindowTitleScrollable, false);
+            UseSoftwareRendering = rawUseSoftwareRendering;
             DeveloperModeEnabled = ReadGlobalBool(config, DeveloperModeConfigKey, false);
             LogItemDateFormatString = logItemDateFormat;
             OperNameLanguage = operNameLanguage;
@@ -5540,6 +6243,7 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         }
         finally
         {
+            _suppressGuiPreview = false;
             _suppressGuiAutoSave = false;
         }
 
@@ -5584,6 +6288,8 @@ public sealed class SettingsPageViewModel : PageViewModelBase
             AchievementErrorMessage = achievementPolicyResult.Message;
         }
 
+        _ = await RefreshAchievementSnapshotAsync("Settings.Achievement.Initialize", cancellationToken);
+
         var warnings = guiWarnings.Concat(backgroundWarnings).ToArray();
         if (warnings.Length > 0)
         {
@@ -5612,6 +6318,8 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         {
             HotkeyWarningMessage = string.Empty;
         }
+
+        await RefreshHotkeyRuntimeStateAsync(cancellationToken);
 
         if (startPerformanceWarnings.Count > 0)
         {
@@ -5912,6 +6620,22 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         return LogItemDateFormatOptions.Contains(normalized, StringComparer.Ordinal)
             ? normalized
             : DefaultLogItemDateFormat;
+    }
+
+    private static string FormatGuiLogTimestampPreview(string? format)
+    {
+        var effectiveFormat = string.IsNullOrWhiteSpace(format)
+            ? DefaultLogItemDateFormat
+            : format.Trim();
+
+        try
+        {
+            return DateTimeOffset.Now.ToString(effectiveFormat, CultureInfo.InvariantCulture);
+        }
+        catch (FormatException)
+        {
+            return DateTimeOffset.Now.ToString(DefaultLogItemDateFormat, CultureInfo.InvariantCulture);
+        }
     }
 
     private string NormalizeOperNameLanguage(string? value)
@@ -6323,6 +7047,55 @@ public sealed class SettingsPageViewModel : PageViewModelBase
         await ApplyResultAsync(
             Runtime.AppLifecycleService.ExitAsync,
             "Settings.Save.StartPerformance.GpuRestart.Exit",
+            UiErrorCode.AppExitFailed,
+            cancellationToken);
+    }
+
+    private async Task PromptForSoftwareRenderingRestartAsync(CancellationToken cancellationToken)
+    {
+        var request = new WarningConfirmDialogRequest(
+            Title: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Title"],
+            Message: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Message"],
+            ConfirmText: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Confirm"],
+            CancelText: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Cancel"],
+            Language: Language);
+        var dialogResult = await _dialogService.ShowWarningConfirmAsync(
+            request,
+            "Settings.Save.GuiBatch.SoftwareRenderingRestartPrompt",
+            cancellationToken);
+
+        if (dialogResult.Return != DialogReturnSemantic.Confirm)
+        {
+            StatusMessage = RootTexts["Settings.GUI.SoftwareRendering.RestartPending"];
+            LastErrorMessage = string.Empty;
+            await RecordEventAsync(
+                "Settings.Save.GuiBatch.SoftwareRenderingRestartPrompt",
+                $"deferred; return={dialogResult.Return}",
+                cancellationToken);
+            return;
+        }
+
+        var restartResult = await Runtime.AppLifecycleService.RestartAsync(cancellationToken);
+        if (!await ApplyResultAsync(restartResult, "Settings.Save.GuiBatch.SoftwareRenderingRestart", cancellationToken))
+        {
+            return;
+        }
+
+        StatusMessage = RootTexts["Settings.GUI.SoftwareRendering.RestartLaunched"];
+        await RecordEventAsync(
+            "Settings.Save.GuiBatch.SoftwareRenderingRestart",
+            "restart-launched",
+            cancellationToken);
+
+        if (!Runtime.AppLifecycleService.SupportsExit)
+        {
+            StatusMessage = RootTexts["Settings.GUI.SoftwareRendering.RestartManualClose"];
+            return;
+        }
+
+        await ApplyResultAsync(
+            Runtime.AppLifecycleService.ExitAsync,
+            "Settings.Save.GuiBatch.SoftwareRenderingRestart.Exit",
             UiErrorCode.AppExitFailed,
             cancellationToken);
     }
@@ -6986,6 +7759,7 @@ public sealed record GuiSettingsSnapshot(
     bool UseTray,
     bool MinimizeToTray,
     bool WindowTitleScrollable,
+    bool UseSoftwareRendering,
     string LogItemDateFormatString,
     string OperNameLanguage,
     string InverseClearMode,
@@ -7004,6 +7778,7 @@ public sealed record GuiSettingsSnapshot(
             [ConfigurationKeys.UseTray] = UseTray.ToString(),
             [ConfigurationKeys.MinimizeToTray] = MinimizeToTray.ToString(),
             [ConfigurationKeys.WindowTitleScrollable] = WindowTitleScrollable.ToString(),
+            [ConfigurationKeys.IgnoreBadModulesAndUseSoftwareRendering] = UseSoftwareRendering.ToString(),
             ["GUI.DeveloperMode"] = DeveloperModeEnabled.ToString(),
             [ConfigurationKeys.LogItemDateFormat] = LogItemDateFormatString,
             [ConfigurationKeys.OperNameLanguage] = OperNameLanguage,
@@ -7016,10 +7791,21 @@ public sealed record GuiSettingsSnapshot(
 
     public IReadOnlyDictionary<string, string> ToProfileSettingUpdates()
     {
-        return new Dictionary<string, string>(StringComparer.Ordinal)
+        var updates = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             [ConfigurationKeys.InverseClearMode] = InverseClearMode,
         };
+
+        if (string.Equals(InverseClearMode, "Clear", StringComparison.OrdinalIgnoreCase))
+        {
+            updates[ConfigurationKeys.MainFunctionInverseMode] = false.ToString();
+        }
+        else if (string.Equals(InverseClearMode, "Inverse", StringComparison.OrdinalIgnoreCase))
+        {
+            updates[ConfigurationKeys.MainFunctionInverseMode] = true.ToString();
+        }
+
+        return updates;
     }
 }
 
@@ -7154,6 +7940,16 @@ public sealed record TimerSettingsSnapshot(
 public sealed class GuiSettingsAppliedEventArgs : EventArgs
 {
     public GuiSettingsAppliedEventArgs(GuiSettingsSnapshot snapshot)
+    {
+        Snapshot = snapshot;
+    }
+
+    public GuiSettingsSnapshot Snapshot { get; }
+}
+
+public sealed class GuiSettingsPreviewChangedEventArgs : EventArgs
+{
+    public GuiSettingsPreviewChangedEventArgs(GuiSettingsSnapshot snapshot)
     {
         Snapshot = snapshot;
     }

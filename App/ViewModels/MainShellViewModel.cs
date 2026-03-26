@@ -29,6 +29,9 @@ public sealed class MainShellViewModel : ObservableObject
 {
     private const string AppDisplayName = "MaaAssistantArknights Unified";
     private const string DeveloperModeConfigKey = "GUI.DeveloperMode";
+    private const string DefaultLogItemDateFormat = "HH:mm:ss";
+    private const int WindowTitleScrollThreshold = 24;
+    private const string WindowTitleScrollSpacer = "     ";
     private static readonly TimeSpan DeferredStartupCoreWarmupDelay = TimeSpan.FromMilliseconds(1500);
     private readonly MAAUnifiedRuntime _runtime;
     private readonly ConnectionGameSharedStateViewModel _connectionGameSharedState;
@@ -39,9 +42,11 @@ public sealed class MainShellViewModel : ObservableObject
     private readonly object _coreWarmupGate = new();
     private readonly object _deferredCoreWarmupGate = new();
     private readonly DispatcherTimer _timerScheduleTimer;
+    private readonly DispatcherTimer _windowTitleTicker;
     private readonly IAppDialogService _dialogService;
     private readonly OverlaySharedState _overlaySharedState;
     private readonly Dictionary<int, string> _timerSlotMinuteDedup = [];
+    private readonly Queue<AchievementUnlockedEvent> _pendingAchievementToasts = [];
     private readonly CancellationTokenSource _startupCts = new();
     private readonly TaskCompletionSource<bool> _startupSnapshotReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource<bool> _firstScreenReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -68,10 +73,15 @@ public sealed class MainShellViewModel : ObservableObject
     private string _lastError = string.Empty;
     private ImportSource _selectedImportSource = ImportSource.Auto;
     private ImportSourceOptionItem? _selectedImportSourceOption;
+    private bool _achievementToastWindowVisible = true;
     private bool _hasBlockingConfigIssues;
     private int _blockingConfigIssueCount;
     private SessionState _currentSessionState;
     private string _appliedTheme = "Light";
+    private string _windowTitleSource = AppDisplayName;
+    private string _rootLogTimeFormat = DefaultLogItemDateFormat;
+    private bool _windowTitleScrollable;
+    private int _windowTitleScrollOffset;
     private Bitmap? _shellBackgroundImage;
     private double _shellBackgroundOpacity = 0.45;
     private int _shellBackgroundBlur = 12;
@@ -97,6 +107,7 @@ public sealed class MainShellViewModel : ObservableObject
         RootTabs = new[] { "TaskQueue", "Copilot", "Toolbox", "Settings" };
         GrowlMessages = new ObservableCollection<string>();
         RootLogs = new ObservableCollection<string>();
+        AchievementToasts = new ObservableCollection<AchievementToastItemViewModel>();
         ConfigIssueDetails = new ObservableCollection<ConfigIssueDetailItem>();
 
         ImportSourceOptions = new ObservableCollection<ImportSourceOptionItem>();
@@ -130,12 +141,17 @@ public sealed class MainShellViewModel : ObservableObject
             Interval = TimeSpan.FromSeconds(1),
         };
         _timerScheduleTimer.Tick += OnTimerScheduleTick;
+        _windowTitleTicker = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(300),
+        };
+        _windowTitleTicker.Tick += OnWindowTitleTickerTick;
 
         _runtime.LogService.LogReceived += log =>
         {
             Dispatcher.UIThread.Post(() =>
             {
-                AppendRootLogEntry($"[{log.Timestamp:HH:mm:ss}] {log.Level} {log.Message}");
+                AppendRootLogEntry(log.Timestamp, $"{log.Level} {log.Message}");
             });
         };
 
@@ -147,7 +163,9 @@ public sealed class MainShellViewModel : ObservableObject
                 RefreshConfigValidationState(_runtime.ConfigurationService.CurrentValidationIssues);
             });
         };
+        _runtime.AchievementTrackerService.AchievementUnlocked += OnAchievementUnlocked;
         Program.RecordStartupStage("FrameworkInit.ViewModel.MainShell.End", "MainShellViewModel constructed.");
+        RefreshWindowTitle();
     }
 
     public IReadOnlyList<string> RootTabs { get; }
@@ -159,6 +177,8 @@ public sealed class MainShellViewModel : ObservableObject
     public ObservableCollection<string> GrowlMessages { get; }
 
     public ObservableCollection<string> RootLogs { get; }
+
+    public ObservableCollection<AchievementToastItemViewModel> AchievementToasts { get; }
 
     public ObservableCollection<ConfigIssueDetailItem> ConfigIssueDetails { get; }
 
@@ -489,6 +509,11 @@ public sealed class MainShellViewModel : ObservableObject
                 }
 
                 ApplyDeveloperModeFromConfig();
+                _runtime.AchievementTrackerService.SetCurrentLanguage(CurrentShellLanguage);
+                _runtime.AchievementTrackerService.RecordStartup(
+                    new AchievementStartupContext(
+                        DateTimeOffset.UtcNow,
+                        DateTimeOffset.Now));
                 RecordStartupPhase(
                     "ConfigBootstrap.End",
                     $"loadedExisting={loadResult.LoadedFromExistingConfig}; validationIssues={loadResult.ValidationIssues.Count}");
@@ -822,6 +847,7 @@ public sealed class MainShellViewModel : ObservableObject
     {
         CurrentShellLanguage = snapshot.Language;
         AppliedTheme = snapshot.Theme;
+        _rootLogTimeFormat = snapshot.LogItemDateFormatString;
         RootTexts.Language = snapshot.Language;
         RefreshRootTextState();
 
@@ -836,6 +862,7 @@ public sealed class MainShellViewModel : ObservableObject
         }
 
         TaskQueuePage.SetLanguage(snapshot.Language);
+        ApplyWindowTitleScrolling(snapshot.WindowTitleScrollable);
         ShellBackgroundOpacity = snapshot.BackgroundOpacity / 100d;
         ShellBackgroundBlur = snapshot.BackgroundBlur;
         ShellBackgroundStretch = ParseStretch(snapshot.BackgroundStretchMode);
@@ -849,6 +876,7 @@ public sealed class MainShellViewModel : ObservableObject
             _connectionGameSharedState,
             ReportLocalizationFallback,
             dialogService: _dialogService);
+        page.GuiSettingsPreviewChanged += OnGuiSettingsPreviewChanged;
         page.GuiSettingsApplied += OnGuiSettingsApplied;
         page.ResourceVersionUpdated += OnSettingsResourceVersionUpdated;
         page.ConfigurationContextChanged += OnSettingsConfigurationContextChanged;
@@ -1032,6 +1060,7 @@ public sealed class MainShellViewModel : ObservableObject
     {
         var effectiveAdbPath = _connectionGameSharedState.ResolveEffectiveAdbPath(updateStateWhenResolved: true);
         var adbPath = string.IsNullOrWhiteSpace(effectiveAdbPath) ? null : effectiveAdbPath;
+        var instanceOptions = _connectionGameSharedState.BuildCoreInstanceOptions();
         var candidates = _connectionGameSharedState.BuildConnectAddressCandidates(includeConfiguredAddress: true);
         _runtime.LogService.Debug(
             $"Connect candidates prepared: count={candidates.Count}, config={_connectionGameSharedState.ConnectConfig}, adb={adbPath ?? "<null>"}");
@@ -1044,6 +1073,7 @@ public sealed class MainShellViewModel : ObservableObject
                 candidate,
                 _connectionGameSharedState.ConnectConfig,
                 adbPath,
+                instanceOptions,
                 cancellationToken);
             if (result.Success)
             {
@@ -1086,7 +1116,7 @@ public sealed class MainShellViewModel : ObservableObject
         return string.Join(Environment.NewLine, segments);
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken = default)
+    public async Task StopAsync(CancellationToken cancellationToken = default, bool userInitiated = true)
     {
         CurrentSessionState = _runtime.SessionService.CurrentState;
         if (!CanStopExecution)
@@ -1098,7 +1128,7 @@ public sealed class MainShellViewModel : ObservableObject
             return;
         }
 
-        await TaskQueuePage.StopAsync(cancellationToken);
+        await TaskQueuePage.StopAsync(cancellationToken, userInitiated);
         CurrentSessionState = _runtime.SessionService.CurrentState;
         await SyncTrayMenuStateAsync(cancellationToken);
     }
@@ -1319,6 +1349,103 @@ public sealed class MainShellViewModel : ObservableObject
         }
     }
 
+    public void SetAchievementToastWindowVisible(bool visible)
+    {
+        _achievementToastWindowVisible = visible;
+        if (visible)
+        {
+            FlushPendingAchievementToasts();
+        }
+    }
+
+    public void DismissAchievementToast(string id)
+    {
+        var toast = AchievementToasts.FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.Ordinal));
+        if (toast is not null)
+        {
+            AchievementToasts.Remove(toast);
+        }
+    }
+
+    private void OnAchievementUnlocked(object? sender, AchievementUnlockedEvent notification)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            HandleAchievementUnlocked(notification);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => HandleAchievementUnlocked(notification));
+    }
+
+    private void HandleAchievementUnlocked(AchievementUnlockedEvent notification)
+    {
+        if (!_achievementToastWindowVisible)
+        {
+            if (_pendingAchievementToasts.All(item => !string.Equals(item.Id, notification.Id, StringComparison.Ordinal)))
+            {
+                _pendingAchievementToasts.Enqueue(notification);
+            }
+
+            return;
+        }
+
+        PresentAchievementToast(notification);
+    }
+
+    private void FlushPendingAchievementToasts()
+    {
+        while (_pendingAchievementToasts.Count > 0)
+        {
+            PresentAchievementToast(_pendingAchievementToasts.Dequeue());
+        }
+    }
+
+    private void PresentAchievementToast(AchievementUnlockedEvent notification)
+    {
+        if (AchievementToasts.Any(item => string.Equals(item.Id, notification.Id, StringComparison.Ordinal)))
+        {
+            return;
+        }
+
+        AchievementToasts.Insert(
+            0,
+            new AchievementToastItemViewModel(
+                notification.Id,
+                notification.Title,
+                notification.Description,
+                notification.MedalColor,
+                notification.AutoClose,
+                notification.UnlockedAtUtc));
+
+        const int maxVisible = 4;
+        while (AchievementToasts.Count > maxVisible)
+        {
+            AchievementToasts.RemoveAt(AchievementToasts.Count - 1);
+        }
+
+        if (!notification.AutoClose)
+        {
+            return;
+        }
+
+        _ = AutoDismissAchievementToastAsync(notification.Id);
+    }
+
+    private async Task AutoDismissAchievementToastAsync(string id)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(15), _startupCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => DismissAchievementToast(id));
+    }
+
     private static string BuildLinkStartStateNotAllowedMessage(SessionState state)
     {
         var zh = $"会话状态 `{state}` 不允许 Start/LinkStart。请先前往“设置 > 连接设置”完成连接。";
@@ -1460,9 +1587,11 @@ public sealed class MainShellViewModel : ObservableObject
             updateTags.Add(RootTexts.GetOrDefault("Main.Title.UpdateResource", "Resource Update"));
         }
 
-        WindowTitle = updateTags.Count == 0
+        _windowTitleSource = updateTags.Count == 0
             ? AppDisplayName
             : $"{AppDisplayName} [{string.Join(" / ", updateTags)}]";
+        _windowTitleScrollOffset = 0;
+        UpdateWindowTitleDisplay();
     }
 
     private async Task HandleSettingsConfigurationContextChangedAsync(ConfigurationContextChangedEventArgs change)
@@ -1542,7 +1671,7 @@ public sealed class MainShellViewModel : ObservableObject
 
     private void ApplySessionCallback(CoreCallbackEvent callback)
     {
-        AppendRootLogEntry($"[{callback.Timestamp:HH:mm:ss}] CORE {callback.MsgName}({callback.MsgId}) {callback.PayloadJson}");
+        AppendRootLogEntry(callback.Timestamp, $"CORE {callback.MsgName}({callback.MsgId}) {callback.PayloadJson}");
 
         if (!string.Equals(callback.MsgName, "ConnectionInfo", StringComparison.OrdinalIgnoreCase))
         {
@@ -1666,7 +1795,7 @@ public sealed class MainShellViewModel : ObservableObject
                 PushGrowl("定时触发：强制执行前显示窗口。");
             }
 
-            await StopAsync(cancellationToken);
+            await StopAsync(cancellationToken, userInitiated: false);
             CurrentSessionState = _runtime.SessionService.CurrentState;
             if (CurrentSessionState is SessionState.Running or SessionState.Stopping)
             {
@@ -1685,6 +1814,7 @@ public sealed class MainShellViewModel : ObservableObject
             CurrentSessionState = _runtime.SessionService.CurrentState;
             if (CurrentSessionState == SessionState.Running)
             {
+                _ = _runtime.AchievementTrackerService.AddProgressToGroup("ScheduleMaster");
                 await RecordEventAsync(
                     "Timer.Schedule.StopAndStart",
                     $"slot={slot.Index}; profile={_runtime.ConfigurationService.CurrentConfig.CurrentProfile}",
@@ -1709,6 +1839,7 @@ public sealed class MainShellViewModel : ObservableObject
         CurrentSessionState = _runtime.SessionService.CurrentState;
         if (CurrentSessionState == SessionState.Running)
         {
+            _ = _runtime.AchievementTrackerService.AddProgressToGroup("ScheduleMaster");
             await RecordEventAsync(
                 "Timer.Schedule.Start",
                 $"slot={slot.Index}; profile={_runtime.ConfigurationService.CurrentConfig.CurrentProfile}",
@@ -1834,6 +1965,11 @@ public sealed class MainShellViewModel : ObservableObject
         Dispatcher.UIThread.Post(() => _ = ApplyGuiSettingsAsync(e.Snapshot));
     }
 
+    private void OnGuiSettingsPreviewChanged(object? sender, GuiSettingsPreviewChangedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() => _ = ApplyGuiSettingsAsync(e.Snapshot));
+    }
+
     private async Task ApplyGuiSettingsAsync(GuiSettingsSnapshot snapshot, CancellationToken cancellationToken = default)
     {
         var lockAcquired = false;
@@ -1844,6 +1980,7 @@ public sealed class MainShellViewModel : ObservableObject
 
             CurrentShellLanguage = snapshot.Language;
             AppliedTheme = snapshot.Theme;
+            _rootLogTimeFormat = snapshot.LogItemDateFormatString;
             RootTexts.Language = snapshot.Language;
             RefreshRootTextState();
             if (Avalonia.Application.Current is not null)
@@ -1857,6 +1994,8 @@ public sealed class MainShellViewModel : ObservableObject
             }
 
             TaskQueuePage.SetLanguage(snapshot.Language);
+            TaskQueuePage.ApplyGuiSettingsPreview(snapshot);
+            ApplyWindowTitleScrolling(snapshot.WindowTitleScrollable);
             SettingsPage.AutostartStatus = PlatformCapabilityTextMap.FormatAutostartStatus(
                 snapshot.Language,
                 SettingsPage.StartSelf,
@@ -1879,6 +2018,18 @@ public sealed class MainShellViewModel : ObservableObject
                 await RecordFailedResultAsync(
                     "App.Gui.Apply.TrayRefresh",
                     trayRefresh,
+                    cancellationToken);
+            }
+
+            var trayVisibility = await _runtime.PlatformCapabilityService.SetTrayVisibleAsync(
+                snapshot.UseTray,
+                cancellationToken);
+            if (!trayVisibility.Success)
+            {
+                LastError = trayVisibility.Message;
+                await RecordFailedResultAsync(
+                    "App.Gui.Apply.TrayVisibility",
+                    trayVisibility,
                     cancellationToken);
             }
         }
@@ -2116,6 +2267,7 @@ public sealed class MainShellViewModel : ObservableObject
     private async Task ApplyLanguageChangeAsync(string next, CancellationToken cancellationToken = default)
     {
         CurrentShellLanguage = next;
+        _runtime.AchievementTrackerService.SetCurrentLanguage(next);
         RootTexts.Language = next;
         SettingsPage.Language = next;
         SettingsPage.AutostartStatus = PlatformCapabilityTextMap.FormatAutostartStatus(
@@ -2239,6 +2391,11 @@ public sealed class MainShellViewModel : ObservableObject
         _ = SyncTrayMenuStateAsync();
     }
 
+    private void AppendRootLogEntry(DateTimeOffset timestamp, string message)
+    {
+        AppendRootLogEntry($"[{FormatRootLogTimestamp(timestamp)}] {message}");
+    }
+
     private void AppendRootLogEntry(string message)
     {
         RootLogs.Add(message);
@@ -2246,6 +2403,71 @@ public sealed class MainShellViewModel : ObservableObject
         while (RootLogs.Count > maxCount)
         {
             RootLogs.RemoveAt(0);
+        }
+    }
+
+    private void ApplyWindowTitleScrolling(bool enabled)
+    {
+        _windowTitleScrollable = enabled;
+        _windowTitleScrollOffset = 0;
+        UpdateWindowTitleDisplay();
+    }
+
+    private void OnWindowTitleTickerTick(object? sender, EventArgs e)
+    {
+        if (!ShouldAnimateWindowTitle())
+        {
+            UpdateWindowTitleDisplay();
+            return;
+        }
+
+        _windowTitleScrollOffset = (_windowTitleScrollOffset + 1) % (_windowTitleSource.Length + WindowTitleScrollSpacer.Length);
+        UpdateWindowTitleDisplay();
+    }
+
+    private void UpdateWindowTitleDisplay()
+    {
+        if (_windowTitleTicker is null || !ShouldAnimateWindowTitle())
+        {
+            if (_windowTitleTicker?.IsEnabled == true)
+            {
+                _windowTitleTicker.Stop();
+            }
+
+            WindowTitle = _windowTitleSource;
+            return;
+        }
+
+        if (!_windowTitleTicker.IsEnabled)
+        {
+            _windowTitleTicker.Start();
+        }
+
+        var loopText = _windowTitleSource + WindowTitleScrollSpacer;
+        if (loopText.Length == 0)
+        {
+            WindowTitle = AppDisplayName;
+            return;
+        }
+
+        var offset = Math.Clamp(_windowTitleScrollOffset, 0, loopText.Length - 1);
+        WindowTitle = string.Concat(loopText.AsSpan(offset), loopText.AsSpan(0, offset));
+    }
+
+    private bool ShouldAnimateWindowTitle()
+    {
+        return _windowTitleScrollable && _windowTitleSource.Length > WindowTitleScrollThreshold;
+    }
+
+    private string FormatRootLogTimestamp(DateTimeOffset timestamp)
+    {
+        try
+        {
+            return timestamp.ToLocalTime().ToString(_rootLogTimeFormat, CultureInfo.InvariantCulture);
+        }
+        catch (FormatException)
+        {
+            return timestamp.ToLocalTime().ToString(DefaultLogItemDateFormat, CultureInfo.InvariantCulture);
         }
     }
 

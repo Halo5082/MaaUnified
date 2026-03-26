@@ -15,7 +15,7 @@ namespace MAAUnified.Tests;
 public sealed class SettingsHotkeyFeedbackFeatureTests
 {
     [Fact]
-    public async Task RegisterHotkeysAsync_ShowGuiFails_StopsAndSkipsLinkStart()
+    public async Task RegisterHotkeysAsync_ShowGuiFails_LinkStartStillRegisters_AndOnlySuccessfulBindingPersists()
     {
         var hotkeyService = new ScriptedHotkeyService();
         hotkeyService.EnqueueRegisterResult(
@@ -32,11 +32,15 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
 
         await vm.RegisterHotkeysAsync();
 
-        var only = Assert.Single(hotkeyService.RegisterCalls);
-        Assert.Equal("ShowGui", only.Name);
-        Assert.Equal(before, ReadGlobalString(fixture.Config, ConfigurationKeys.HotKeys));
+        Assert.Equal(2, hotkeyService.RegisterCalls.Count);
+        Assert.Equal("ShowGui", hotkeyService.RegisterCalls[0].Name);
+        Assert.Equal("LinkStart", hotkeyService.RegisterCalls[1].Name);
+
+        var hotkeys = ParseHotkeys(ReadGlobalString(fixture.Config, ConfigurationKeys.HotKeys));
+        Assert.Equal("Ctrl+Alt+L", hotkeys["LinkStart"]);
+        Assert.Equal(HotkeyConfigurationCodec.Parse(before).ShowGui, hotkeys["ShowGui"]);
         Assert.Contains("热键冲突", vm.HotkeyErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("未继续注册", vm.HotkeyStatusMessage, StringComparison.Ordinal);
+        Assert.Contains("1/2", vm.HotkeyStatusMessage, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -69,7 +73,7 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
         Assert.Equal("Ctrl+Shift+Alt+M", hotkeys["ShowGui"]);
         Assert.Equal("Ctrl+2", hotkeys["LinkStart"]);
         Assert.Contains("热键格式非法", vm.HotkeyErrorMessage, StringComparison.Ordinal);
-        Assert.Contains("ShowGui 注册成功", vm.HotkeyStatusMessage, StringComparison.Ordinal);
+        Assert.Contains("1/2", vm.HotkeyStatusMessage, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -173,6 +177,45 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
                 // ignore cleanup failures in temporary test directories
             }
         }
+    }
+
+    [Fact]
+    public async Task LoadHotkeysFromLegacyWpfJson_ShouldNormalizeToSemicolonFormat()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Config.CurrentConfig.GlobalValues[ConfigurationKeys.HotKeys] = JsonValue.Create(
+            "{\"ShowGui\":{\"Key\":50,\"Modifiers\":7},\"LinkStart\":{\"Key\":61,\"Modifiers\":7}}");
+        await fixture.Config.SaveAsync();
+
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        Assert.Equal("Ctrl+Shift+Alt+G", vm.HotkeyShowGui);
+        Assert.Equal("Ctrl+Shift+Alt+R", vm.HotkeyLinkStart);
+
+        await vm.RegisterHotkeysAsync();
+
+        Assert.Equal(
+            "ShowGui=Ctrl+Shift+Alt+G;LinkStart=Ctrl+Shift+Alt+R",
+            ReadGlobalString(fixture.Config, ConfigurationKeys.HotKeys));
+    }
+
+    [Fact]
+    public async Task RegisterHotkeysAsync_ClearBinding_UnregistersAndPersistsEmptyGesture()
+    {
+        var hotkeyService = new ScriptedHotkeyService();
+        await using var fixture = await RuntimeFixture.CreateAsync(hotkeyService: hotkeyService);
+        fixture.Config.CurrentConfig.GlobalValues[ConfigurationKeys.HotKeys] = JsonValue.Create("ShowGui=Ctrl+1;LinkStart=Ctrl+2");
+        await fixture.Config.SaveAsync();
+
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.ClearHotkeyBinding("ShowGui");
+
+        await vm.RegisterHotkeysAsync();
+
+        Assert.Contains("ShowGui", hotkeyService.UnregisterCalls);
+        Assert.Equal("ShowGui=;LinkStart=Ctrl+2", ReadGlobalString(fixture.Config, ConfigurationKeys.HotKeys));
     }
 
     private static async Task ValidateMappedHotkeyErrorAsync(string errorCode, string expectedLocalized)
@@ -341,6 +384,7 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
     private sealed class ScriptedHotkeyService : IGlobalHotkeyService
     {
         private readonly Dictionary<string, Queue<PlatformOperationResult>> _registerResults = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, RegisteredHotkeyState> _registered = new(StringComparer.OrdinalIgnoreCase);
 
         public ScriptedHotkeyService(PlatformCapabilityStatus? capability = null)
         {
@@ -356,6 +400,8 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
 
         public List<(string Name, string Gesture)> RegisterCalls { get; } = [];
 
+        public List<string> UnregisterCalls { get; } = [];
+
         public void EnqueueRegisterResult(string name, PlatformOperationResult result)
         {
             if (!_registerResults.TryGetValue(name, out var queue))
@@ -370,17 +416,39 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
         public Task<PlatformOperationResult> RegisterAsync(string name, string gesture, CancellationToken cancellationToken = default)
         {
             RegisterCalls.Add((name, gesture));
+            PlatformOperationResult result;
             if (_registerResults.TryGetValue(name, out var queue) && queue.Count > 0)
             {
-                return Task.FromResult(queue.Dequeue());
+                result = queue.Dequeue();
+            }
+            else
+            {
+                result = PlatformOperation.NativeSuccess(Capability.Provider, $"Registered {name}", "hotkey.register");
             }
 
-            return Task.FromResult(PlatformOperation.NativeSuccess(Capability.Provider, $"Registered {name}", "hotkey.register"));
+            if (result.Success)
+            {
+                _registered[name] = new RegisteredHotkeyState(
+                    name,
+                    gesture,
+                    HotkeyGestureCodec.FormatDisplay(gesture),
+                    result.Provider,
+                    result.ExecutionMode);
+            }
+
+            return Task.FromResult(result);
         }
 
         public Task<PlatformOperationResult> UnregisterAsync(string name, CancellationToken cancellationToken = default)
         {
+            UnregisterCalls.Add(name);
+            _registered.Remove(name);
             return Task.FromResult(PlatformOperation.NativeSuccess(Capability.Provider, $"Unregistered {name}", "hotkey.unregister"));
+        }
+
+        public bool TryGetRegisteredHotkey(string name, out RegisteredHotkeyState state)
+        {
+            return _registered.TryGetValue(name, out state!);
         }
     }
 

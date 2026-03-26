@@ -24,6 +24,7 @@ public sealed class ConnectFeatureService : IConnectFeatureService
 {
     private readonly UnifiedSessionService _sessionService;
     private readonly UnifiedConfigurationService _configService;
+    private const string DefaultTouchMode = "minitouch";
 
     public ConnectFeatureService(UnifiedSessionService sessionService, UnifiedConfigurationService configService)
     {
@@ -32,23 +33,64 @@ public sealed class ConnectFeatureService : IConnectFeatureService
     }
 
     public Task<CoreResult<bool>> ValidateAndConnectAsync(string address, string config, string? adbPath, CancellationToken cancellationToken = default)
+        => ValidateAndConnectAsync(address, config, adbPath, instanceOptions: null, cancellationToken);
+
+    public async Task<CoreResult<bool>> ValidateAndConnectAsync(
+        string address,
+        string config,
+        string? adbPath,
+        CoreInstanceOptions? instanceOptions,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(address))
         {
-            return Task.FromResult(CoreResult<bool>.Fail(new CoreError(CoreErrorCode.InvalidRequest, "Address cannot be empty.")));
+            return CoreResult<bool>.Fail(new CoreError(CoreErrorCode.InvalidRequest, "Address cannot be empty."));
         }
 
-        return _sessionService.ConnectAsync(address, config, adbPath, cancellationToken);
+        var apply = await ApplyResolvedInstanceOptionsAsync(instanceOptions, cancellationToken);
+        if (!apply.Success)
+        {
+            return apply;
+        }
+
+        return await _sessionService.ConnectAsync(address, config, adbPath, cancellationToken);
     }
 
     public async Task<UiOperationResult> ConnectAsync(string address, string config, string? adbPath, CancellationToken cancellationToken = default)
+        => await ConnectAsync(address, config, adbPath, instanceOptions: null, cancellationToken);
+
+    public async Task<UiOperationResult> ConnectAsync(
+        string address,
+        string config,
+        string? adbPath,
+        CoreInstanceOptions? instanceOptions,
+        CancellationToken cancellationToken = default)
     {
-        var result = await ValidateAndConnectAsync(address, config, adbPath, cancellationToken);
+        var result = await ValidateAndConnectAsync(address, config, adbPath, instanceOptions, cancellationToken);
         return UiOperationResult.FromCore(result, $"Connected to {address}");
+    }
+
+    public Task<CoreResult<bool>> ApplyInstanceOptionsAsync(
+        CoreInstanceOptions? instanceOptions = null,
+        CancellationToken cancellationToken = default)
+    {
+        var resolved = ResolveEffectiveInstanceOptions(instanceOptions);
+        if (resolved.IsEmpty)
+        {
+            return Task.FromResult(CoreResult<bool>.Ok(true));
+        }
+
+        return _sessionService.ApplyInstanceOptionsAsync(resolved, cancellationToken);
     }
 
     public async Task<UiOperationResult> StartAsync(CancellationToken cancellationToken = default)
     {
+        var apply = await ApplyResolvedInstanceOptionsAsync(instanceOptions: null, cancellationToken);
+        if (!apply.Success)
+        {
+            return UiOperationResult.FromCore(apply, "Core instance options updated.");
+        }
+
         var result = await _sessionService.StartAsync(cancellationToken);
         return UiOperationResult.FromCore(result, "Task execution started.");
     }
@@ -116,6 +158,143 @@ public sealed class ConnectFeatureService : IConnectFeatureService
         return state is SessionState.Running or SessionState.Stopping;
     }
 
+    private async Task<CoreResult<bool>> ApplyResolvedInstanceOptionsAsync(
+        CoreInstanceOptions? instanceOptions,
+        CancellationToken cancellationToken)
+    {
+        var apply = await ApplyInstanceOptionsAsync(instanceOptions, cancellationToken);
+        if (apply.Success || apply.Error?.Code is CoreErrorCode.NotSupported)
+        {
+            return CoreResult<bool>.Ok(true);
+        }
+
+        return apply;
+    }
+
+    private CoreInstanceOptions ResolveEffectiveInstanceOptions(CoreInstanceOptions? instanceOptions)
+    {
+        var resolvedFromConfig = ResolveInstanceOptionsFromConfig();
+        return instanceOptions is null
+            ? resolvedFromConfig
+            : instanceOptions.MergeWith(resolvedFromConfig);
+    }
+
+    private CoreInstanceOptions ResolveInstanceOptionsFromConfig()
+    {
+        if (!_configService.TryGetCurrentProfile(out var profile))
+        {
+            return new CoreInstanceOptions(
+                TouchMode: DefaultTouchMode,
+                DeploymentWithPause: false,
+                AdbLiteEnabled: false,
+                KillAdbOnExit: false);
+        }
+
+        return new CoreInstanceOptions(
+            TouchMode: ReadProfileString(profile, "TouchMode", ConfigurationKeys.TouchMode) ?? DefaultTouchMode,
+            DeploymentWithPause: ReadProfileBoolFlexible(profile, ConfigurationKeys.RoguelikeDeploymentWithPause),
+            AdbLiteEnabled: ReadProfileBool(profile, "AdbLiteEnabled", ConfigurationKeys.AdbLiteEnabled),
+            KillAdbOnExit: ReadProfileBool(profile, "KillAdbOnExit", ConfigurationKeys.KillAdbOnExit));
+    }
+
+    private bool ReadProfileBoolFlexible(UnifiedProfile profile, string key)
+    {
+        if (profile.Values.TryGetValue(key, out var profileNode)
+            && TryReadBool(profileNode, out var profileValue))
+        {
+            return profileValue;
+        }
+
+        if (_configService.CurrentConfig.GlobalValues.TryGetValue(key, out var globalNode)
+            && TryReadBool(globalNode, out var globalValue))
+        {
+            return globalValue;
+        }
+
+        return false;
+    }
+
+    private static bool ReadProfileBool(UnifiedProfile profile, string key, string legacyKey)
+    {
+        if (profile.Values.TryGetValue(key, out var currentNode)
+            && TryReadBool(currentNode, out var currentValue))
+        {
+            return currentValue;
+        }
+
+        if (profile.Values.TryGetValue(legacyKey, out var legacyNode)
+            && TryReadBool(legacyNode, out var legacyValue))
+        {
+            return legacyValue;
+        }
+
+        return false;
+    }
+
+    private static string? ReadProfileString(UnifiedProfile profile, string key, string legacyKey)
+    {
+        if (profile.Values.TryGetValue(key, out var currentNode)
+            && TryReadString(currentNode, out var currentValue))
+        {
+            return currentValue;
+        }
+
+        if (profile.Values.TryGetValue(legacyKey, out var legacyNode)
+            && TryReadString(legacyNode, out var legacyValue))
+        {
+            return legacyValue;
+        }
+
+        return null;
+    }
+
+    private static bool TryReadBool(JsonNode? node, out bool value)
+    {
+        if (node is JsonValue currentValue)
+        {
+            if (currentValue.TryGetValue(out bool boolValue))
+            {
+                value = boolValue;
+                return true;
+            }
+
+            if (currentValue.TryGetValue(out string? stringValue)
+                && bool.TryParse(stringValue, out boolValue))
+            {
+                value = boolValue;
+                return true;
+            }
+
+            if (currentValue.TryGetValue(out string? numericString)
+                && int.TryParse(numericString, out var parsedNumeric))
+            {
+                value = parsedNumeric != 0;
+                return true;
+            }
+
+            if (currentValue.TryGetValue(out int intValue))
+            {
+                value = intValue != 0;
+                return true;
+            }
+        }
+
+        value = false;
+        return false;
+    }
+
+    private static bool TryReadString(JsonNode? node, out string? value)
+    {
+        if (node is JsonValue currentValue && currentValue.TryGetValue(out string? stringValue))
+        {
+            value = string.IsNullOrWhiteSpace(stringValue) ? null : stringValue.Trim();
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
     public async Task<UiOperationResult<ImportReport>> ImportLegacyConfigAsync(
         ImportSource source,
         bool manualImport,
@@ -153,6 +332,16 @@ public sealed class ShellFeatureService : IShellFeatureService
         CancellationToken cancellationToken = default)
     {
         return _connectFeatureService.ConnectAsync(address, config, adbPath, cancellationToken);
+    }
+
+    public Task<UiOperationResult> ConnectAsync(
+        string address,
+        string config,
+        string? adbPath,
+        CoreInstanceOptions? instanceOptions,
+        CancellationToken cancellationToken = default)
+    {
+        return _connectFeatureService.ConnectAsync(address, config, adbPath, instanceOptions, cancellationToken);
     }
 
     public Task<UiOperationResult<ImportReport>> ImportLegacyConfigAsync(
@@ -3346,14 +3535,95 @@ public sealed class PlatformCapabilityFeatureService : IPlatformCapabilityServic
 
     public async Task<UiOperationResult> RegisterGlobalHotkeyAsync(string name, string gesture, CancellationToken cancellationToken = default)
     {
-        var result = await _platform.HotkeyService.RegisterAsync(name, gesture, cancellationToken);
-        return await ToUiResultAsync(PlatformCapabilityId.Hotkey, "register", result, cancellationToken);
+        var batch = await RegisterGlobalHotkeysAsync(
+            [new HotkeyBindingRequest(name, gesture)],
+            cancellationToken);
+        if (!batch.Success || batch.Value is null)
+        {
+            return UiOperationResult.Fail(
+                batch.Error?.Code ?? UiErrorCode.HotkeyRegistrationFailed,
+                batch.Message,
+                batch.Error?.Details);
+        }
+
+        var result = batch.Value.FirstOrDefault();
+        if (result is null)
+        {
+            return UiOperationResult.Fail(
+                UiErrorCode.HotkeyRegistrationFailed,
+                "Global hotkey registration batch returned no result.");
+        }
+
+        if (!result.Result.Success)
+        {
+            return UiOperationResult.Fail(
+                result.Result.ErrorCode ?? UiErrorCode.HotkeyRegistrationFailed,
+                result.Result.Message);
+        }
+
+        return UiOperationResult.Ok(result.Result.Message);
+    }
+
+    public async Task<UiOperationResult<IReadOnlyList<HotkeyRegistrationOutcome>>> RegisterGlobalHotkeysAsync(
+        IReadOnlyList<HotkeyBindingRequest> requests,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var results = await _platform.HotkeyService.RegisterBatchAsync(requests, cancellationToken);
+            foreach (var result in results)
+            {
+                await _diagnostics.RecordPlatformEventAsync(
+                    PlatformCapabilityId.Hotkey,
+                    "register",
+                    result.Result,
+                    cancellationToken);
+                if (!result.Result.Success)
+                {
+                    await _diagnostics.RecordFailedResultAsync(
+                        $"PlatformCapability.Hotkey.register.{result.Name}",
+                        UiOperationResult.Fail(
+                            result.Result.ErrorCode ?? UiErrorCode.HotkeyRegistrationFailed,
+                            result.Result.Message),
+                        cancellationToken);
+                }
+            }
+
+            return UiOperationResult<IReadOnlyList<HotkeyRegistrationOutcome>>.Ok(
+                results,
+                "Global hotkey batch registration completed.");
+        }
+        catch (Exception ex)
+        {
+            await _diagnostics.RecordErrorAsync(
+                "PlatformCapability.Hotkey.register-batch",
+                "Global hotkey batch registration failed unexpectedly.",
+                ex,
+                cancellationToken);
+            return UiOperationResult<IReadOnlyList<HotkeyRegistrationOutcome>>.Fail(
+                UiErrorCode.HotkeyRegistrationFailed,
+                $"Global hotkey batch registration failed: {ex.Message}",
+                ex.ToString());
+        }
     }
 
     public async Task<UiOperationResult> UnregisterGlobalHotkeyAsync(string name, CancellationToken cancellationToken = default)
     {
         var result = await _platform.HotkeyService.UnregisterAsync(name, cancellationToken);
         return await ToUiResultAsync(PlatformCapabilityId.Hotkey, "unregister", result, cancellationToken);
+    }
+
+    public async Task<UiOperationResult> ConfigureHotkeyHostContextAsync(
+        HotkeyHostContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _platform.HotkeyService.ConfigureHostContextAsync(context, cancellationToken);
+        return await ToUiResultAsync(PlatformCapabilityId.Hotkey, "configure-host", result, cancellationToken);
+    }
+
+    public bool TryDispatchWindowScopedHotkey(HotkeyGesture gesture)
+    {
+        return _platform.HotkeyService.TryDispatchWindowScopedHotkey(gesture);
     }
 
     public async Task<UiOperationResult<bool>> GetAutostartEnabledAsync(CancellationToken cancellationToken = default)
@@ -3701,15 +3971,20 @@ public sealed class VersionUpdateFeatureService : IVersionUpdateFeatureService
 
     private readonly UnifiedConfigurationService? _configService;
     private readonly UiDiagnosticsService? _diagnosticsService;
+    private readonly IAchievementTrackerService? _achievementTrackerService;
 
     public VersionUpdateFeatureService()
     {
     }
 
-    public VersionUpdateFeatureService(UnifiedConfigurationService configService, UiDiagnosticsService? diagnosticsService = null)
+    public VersionUpdateFeatureService(
+        UnifiedConfigurationService configService,
+        UiDiagnosticsService? diagnosticsService = null,
+        IAchievementTrackerService? achievementTrackerService = null)
     {
         _configService = configService;
         _diagnosticsService = diagnosticsService;
+        _achievementTrackerService = achievementTrackerService;
     }
 
     public Task<UiOperationResult<VersionUpdatePolicy>> LoadPolicyAsync(CancellationToken cancellationToken = default)
@@ -4146,6 +4421,7 @@ public sealed class VersionUpdateFeatureService : IVersionUpdateFeatureService
                 () => MergeDirectory(mergeSource, runtimeBaseDirectory),
                 cancellationToken).ConfigureAwait(false);
             await TraceVersionUpdateAsync(scope, "Merge end", cancellationToken).ConfigureAwait(false);
+            _achievementTrackerService?.Unlock("MirrorChyanFirstUse");
             var message = string.IsNullOrWhiteSpace(payload.ReleaseNote)
                 ? "资源更新完成（MirrorChyan）。"
                 : $"资源更新完成（MirrorChyan）：{payload.ReleaseNote}";

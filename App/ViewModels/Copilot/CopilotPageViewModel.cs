@@ -691,6 +691,11 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
 
         StatusMessage = $"已对作业 `{itemName}` 提交{(like ? "点赞" : "点踩")}。";
         LastErrorMessage = string.Empty;
+        if (like)
+        {
+            _ = Runtime.AchievementTrackerService.AddProgressToGroup("CopilotLikeGiven");
+        }
+
         await RecordEventAsync("Copilot.Feedback", StatusMessage, cancellationToken);
     }
 
@@ -815,6 +820,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
             case "TaskChainCompleted":
             case "AllTasksCompleted":
                 active.Status = "Success";
+                _ = Runtime.AchievementTrackerService.AddProgressToGroup("UseCopilot");
                 CompleteActiveRun();
                 break;
             case "TaskChainStopped":
@@ -968,6 +974,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
                 AddLog(GetRootText("SSSGamePass", "Game cleared! congratulations!"), timestamp: timestamp);
                 break;
             case "UnsupportedLevel":
+                _ = Runtime.AchievementTrackerService.Unlock("MapOutdated");
                 AddLog(GetRootText("UnsupportedLevel", "Unsupported stage, please update resources and try again!"), "ERROR", timestamp: timestamp);
                 break;
         }

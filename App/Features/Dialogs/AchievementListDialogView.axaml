@@ -19,11 +19,44 @@
              SelectionMode="Multiple">
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <StackPanel>
-            <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
-            <TextBlock Opacity="0.85" Classes="long-wrap" Text="{Binding Description}" />
-            <TextBlock Opacity="0.75" Text="{Binding Status}" />
-          </StackPanel>
+          <Border Margin="0,0,0,8"
+                  Padding="10"
+                  CornerRadius="10"
+                  Background="#14000000"
+                  BorderBrush="#22000000"
+                  BorderThickness="1">
+            <Grid ColumnDefinitions="Auto,*">
+              <Border Width="42"
+                      Height="42"
+                      Margin="0,4,10,0"
+                      CornerRadius="21"
+                      Background="{Binding MedalColor}"
+                      VerticalAlignment="Top" />
+              <StackPanel Grid.Column="1" Spacing="4">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
+                  <TextBlock Text="NEW"
+                             FontWeight="Bold"
+                             Foreground="#D96C0D"
+                             IsVisible="{Binding IsNewUnlock}" />
+                </StackPanel>
+                <TextBlock Classes="long-wrap" Opacity="0.9" Text="{Binding Description}" />
+                <TextBlock Classes="long-wrap subtle" Text="{Binding Conditions}" />
+                <ProgressBar Minimum="0"
+                             Maximum="{Binding Target}"
+                             Value="{Binding Progress}"
+                             IsVisible="{Binding ShowProgress}"
+                             Height="10"
+                             Width="220" />
+                <TextBlock Text="{Binding Progress, StringFormat=进度：{0}}"
+                           IsVisible="{Binding ShowProgress}" />
+                <TextBlock Opacity="0.72" Text="{Binding Status}" />
+                <TextBlock Text="{Binding UnlockedAtText}"
+                           Foreground="{Binding MedalColor}"
+                           IsVisible="{Binding IsUnlocked}" />
+              </StackPanel>
+            </Grid>
+          </Border>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>

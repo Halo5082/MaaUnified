@@ -25,19 +25,19 @@
       <StackPanel Grid.Column="0"
                   Classes="settings-centered-column"
                   Spacing="{DynamicResource MAA.Spacing.Small}">
-        <CheckBox Content="显示托盘图标" IsChecked="{Binding UseTray}" />
-        <CheckBox Content="最小化时隐藏至托盘"
+        <CheckBox Content="{Binding RootTexts[Settings.GUI.UseTray]}" IsChecked="{Binding UseTray}" />
+        <CheckBox Content="{Binding RootTexts[Settings.GUI.MinimizeToTray]}"
                   IsChecked="{Binding MinimizeToTray}"
                   IsVisible="{Binding CanMinimizeToTray}" />
-        <CheckBox Content="窗口标题滚动" IsChecked="{Binding WindowTitleScrollable}" />
-        <CheckBox Content="使用软件渲染" IsChecked="True" IsEnabled="False" />
+        <CheckBox Content="{Binding RootTexts[Settings.GUI.WindowTitleScrollable]}" IsChecked="{Binding WindowTitleScrollable}" />
+        <CheckBox Content="{Binding RootTexts[Settings.GUI.UseSoftwareRendering]}" IsChecked="{Binding UseSoftwareRendering}" />
       </StackPanel>
 
       <StackPanel Grid.Column="1"
                   Classes="settings-centered-column"
                   Spacing="{DynamicResource MAA.Spacing.Small}">
         <StackPanel Classes="settings-centered-column">
-          <TextBlock Classes="settings-field-caption" Text="语言" />
+          <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.Language]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                     ItemsSource="{Binding SupportedLanguages}"
                     SelectedItem="{Binding SelectedLanguageOption}">
@@ -50,7 +50,7 @@
         </StackPanel>
 
         <StackPanel Classes="settings-centered-column">
-          <TextBlock Classes="settings-field-caption" Text="干员名称显示语言" />
+          <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.OperNameLanguage]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                     ItemsSource="{Binding OperNameLanguageOptions}"
                     SelectedItem="{Binding SelectedOperNameLanguageOption}">
@@ -63,7 +63,7 @@
         </StackPanel>
 
         <StackPanel Classes="settings-centered-column">
-          <TextBlock Classes="settings-field-caption" Text="界面主题" />
+          <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.Theme]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                     ItemsSource="{Binding ThemeOptions}"
                     SelectedItem="{Binding SelectedThemeOption}">
@@ -76,7 +76,7 @@
         </StackPanel>
 
         <StackPanel Classes="settings-centered-column">
-          <TextBlock Classes="settings-field-caption" Text="主界面按钮功能" />
+          <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.InverseClearMode]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                     ItemsSource="{Binding InverseClearModeOptions}"
                     SelectedItem="{Binding SelectedInverseClearModeOption}">
@@ -89,10 +89,14 @@
         </StackPanel>
 
         <StackPanel Classes="settings-centered-column">
-          <TextBlock Classes="settings-field-caption" Text="日期格式字符串" />
+          <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.LogItemDateFormat]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                     ItemsSource="{Binding LogItemDateFormatOptions}"
                     SelectedItem="{Binding LogItemDateFormatString}" />
+          <TextBlock Classes="settings-note settings-centered-text"
+                     Text="{Binding RootTexts[Settings.GUI.LogItemDateFormat.PreviewCaption]}" />
+          <TextBlock Classes="settings-note settings-centered-text"
+                     Text="{Binding GuiLogItemDateFormatPreview}" />
         </StackPanel>
       </StackPanel>
     </Grid>
@@ -105,7 +109,7 @@
                  Text="{Binding GuiSectionValidationMessage}"
                  IsVisible="{Binding HasGuiSectionValidationMessage}" />
       <TextBlock Classes="settings-note settings-centered-text"
-                 Text="隐藏/菜单行为保持与 Windows 客户端一致。已启用 GUI 自动保存（文本提交时，勾选即时）。" />
+                 Text="{Binding RootTexts[Settings.GUI.Note]}" />
     </StackPanel>
   </Grid>
 </UserControl>

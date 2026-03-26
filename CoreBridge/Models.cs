@@ -73,6 +73,30 @@ public sealed record CoreInitializeInfo(
     string? ClientType,
     CoreGpuInitializeInfo? Gpu = null);
 
+public sealed record CoreInstanceOptions(
+    string? TouchMode = null,
+    bool? DeploymentWithPause = null,
+    bool? AdbLiteEnabled = null,
+    bool? KillAdbOnExit = null)
+{
+    public bool IsEmpty =>
+        string.IsNullOrWhiteSpace(TouchMode)
+        && DeploymentWithPause is null
+        && AdbLiteEnabled is null
+        && KillAdbOnExit is null;
+
+    public CoreInstanceOptions MergeWith(CoreInstanceOptions fallback)
+    {
+        ArgumentNullException.ThrowIfNull(fallback);
+
+        return new CoreInstanceOptions(
+            string.IsNullOrWhiteSpace(TouchMode) ? fallback.TouchMode : TouchMode,
+            DeploymentWithPause ?? fallback.DeploymentWithPause,
+            AdbLiteEnabled ?? fallback.AdbLiteEnabled,
+            KillAdbOnExit ?? fallback.KillAdbOnExit);
+    }
+}
+
 public sealed record CoreConnectionInfo(
     string Address,
     string ConnectConfig,

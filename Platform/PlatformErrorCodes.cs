@@ -21,6 +21,9 @@ public static class PlatformErrorCodes
     public const string HotkeyPermissionDenied = "HotkeyPermissionDenied";
     public const string HotkeyHookStartFailed = "HotkeyHookStartFailed";
     public const string HotkeyTriggerDispatchFailed = "HotkeyTriggerDispatchFailed";
+    public const string HotkeyPortalUnavailable = "HotkeyPortalUnavailable";
+    public const string HotkeyPortalUnsupported = "HotkeyPortalUnsupported";
+    public const string HotkeyPortalCancelled = "HotkeyPortalCancelled";
 
     public const string AutostartUnsupported = "AutostartUnsupported";
     public const string AutostartQueryFailed = "AutostartQueryFailed";

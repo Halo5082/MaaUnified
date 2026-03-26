@@ -67,6 +67,29 @@ public sealed class TaskQueueG2FeatureTests
     }
 
     [Fact]
+    public async Task StartAndStopAsync_ShouldUpdateAchievementTracker()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("StartUp", "startup-a")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Fight", "fight-b")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        Assert.True((await fixture.Runtime.ConnectFeatureService.ConnectAsync("127.0.0.1:5555", "General", null)).Success);
+        await vm.StartAsync();
+        await vm.StopAsync();
+
+        Assert.Equal(2, fixture.Runtime.AchievementTrackerService.GetProgress("TaskChainKing"));
+        Assert.Equal(1, fixture.Runtime.AchievementTrackerService.GetProgress("MissionStartCount"));
+        Assert.Equal(1, fixture.Runtime.AchievementTrackerService.GetProgressToGroup("UseDaily"));
+
+        var snapshot = await fixture.Runtime.AchievementTrackerService.GetSnapshotAsync("zh-cn");
+        Assert.True(snapshot.Success);
+        Assert.Contains(snapshot.Value!.Items, item => item.Id == "TacticalRetreat" && item.IsUnlocked);
+    }
+
+    [Fact]
     public async Task RunningState_ShouldBlockQueueMutationsAndEnabledToggle()
     {
         await using var fixture = await TestFixture.CreateAsync();
@@ -159,6 +182,29 @@ public sealed class TaskQueueG2FeatureTests
         Assert.Equal(2, card.Items.Count);
         Assert.Equal("开始任务: fight-a", card.Items[0].Content);
         Assert.Contains("1-7", card.Items[1].Content, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Callback_InfrastClueTasks_ShouldUpdateAchievementTracker()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        await InvokeCallbackAsync(vm, new CoreCallbackEvent(
+            30001,
+            "SubTaskCompleted",
+            """{"task_chain":"Infrast","sub_task":"ProcessTask","details":{"task":"UnlockClues"}}""",
+            DateTimeOffset.UtcNow));
+        await InvokeCallbackAsync(vm, new CoreCallbackEvent(
+            30002,
+            "SubTaskCompleted",
+            """{"task_chain":"Infrast","sub_task":"ProcessTask","details":{"task":"SendClues"}}""",
+            DateTimeOffset.UtcNow));
+
+        Assert.Equal(1, fixture.Runtime.AchievementTrackerService.GetProgressToGroup("ClueUse"));
+        Assert.Equal(1, fixture.Runtime.AchievementTrackerService.GetProgress("ClueObsession"));
+        Assert.Equal(1, fixture.Runtime.AchievementTrackerService.GetProgressToGroup("ClueSend"));
     }
 
     [Fact]
@@ -550,6 +596,7 @@ public sealed class TaskQueueG2FeatureTests
             var capability = new PlatformCapabilityFeatureService(platform, diagnostics);
             var connect = new ConnectFeatureService(session, config);
             var postAction = new CountingPostActionFeatureService();
+            var achievementTracker = new AchievementTrackerService(config, root);
 
             var runtime = new MAAUnifiedRuntime
             {
@@ -570,6 +617,7 @@ public sealed class TaskQueueG2FeatureTests
                 OverlayFeatureService = new OverlayFeatureService(capability),
                 NotificationProviderFeatureService = new NotificationProviderFeatureService(),
                 SettingsFeatureService = new SettingsFeatureService(config, capability, diagnostics),
+                AchievementTrackerService = achievementTracker,
                 DialogFeatureService = new DialogFeatureService(diagnostics),
                 PostActionFeatureService = postAction,
             };

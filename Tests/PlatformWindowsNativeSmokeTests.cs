@@ -20,7 +20,7 @@ public sealed class PlatformWindowsNativeSmokeTests
 
             Assert.IsType<WindowsNotifyIconTrayService>(bundle.TrayService);
             Assert.IsType<DesktopNotificationService>(bundle.NotificationService);
-            Assert.IsType<SharpHookGlobalHotkeyService>(bundle.HotkeyService);
+            Assert.True(bundle.HotkeyService is SharpHookGlobalHotkeyService or CompositeGlobalHotkeyService);
             Assert.IsType<CrossPlatformAutostartService>(bundle.AutostartService);
             Assert.IsType<WindowsOverlayCapabilityService>(bundle.OverlayService);
 
@@ -54,7 +54,7 @@ public sealed class PlatformWindowsNativeSmokeTests
 
             Assert.IsType<WindowMenuTrayService>(bundle.TrayService);
             Assert.IsType<CommandNotificationService>(bundle.NotificationService);
-            Assert.IsType<WindowScopedHotkeyService>(bundle.HotkeyService);
+            Assert.True(bundle.HotkeyService is WindowScopedHotkeyService or CompositeGlobalHotkeyService);
             Assert.IsType<CrossPlatformAutostartService>(bundle.AutostartService);
             Assert.IsType<NoOpOverlayCapabilityService>(bundle.OverlayService);
 
