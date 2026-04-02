@@ -77,9 +77,6 @@ public sealed class FightTaskModuleViewModel : TypedTaskModuleViewModelBase<Figh
         "PR-D-2",
     ];
 
-    private static readonly Dictionary<string, IReadOnlyList<string>> StageCodeCache =
-        new(StringComparer.OrdinalIgnoreCase);
-
     private static readonly IReadOnlyList<(string StageCode, string ZhTip, string EnTip, IReadOnlyList<string[]>? InventoryGroups)> DailyHintSpecs =
     [
         ("CE-6", "CE-6: 龙门币", "CE-6: LMD", null),
@@ -876,8 +873,7 @@ public sealed class FightTaskModuleViewModel : TypedTaskModuleViewModelBase<Figh
     {
         var normalizedClientType = NormalizeClientType(clientTypeOverride ?? ResolveClientTypeFromConfig());
         var dayOfWeek = MallDailyResetHelper.GetYjDate(DateTime.UtcNow, normalizedClientType).DayOfWeek;
-        var stageResourcePath = ResolveStageResourcePath(normalizedClientType);
-        var stageCodes = LoadStageCodes(stageResourcePath, forceReload);
+        var stageCodes = Runtime.StageManagerFeatureService.GetStageCodes(normalizedClientType, forceReload);
         var defaultStageDisplay = Texts.GetOrDefault("Fight.DefaultStage", "Cur/Last");
         var annihilationDisplay = UseCustomAnnihilation
             ? AnnihilationStageOptions.FirstOrDefault(
@@ -943,108 +939,6 @@ public sealed class FightTaskModuleViewModel : TypedTaskModuleViewModelBase<Figh
         }
 
         return "Official";
-    }
-
-    private static string ResolveStageResourcePath(string normalizedClientType)
-    {
-        var officialPath = Path.Combine(AppContext.BaseDirectory, "resource", "stages.json");
-        if (string.Equals(normalizedClientType, "Official", StringComparison.OrdinalIgnoreCase))
-        {
-            return officialPath;
-        }
-
-        var globalPath = Path.Combine(
-            AppContext.BaseDirectory,
-            "resource",
-            "global",
-            normalizedClientType,
-            "resource",
-            "stages.json");
-        return File.Exists(globalPath) ? globalPath : officialPath;
-    }
-
-    private static IReadOnlyList<string> LoadStageCodes(string stageResourcePath, bool forceReload)
-    {
-        lock (StageCodeCache)
-        {
-            if (forceReload)
-            {
-                StageCodeCache.Remove(stageResourcePath);
-            }
-            else if (StageCodeCache.TryGetValue(stageResourcePath, out var cachedCodes))
-            {
-                return cachedCodes;
-            }
-        }
-
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var orderedCodes = new List<string>();
-
-        static void AddStageCode(HashSet<string> seenSet, List<string> ordered, string? stageCode)
-        {
-            if (string.IsNullOrWhiteSpace(stageCode))
-            {
-                return;
-            }
-
-            var normalized = stageCode.Trim();
-            if (seenSet.Add(normalized))
-            {
-                ordered.Add(normalized);
-            }
-        }
-
-        foreach (var fallbackCode in FallbackStageCodes)
-        {
-            AddStageCode(seen, orderedCodes, fallbackCode);
-        }
-
-        if (!File.Exists(stageResourcePath))
-        {
-            var fallbackOnly = orderedCodes.ToArray();
-            lock (StageCodeCache)
-            {
-                StageCodeCache[stageResourcePath] = fallbackOnly;
-            }
-
-            return fallbackOnly;
-        }
-
-        try
-        {
-            using var stream = File.OpenRead(stageResourcePath);
-            using var document = JsonDocument.Parse(stream);
-            if (document.RootElement.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var element in document.RootElement.EnumerateArray())
-                {
-                    if (!element.TryGetProperty("code", out var codeElement))
-                    {
-                        continue;
-                    }
-
-                    var code = codeElement.GetString();
-                    if (string.IsNullOrWhiteSpace(code))
-                    {
-                        continue;
-                    }
-
-                    AddStageCode(seen, orderedCodes, code);
-                }
-            }
-        }
-        catch
-        {
-            // Ignore malformed resource files and fall back to static stage list.
-        }
-
-        var loadedCodes = orderedCodes.ToArray();
-        lock (StageCodeCache)
-        {
-            StageCodeCache[stageResourcePath] = loadedCodes;
-        }
-
-        return loadedCodes;
     }
 
     private static string NormalizeClientType(string? clientType)

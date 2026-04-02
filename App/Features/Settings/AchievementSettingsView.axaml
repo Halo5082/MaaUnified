@@ -14,22 +14,24 @@
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   Spacing="{DynamicResource MAA.Spacing.Small}">
-        <Button Classes="wpf-button wpf-button-secondary" Content="刷新成就状态" Click="OnRefreshAchievementClick" />
         <Button Classes="wpf-button wpf-button-secondary"
-                Content="查看成就"
+                Content="{Binding RootTexts[Settings.Action.RefreshAchievement]}"
+                Click="OnRefreshAchievementClick" />
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="{Binding RootTexts[Settings.Action.ShowAchievement]}"
                 Click="OnShowAchievementListClick" />
       </StackPanel>
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   Spacing="{DynamicResource MAA.Spacing.Small}">
         <Button Classes="wpf-button wpf-button-secondary"
-                Content="备份成就"
+                Content="{Binding RootTexts[Settings.Achievement.Backup]}"
                 Click="OnBackupAchievementClick" />
         <Button Classes="wpf-button wpf-button-secondary"
-                Content="加载备份"
+                Content="{Binding RootTexts[Settings.Achievement.Restore]}"
                 Click="OnRestoreAchievementClick" />
         <Button Classes="wpf-button wpf-button-secondary"
-                Content="打开成就说明"
+                Content="{Binding RootTexts[Settings.Action.OpenAchievementGuide]}"
                 Click="OnOpenAchievementGuideClick" />
       </StackPanel>
       <Border Width="108"
@@ -55,10 +57,10 @@
                   Spacing="{DynamicResource MAA.Spacing.Small}"
                   IsVisible="{Binding CanUseAchievementDebugActions}">
         <Button Classes="wpf-button wpf-button-secondary"
-                Content="Unlock All"
+                Content="{Binding RootTexts[Settings.Achievement.UnlockAll]}"
                 Click="OnUnlockAllAchievementClick" />
         <Button Classes="wpf-button wpf-button-secondary"
-                Content="Lock All"
+                Content="{Binding RootTexts[Settings.Achievement.LockAll]}"
                 Click="OnLockAllAchievementClick" />
       </StackPanel>
     </StackPanel>
@@ -76,11 +78,11 @@
                 Spacing="0">
       <CheckBox Margin="{DynamicResource MAA.Thickness.Settings.ItemMarginSmall}"
                 HorizontalAlignment="Center"
-                Content="禁用成就提示气泡"
+                Content="{Binding RootTexts[Settings.Achievement.PopupDisabled]}"
                 IsChecked="{Binding AchievementPopupDisabled}" />
       <CheckBox Margin="{DynamicResource MAA.Thickness.Settings.ItemMarginSmall}"
                 HorizontalAlignment="Center"
-                Content="成就提示气泡自动关闭"
+                Content="{Binding RootTexts[Settings.Achievement.PopupAutoClose]}"
                 IsChecked="{Binding AchievementPopupAutoClose}"
                 IsVisible="{Binding CanEditAchievementPopupAutoClose}" />
     </StackPanel>

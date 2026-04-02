@@ -218,6 +218,36 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
         Assert.Equal("ShowGui=;LinkStart=Ctrl+2", ReadGlobalString(fixture.Config, ConfigurationKeys.HotKeys));
     }
 
+    [Fact]
+    public async Task HotkeyCaptureTexts_ShouldRefreshWithLanguageSwitch_AndUseLocalizedCaptureErrors()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        vm.Language = "zh-cn";
+        Assert.Equal("[热键] 显示/收起 MAA", vm.ShowGuiHotkeyState.Title);
+        Assert.Equal("录入规则：至少按下一个修饰键与一个普通键才会提交；Esc 取消；Backspace/Delete 清空绑定。", vm.HotkeyCaptureGuideText);
+        Assert.Equal("全局", vm.ShowGuiHotkeyState.ScopeLabel);
+        vm.HandleHotkeyCapture(
+            "ShowGui",
+            new HotkeyCaptureResult(
+                HotkeyCaptureResultKind.Rejected,
+                Message: "At least one modifier key is required."));
+        Assert.Equal("至少需要一个修饰键。", vm.ShowGuiHotkeyState.WarningMessage);
+
+        vm.Language = "en-us";
+        Assert.Equal("[HotKey] Show/collapse MAA", vm.ShowGuiHotkeyState.Title);
+        Assert.Equal("Recording rules: press at least one modifier plus one non-modifier key. Esc cancels. Backspace/Delete clears the binding.", vm.HotkeyCaptureGuideText);
+        Assert.Equal("Global", vm.ShowGuiHotkeyState.ScopeLabel);
+        vm.HandleHotkeyCapture(
+            "ShowGui",
+            new HotkeyCaptureResult(
+                HotkeyCaptureResultKind.Rejected,
+                Message: "At least one modifier key is required."));
+        Assert.Equal("At least one modifier key is required.", vm.ShowGuiHotkeyState.WarningMessage);
+    }
+
     private static async Task ValidateMappedHotkeyErrorAsync(string errorCode, string expectedLocalized)
     {
         var hotkeyService = new ScriptedHotkeyService();

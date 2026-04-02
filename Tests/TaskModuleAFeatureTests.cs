@@ -160,6 +160,103 @@ public sealed class TaskModuleAFeatureTests
     }
 
     [Fact]
+    public async Task GetRecruitParamsAsync_ReadsLevel6FromExistingParams_AndKeepsLegacyEntriesCompatible()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "maa-unified-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(root, "config"));
+        await File.WriteAllTextAsync(
+            Path.Combine(root, "config", "avalonia.json"),
+            """
+            {
+              "SchemaVersion": 2,
+              "CurrentProfile": "Default",
+              "Profiles": {
+                "Default": {
+                  "Values": {},
+                  "TaskQueue": [
+                    {
+                      "Type": "Recruit",
+                      "Name": "RecruitWithLevel6",
+                      "IsEnabled": true,
+                      "Params": {
+                        "refresh": true,
+                        "force_refresh": true,
+                        "select": [4, 6],
+                        "confirm": [1, 3, 4, 6],
+                        "times": 4,
+                        "set_time": true,
+                        "expedite": false,
+                        "skip_robot": true,
+                        "extra_tags_mode": 0,
+                        "first_tags": [],
+                        "recruitment_time": {
+                          "3": 540,
+                          "4": 530,
+                          "5": 520
+                        }
+                      }
+                    },
+                    {
+                      "Type": "Recruit",
+                      "Name": "RecruitLegacy",
+                      "IsEnabled": true,
+                      "Params": {
+                        "refresh": false,
+                        "force_refresh": false,
+                        "select": [4],
+                        "confirm": [1, 3, 4],
+                        "times": 2,
+                        "set_time": true,
+                        "expedite": true,
+                        "skip_robot": true,
+                        "extra_tags_mode": 0,
+                        "first_tags": [],
+                        "recruitment_time": {
+                          "3": 540,
+                          "4": 540,
+                          "5": 540
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "GlobalValues": {},
+              "Migration": {}
+            }
+            """);
+
+        var service = new UnifiedConfigurationService(
+            new AvaloniaJsonConfigStore(root),
+            new GuiNewJsonConfigImporter(),
+            new GuiJsonConfigImporter(),
+            new UiLogService(),
+            root);
+
+        var load = await service.LoadOrBootstrapAsync();
+        Assert.True(load.LoadedFromExistingConfig);
+
+        var bridge = new CapturingBridge();
+        var session = new UnifiedSessionService(bridge, service, new UiLogService(), new SessionStateMachine());
+        var queue = new TaskQueueFeatureService(session, service);
+
+        var withLevel6 = await queue.GetRecruitParamsAsync(0);
+        Assert.True(withLevel6.Success);
+        Assert.NotNull(withLevel6.Value);
+        Assert.True(withLevel6.Value!.ChooseLevel6);
+        Assert.True(withLevel6.Value.ChooseLevel4);
+        Assert.Equal(530, withLevel6.Value.Level4Time);
+
+        var legacy = await queue.GetRecruitParamsAsync(1);
+        Assert.True(legacy.Success);
+        Assert.NotNull(legacy.Value);
+        Assert.False(legacy.Value!.ChooseLevel6);
+        Assert.True(legacy.Value.ChooseLevel4);
+        Assert.False(legacy.Value.Refresh);
+        Assert.True(legacy.Value.UseExpedited);
+    }
+
+    [Fact]
     public async Task QueueEnabledTasks_CompilesAndNormalizesParamsBeforeAppend()
     {
         await using var fixture = await TestFixture.CreateAsync();
@@ -277,6 +374,7 @@ public sealed class TaskModuleAFeatureTests
             ChooseLevel3 = true,
             ChooseLevel4 = true,
             ChooseLevel5 = false,
+            ChooseLevel6 = true,
             SetTime = true,
             Level3Time = 540,
             Level4Time = 530,
@@ -300,16 +398,19 @@ public sealed class TaskModuleAFeatureTests
         Assert.Contains(confirm, item => item?.GetValue<int>() == 1);
         Assert.Contains(confirm, item => item?.GetValue<int>() == 3);
         Assert.Contains(confirm, item => item?.GetValue<int>() == 4);
+        Assert.Contains(confirm, item => item?.GetValue<int>() == 6);
         Assert.DoesNotContain(confirm, item => item?.GetValue<int>() == 5);
 
         var select = Assert.IsType<JsonArray>(json["select"]);
         Assert.Contains(select, item => item?.GetValue<int>() == 4);
+        Assert.Contains(select, item => item?.GetValue<int>() == 6);
         Assert.DoesNotContain(select, item => item?.GetValue<int>() == 5);
 
         var recruitmentTime = Assert.IsType<JsonObject>(json["recruitment_time"]);
         Assert.Equal(540, recruitmentTime["3"]?.GetValue<int>());
         Assert.Equal(530, recruitmentTime["4"]?.GetValue<int>());
         Assert.Equal(520, recruitmentTime["5"]?.GetValue<int>());
+        Assert.DoesNotContain("6", recruitmentTime.Select(pair => pair.Key), StringComparer.Ordinal);
     }
 
     [Fact]
@@ -367,6 +468,7 @@ public sealed class TaskModuleAFeatureTests
             ChooseLevel3 = true,
             ChooseLevel4 = false,
             ChooseLevel5 = true,
+            ChooseLevel6 = true,
             SetTime = true,
             Level3Time = 540,
             Level4Time = 530,
@@ -419,6 +521,7 @@ public sealed class TaskModuleAFeatureTests
         Assert.True(recruit.Value.ChooseLevel3);
         Assert.False(recruit.Value.ChooseLevel4);
         Assert.True(recruit.Value.ChooseLevel5);
+        Assert.True(recruit.Value.ChooseLevel6);
         Assert.Equal(540, recruit.Value.Level3Time);
         Assert.Equal(530, recruit.Value.Level4Time);
         Assert.Equal(520, recruit.Value.Level5Time);
@@ -630,6 +733,8 @@ public sealed class TaskModuleAFeatureTests
         Assert.DoesNotContain("SelectedAttachWindowScreencapOption", startUpView);
         Assert.DoesNotContain("SelectedAttachWindowMouseOption", startUpView);
         Assert.DoesNotContain("SelectedAttachWindowKeyboardOption", startUpView);
+        Assert.Contains("IsChecked=\"{Binding ChooseLevel6}\"", recruitView);
+        Assert.DoesNotContain("AutoSelectLevel6Notice", recruitView);
     }
 
     private static string ResolveRepoRoot()
@@ -673,6 +778,8 @@ public sealed class TaskModuleAFeatureTests
             "Issue.FightTimesMayNotExhausted",
             "Issue.RecruitTimesOutOfRange",
             "Issue.RecruitTimeOutOfRange",
+            "Recruit.AutoSelectLevel6",
+            "Recruit.AutoSelectLevel6FixedTime",
             "Issue.TaskFieldMissing",
         ];
     }

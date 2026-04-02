@@ -21,6 +21,22 @@ public partial class StageManagerView : UserControl
         }
     }
 
+    private async void OnRefreshLocalClick(object? sender, RoutedEventArgs e)
+    {
+        if (VM is not null)
+        {
+            await VM.RefreshLocalAsync();
+        }
+    }
+
+    private async void OnRefreshWebClick(object? sender, RoutedEventArgs e)
+    {
+        if (VM is not null)
+        {
+            await VM.RefreshWebAsync();
+        }
+    }
+
     private async void OnSaveClick(object? sender, RoutedEventArgs e)
     {
         if (VM is not null)

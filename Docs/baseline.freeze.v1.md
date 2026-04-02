@@ -7,19 +7,18 @@
 - Matrix mode: `tiered`
 - Themes: `Light, Dark`
 - Locales: `zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas`
-- Feature items: `44`
+- Feature items: `36`
 - System items: `13`
 - Config keys: `293`
 - Fallback records: `15`
 
 ## Feature Parity
-- Aligned: `44`
+- Aligned: `36`
 - Gap: `0`
 - Waived: `0`
 
 | Item ID | Group | Parity | Avalonia Path |
 | --- | --- | --- | --- |
-| `RootDashboard` | Root | Aligned | `App/Features/Root/RootDashboardView.axaml` |
 | `TaskQueueRoot` | Root | Aligned | `App/Features/Root/TaskQueueView.axaml` |
 | `SettingsRoot` | Root | Aligned | `App/Features/Root/SettingsView.axaml` |
 | `Settings.About` | Settings | Aligned | `App/Features/Settings/AboutSettingsView.axaml` |
@@ -31,7 +30,6 @@
 | `Settings.Game` | Settings | Aligned | `App/Features/Settings/GameSettingsView.axaml` |
 | `Settings.Gui` | Settings | Aligned | `App/Features/Settings/GuiSettingsView.axaml` |
 | `Settings.HotKey` | Settings | Aligned | `App/Features/Settings/HotKeySettingsView.axaml` |
-| `Settings.HotKeyEditor` | Settings | Aligned | `App/Features/Settings/HotKeyEditorView.axaml` |
 | `Settings.IssueReport` | Settings | Aligned | `App/Features/Settings/IssueReportView.axaml` |
 | `Settings.Performance` | Settings | Aligned | `App/Features/Settings/PerformanceSettingsView.axaml` |
 | `Settings.RemoteControl` | Settings | Aligned | `App/Features/Settings/RemoteControlSettingsView.axaml` |
@@ -50,12 +48,6 @@
 | `Task.PostAction` | TaskQueue | Aligned | `App/Features/TaskQueue/PostActionSettingsView.axaml` |
 | `Advanced.Copilot` | Advanced | Aligned | `App/Features/Advanced/CopilotView.axaml` |
 | `Advanced.Toolbox` | Advanced | Aligned | `App/Features/Advanced/ToolboxView.axaml` |
-| `Advanced.RemoteControlCenter` | Advanced | Aligned | `App/Features/Advanced/RemoteControlCenterView.axaml` |
-| `Advanced.Overlay` | Advanced | Aligned | `App/Features/Advanced/OverlayView.axaml` |
-| `Advanced.TrayIntegration` | Advanced | Aligned | `App/Features/Advanced/TrayIntegrationView.axaml` |
-| `Advanced.StageManager` | Advanced | Aligned | `App/Features/Advanced/StageManagerView.axaml` |
-| `Advanced.WebApi` | Advanced | Aligned | `App/Features/Advanced/WebApiView.axaml` |
-| `Advanced.ExternalNotificationProviders` | Advanced | Aligned | `App/Features/Advanced/ExternalNotificationProvidersView.axaml` |
 | `Dialog.Announcement` | Dialogs | Aligned | `App/Features/Dialogs/AnnouncementDialogView.axaml` |
 | `Dialog.VersionUpdate` | Dialogs | Aligned | `App/Features/Dialogs/VersionUpdateDialogView.axaml` |
 | `Dialog.ProcessPicker` | Dialogs | Aligned | `App/Features/Dialogs/ProcessPickerDialogView.axaml` |

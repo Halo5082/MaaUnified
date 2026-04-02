@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Text.Json.Nodes;
 using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Models;
@@ -44,6 +46,7 @@ public sealed class ToolboxModuleO2FeatureTests
         Assert.Equal(530, vm.RecruitLevel5Time);
         Assert.False(vm.RecruitAutoSetTime);
         Assert.False(vm.RecruitmentShowPotential);
+        Assert.Contains("advanced", vm.Tabs, StringComparer.Ordinal);
         Assert.True(vm.GachaShowDisclaimerNoMore);
         Assert.False(vm.GachaShowDisclaimer);
         Assert.Equal(37, vm.PeepTargetFps);
@@ -56,6 +59,13 @@ public sealed class ToolboxModuleO2FeatureTests
         Assert.Contains("char_003_kalts", vm.OperBoxExportText, StringComparison.Ordinal);
         Assert.Contains("@penguin-statistics/depot", vm.ArkPlannerResult, StringComparison.Ordinal);
         Assert.Contains("2001", vm.LoliconResult, StringComparison.Ordinal);
+        Assert.Equal("Official", vm.StageManagerPage.ClientType);
+        Assert.NotEmpty(vm.ExternalNotificationProvidersPage.Providers);
+        Assert.False(string.IsNullOrWhiteSpace(vm.TrayIntegrationPage.CapabilitySummary));
+        Assert.NotEmpty(vm.OverlayPage.Targets);
+        Assert.NotNull(vm.OverlayPage.SelectedTarget);
+        Assert.False(string.IsNullOrWhiteSpace(vm.WebApiPage.Host));
+        Assert.True(vm.WebApiPage.Port > 0);
     }
 
     [Fact]
@@ -80,6 +90,30 @@ public sealed class ToolboxModuleO2FeatureTests
         Assert.Equal("请在活动商店页面开始。\n不买无限池。", vm.MiniGameTip);
         vm.MiniGameTaskName = "MiniGame@SecretFront";
         Assert.Equal("在选小队界面开始，如有存档须手动删除。\n第一次打自己看完把教程关了。\n推荐勾选游戏内「继承上一支队伍发回的数据」", vm.MiniGameTip);
+    }
+
+    [Fact]
+    public async Task SetLanguage_ShouldRefreshToolboxLocalizedHeadersAndTips()
+    {
+        await using var fixture = await ToolboxTestFixture.CreateAsync();
+        var vm = new ToolboxPageViewModel(fixture.Runtime, fixture.ConnectionState);
+        await vm.InitializeAsync();
+
+        vm.SetLanguage("en-us");
+
+        var notOwnedHeaderTemplate = vm.Texts["Toolbox.OperBox.Header.NotOwned"];
+        var ownedHeaderTemplate = vm.Texts["Toolbox.OperBox.Header.Owned"];
+        var currentMiniGame = Assert.Single(
+            vm.MiniGameTaskList.Where(item => string.Equals(item.Value, vm.MiniGameTaskName, StringComparison.Ordinal)));
+        var expectedMiniGameTip = string.IsNullOrWhiteSpace(currentMiniGame.Tip)
+            ? string.Format(CultureInfo.InvariantCulture, vm.Texts["Toolbox.MiniGame.CurrentTask"], currentMiniGame.Display)
+            : currentMiniGame.Tip;
+
+        AssertHeaderMatchesLocalizedTemplate(notOwnedHeaderTemplate, vm.OperBoxNotHaveHeader);
+        AssertHeaderMatchesLocalizedTemplate(ownedHeaderTemplate, vm.OperBoxHaveHeader);
+        Assert.Equal("Not synced yet", vm.LastDepotSyncTimeText);
+        Assert.Equal("Peek through MAA's eyes?", vm.PeepTip);
+        Assert.Equal(expectedMiniGameTip, vm.MiniGameTip);
     }
 
     [Fact]
@@ -108,6 +142,17 @@ public sealed class ToolboxModuleO2FeatureTests
         var task = Assert.Single(fixture.Bridge.AppendedTasks);
         Assert.Equal("Recruit", task.Type);
         var payload = Assert.IsType<JsonObject>(JsonNode.Parse(task.ParamsJson));
+        var selectLevels = Assert.IsType<JsonArray>(payload["select"]);
+        var selected = selectLevels
+            .Select(node => node is null ? int.MinValue : node.GetValue<int>())
+            .ToArray();
+        Assert.Contains(3, selected);
+        Assert.Contains(5, selected);
+        Assert.Contains(6, selected);
+        Assert.DoesNotContain(4, selected);
+        Assert.True(payload["set_time"]?.GetValue<bool>() ?? false);
+        var recruitTime = Assert.IsType<JsonObject>(payload["recruitment_time"]);
+        Assert.DoesNotContain("6", recruitTime.Select(pair => pair.Key), StringComparer.Ordinal);
         Assert.Equal("KR", payload["server"]?.GetValue<string>());
         Assert.Equal("500", fixture.Config.CurrentConfig.GlobalValues[LegacyConfigurationKeys.ToolBoxChooseLevel3Time]?.ToString());
         Assert.Equal("520", fixture.Config.CurrentConfig.GlobalValues[LegacyConfigurationKeys.ToolBoxChooseLevel5Time]?.ToString());
@@ -193,5 +238,62 @@ public sealed class ToolboxModuleO2FeatureTests
         var entry = Assert.Single(vm.MiniGameTaskList, item => item.Value == "MiniGame@Test@Begin");
         Assert.Equal("测试小游戏", entry.Display);
         Assert.Equal("测试提示", entry.Tip);
+    }
+
+    [Fact]
+    public async Task MiniGameEntries_ShouldFilterByCurrentClient_AndRefreshWhenClientChanges()
+    {
+        await using var fixture = await ToolboxTestFixture.CreateAsync();
+        Directory.CreateDirectory(Path.Combine(fixture.Root, "gui"));
+        await File.WriteAllTextAsync(
+            Path.Combine(fixture.Root, "gui", "StageActivityV2.json"),
+            """
+            {
+              "Official": {
+                "miniGame": [
+                  {
+                    "Display": "国服小游戏",
+                    "Value": "MiniGame@Official@Begin",
+                    "Tip": "国服提示"
+                  }
+                ]
+              },
+              "YoStarEN": {
+                "miniGame": [
+                  {
+                    "Display": "EN小游戏",
+                    "Value": "MiniGame@EN@Begin",
+                    "Tip": "EN提示"
+                  }
+                ]
+              }
+            }
+            """);
+
+        using var _ = ToolboxAssetCatalog.PushTestBaseDirectoriesForTests(fixture.Root);
+        fixture.ConnectionState.ClientType = "Official";
+        var vm = new ToolboxPageViewModel(fixture.Runtime, fixture.ConnectionState);
+
+        await vm.InitializeAsync();
+
+        Assert.Contains(vm.MiniGameTaskList, item => item.Value == "MiniGame@Official@Begin");
+        Assert.DoesNotContain(vm.MiniGameTaskList, item => item.Value == "MiniGame@EN@Begin");
+
+        fixture.ConnectionState.ClientType = "YoStarEN";
+
+        Assert.Contains(vm.MiniGameTaskList, item => item.Value == "MiniGame@EN@Begin");
+        Assert.DoesNotContain(vm.MiniGameTaskList, item => item.Value == "MiniGame@Official@Begin");
+    }
+
+    private static void AssertHeaderMatchesLocalizedTemplate(string template, string actual)
+    {
+        const string placeholder = "{0}";
+        var index = template.IndexOf(placeholder, StringComparison.Ordinal);
+        Assert.True(index >= 0, $"Header template must contain {placeholder}: {template}");
+
+        var prefix = template[..index];
+        var suffix = template[(index + placeholder.Length)..];
+        var pattern = $"^{Regex.Escape(prefix)}\\d+{Regex.Escape(suffix)}$";
+        Assert.Matches(pattern, actual);
     }
 }

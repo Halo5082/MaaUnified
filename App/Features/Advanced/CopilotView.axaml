@@ -64,16 +64,16 @@
                     Spacing="{DynamicResource MAA.Spacing.Small}">
           <TabControl SelectedIndex="{Binding CopilotTabIndex}"
                       IsEnabled="{Binding CanEdit}">
-            <TabItem Header="主线/故事集/SideStory" />
-            <TabItem Header="保全派驻" />
-            <TabItem Header="悖论模拟" />
-            <TabItem Header="其他活动" />
+            <TabItem Header="{Binding Texts[Copilot.Tab.Main]}" />
+            <TabItem Header="{Binding Texts[Copilot.Tab.Security]}" />
+            <TabItem Header="{Binding Texts[Copilot.Tab.Paradox]}" />
+            <TabItem Header="{Binding Texts[Copilot.Tab.Other]}" />
           </TabControl>
 
           <Grid ColumnDefinitions="*,Auto,Auto,Auto">
             <Grid Grid.Column="0">
               <controls:CheckComboBox Text="{Binding DisplayFilename}"
-                                      Watermark="作业路径/神秘代码"
+                                      Watermark="{Binding Texts[Copilot.Input.PathOrCodeWatermark]}"
                                       IsEditable="True"
                                       IsEnabled="{Binding CanEdit}"
                                       IsTreeMode="True"
@@ -86,22 +86,22 @@
             <Button Grid.Column="1"
                     Classes="wpf-button wpf-button-secondary copilot-icon"
                     Margin="6,0,0,0"
-                    Content="文件"
-                    ToolTip.Tip="作业文件可以直接用鼠标拖进来哦 (oﾟvﾟ)ノ"
+                    Content="{Binding Texts[Copilot.Button.File]}"
+                    ToolTip.Tip="{Binding Texts[Copilot.Tip.File]}"
                     Click="OnSelectFileClick"
                     IsEnabled="{Binding CanEdit}" />
             <Button Grid.Column="2"
                     Classes="wpf-button wpf-button-secondary copilot-icon"
                     Margin="6,0,0,0"
-                    Content="粘贴"
-                    ToolTip.Tip="读取剪贴板并添加为作业"
+                    Content="{Binding Texts[Copilot.Button.Paste]}"
+                    ToolTip.Tip="{Binding Texts[Copilot.Tip.Paste]}"
                     Click="OnPasteClipboardClick"
                     IsEnabled="{Binding CanEdit}" />
             <Button Grid.Column="3"
                     Classes="wpf-button wpf-button-secondary copilot-icon"
                     Margin="6,0,0,0"
-                    Content="作业集"
-                    ToolTip.Tip="读取剪贴板并添加为作业集"
+                    Content="{Binding Texts[Copilot.Button.PasteSet]}"
+                    ToolTip.Tip="{Binding Texts[Copilot.Tip.PasteSet]}"
                     Click="OnPasteClipboardSetClick"
                     IsVisible="{Binding ShowClipboardSetButton}"
                     IsEnabled="{Binding CanEdit}" />
@@ -116,14 +116,14 @@
               <Button Width="120"
                       Height="48"
                       Classes="wpf-button wpf-button-primary"
-                      Content="开始"
+                      Content="{Binding Texts[Copilot.Action.Start]}"
                       Click="OnStartClick"
                       IsVisible="{Binding CanEdit}"
                       IsEnabled="{Binding CanStart}" />
               <Button Width="120"
                       Height="48"
                       Classes="wpf-button wpf-button-secondary"
-                      Content="停止"
+                      Content="{Binding Texts[Copilot.Action.Stop]}"
                       Click="OnStopClick"
                       IsVisible="{Binding CanStop}"
                       IsEnabled="{Binding CanStop}" />
@@ -136,16 +136,16 @@
                         IsEnabled="{Binding CanEdit}">
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowFormationGroup}">
-                <CheckBox Content="自动编队"
+                <CheckBox Content="{Binding Texts[Copilot.Option.AutoSquad]}"
                           IsChecked="{Binding Form}" />
                 <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                      Tip="自动编队可能无法识别带有「特别关注」标记的干员" />
+                                      Tip="{Binding Texts[Copilot.Tip.AutoSquad]}" />
               </StackPanel>
 
               <StackPanel Orientation="Horizontal"
                           Margin="24,0,0,0"
                           IsVisible="{Binding ShowUseFormation}">
-                <CheckBox Content="使用编队"
+                <CheckBox Content="{Binding Texts[Copilot.Option.UseFormation]}"
                           IsChecked="{Binding UseFormation}" />
                 <ComboBox Width="100"
                           Margin="8,0,0,0"
@@ -162,21 +162,19 @@
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowIgnoreRequirements}">
-                <CheckBox Content="忽略干员属性要求"
+                <CheckBox Content="{Binding Texts[Copilot.Option.IgnoreRequirements]}"
                           IsChecked="{Binding IgnoreRequirements}" />
-                <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}">
-                  <controls:TooltipHint.Tip>某些作业需要特定模组等作为前置条件
-勾选此项将跳过这些检查，但可能导致作业无法正常运行</controls:TooltipHint.Tip>
-                </controls:TooltipHint>
+                <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
+                                      Tip="{Binding Texts[Copilot.Tip.IgnoreRequirements]}" />
               </StackPanel>
 
               <StackPanel Spacing="{DynamicResource MAA.Spacing.Tight}"
                           IsVisible="{Binding ShowSupportUnitUsage}">
                 <StackPanel Orientation="Horizontal">
-                  <CheckBox Content="借助战"
+                  <CheckBox Content="{Binding Texts[Copilot.Option.UseSupportUnit]}"
                             IsChecked="{Binding UseSupportUnitUsage}" />
                   <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                        Tip="缺一个还能用用，缺两个以上还是换份作业吧" />
+                                        Tip="{Binding Texts[Copilot.Tip.UseSupportUnit]}" />
                 </StackPanel>
                 <ComboBox Width="120"
                           Margin="24,0,0,0"
@@ -191,22 +189,22 @@
                 </ComboBox>
               </StackPanel>
 
-              <CheckBox Content="补充低信赖干员"
+              <CheckBox Content="{Binding Texts[Copilot.Option.AddTrust]}"
                         IsChecked="{Binding AddTrust}"
                         IsVisible="{Binding ShowAddTrust}" />
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowAddUserAdditional}">
-                <CheckBox Content="追加自定干员"
+                <CheckBox Content="{Binding Texts[Copilot.Option.AddUserAdditional]}"
                           IsChecked="{Binding AddUserAdditional}" />
                 <Button x:Name="UserAdditionalButton"
                         Classes="wpf-button wpf-button-secondary copilot-icon"
                         Margin="8,0,0,0"
                         Padding="8,0"
-                        Content="编辑"
+                        Content="{Binding Texts[Copilot.Button.Edit]}"
                         Click="OnOpenUserAdditionalPopupClick" />
                 <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                      Tip="以英文 「;」 为分隔符，英文 「,」 分隔干员名与技能，例: 史尔特尔,3;艾雅法拉,1" />
+                                      Tip="{Binding Texts[Copilot.Tip.UserAdditionalFormat]}" />
                 <Popup IsOpen="{Binding IsUserAdditionalPopupOpen}"
                        Placement="Bottom"
                        PlacementTarget="{Binding ElementName=UserAdditionalButton}"
@@ -216,7 +214,7 @@
                           Padding="12"
                           Classes="wpf-panel">
                     <Grid RowDefinitions="Auto,*,Auto">
-                      <TextBlock Text="追加自定干员" />
+                      <TextBlock Text="{Binding Texts[Copilot.Popup.UserAdditionalTitle]}" />
                       <ScrollViewer Grid.Row="1"
                                     Margin="0,8,0,8"
                                     MaxHeight="320">
@@ -226,7 +224,7 @@
                               <Grid ColumnDefinitions="*,72,120,Auto"
                                     Margin="0,0,0,6">
                                 <TextBox Text="{Binding Name}"
-                                         Watermark="干员名" />
+                                         Watermark="{Binding DataContext.Texts[Copilot.Input.OperatorNameWatermark], RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                 <controls:VerticalSpinNumberBox Grid.Column="1"
                                                                 Margin="8,0,0,0"
                                                                 Minimum="1"
@@ -245,7 +243,7 @@
                                 <Button Grid.Column="3"
                                         Classes="wpf-button wpf-button-secondary copilot-list-action"
                                         Margin="8,0,0,0"
-                                        Content="删除"
+                                        Content="{Binding DataContext.Texts[Copilot.Button.Delete], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         Tag="{Binding}"
                                         Click="OnRemoveUserAdditionalItemClick" />
                               </Grid>
@@ -256,18 +254,18 @@
                       <Grid Grid.Row="2"
                             ColumnDefinitions="*,Auto,Auto">
                         <Button Classes="wpf-button wpf-button-secondary"
-                                Content="添加"
+                                Content="{Binding Texts[Copilot.Button.Add]}"
                                 HorizontalAlignment="Left"
                                 Click="OnAddUserAdditionalItemClick" />
                         <Button Grid.Column="1"
                                 Classes="wpf-button"
                                 Margin="8,0,0,0"
-                                Content="确定"
+                                Content="{Binding Texts[Copilot.Button.Confirm]}"
                                 Click="OnSaveUserAdditionalClick" />
                         <Button Grid.Column="2"
                                 Classes="wpf-button wpf-button-secondary"
                                 Margin="8,0,0,0"
-                                Content="取消"
+                                Content="{Binding Texts[Copilot.Button.Cancel]}"
                                 Click="OnCancelUserAdditionalClick" />
                       </Grid>
                     </Grid>
@@ -277,27 +275,19 @@
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowUseCopilotList}">
-                <CheckBox Content="战斗列表"
+                <CheckBox Content="{Binding Texts[Copilot.Option.BattleList]}"
                           IsChecked="{Binding UseCopilotList}" />
-                <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}">
-                  <controls:TooltipHint.Tip>仅支持以下模式:
-  1. 主线: 同一章节内导航
-  2. SideStory: 当前页面内导航（普通/EX/S 不能互跳）
-  3. 故事集: 当前页面内导航
-  4. 悖论模拟: 从干员列表启动
-请在对应界面启动，不支持跨章节导航
-
-当「战斗列表」启用后，选择单个作业时会自动添加到「战斗列表」</controls:TooltipHint.Tip>
-                </controls:TooltipHint>
+                <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
+                                      Tip="{Binding Texts[Copilot.Tip.BattleList]}" />
               </StackPanel>
 
-              <CheckBox Content="使用理智药"
+              <CheckBox Content="{Binding Texts[Copilot.Option.UseSanityPotion]}"
                         IsChecked="{Binding UseSanityPotion}"
                         IsVisible="{Binding ShowUseSanityPotion}" />
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowLoopSetting}">
-                <CheckBox Content="循环次数"
+                <CheckBox Content="{Binding Texts[Copilot.Option.LoopTimes]}"
                           IsChecked="{Binding Loop}" />
                 <controls:VerticalSpinNumberBox Margin="8,0,0,0"
                                                 Minimum="1"
@@ -328,14 +318,14 @@
                         <Button Grid.Column="1"
                                 Classes="wpf-button wpf-button-secondary copilot-list-action"
                                 Margin="8,0,0,0"
-                                Content="载入"
+                                Content="{Binding DataContext.Texts[Copilot.Button.Load], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 Tag="{Binding}"
                                 Click="OnLoadListItemClick"
                                 PointerPressed="OnLoadListItemPointerPressed" />
                         <Button Grid.Column="2"
                                 Classes="wpf-button wpf-button-secondary copilot-list-action"
                                 Margin="8,0,0,0"
-                                Content="删除"
+                                Content="{Binding DataContext.Texts[Copilot.Button.Delete], RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 Tag="{Binding}"
                                 Click="OnDeleteListItemClick" />
                       </Grid>
@@ -348,22 +338,22 @@
             <Button Grid.Row="1"
                     Grid.Column="0"
                     Classes="wpf-button wpf-button-secondary copilot-list-action"
-                    Content="批量导入"
-                    ToolTip.Tip="批量导入"
+                    Content="{Binding Texts[Copilot.Button.ImportBatch]}"
+                    ToolTip.Tip="{Binding Texts[Copilot.Tip.ImportBatch]}"
                     Click="OnImportFilesClick"
                     IsEnabled="{Binding CanEdit}" />
             <TextBox Grid.Row="1"
                      Grid.Column="1"
                      Margin="8,0,0,0"
                      Text="{Binding CopilotTaskName}"
-                     Watermark="关卡名"
-                     ToolTip.Tip="关卡名, 例: 1-7" />
+                     Watermark="{Binding Texts[Copilot.Input.StageNameWatermark]}"
+                     ToolTip.Tip="{Binding Texts[Copilot.Tip.StageName]}" />
             <Button Grid.Row="1"
                     Grid.Column="2"
                     Classes="wpf-button wpf-button-secondary copilot-list-action"
                     Margin="8,0,0,0"
-                    Content="添加"
-                    ToolTip.Tip="左键添加普通难度&#10;右键添加突袭难度"
+                    Content="{Binding Texts[Copilot.Button.Add]}"
+                    ToolTip.Tip="{Binding Texts[Copilot.Tip.AddList]}"
                     Click="OnAddCurrentToListClick"
                     PointerPressed="OnAddCurrentToListPointerPressed"
                     IsEnabled="{Binding CanEdit}" />
@@ -371,8 +361,8 @@
                     Grid.Column="3"
                     Classes="wpf-button wpf-button-secondary copilot-list-action"
                     Margin="8,0,0,0"
-                    Content="清除"
-                    ToolTip.Tip="左键清除所有任务&#10;右键清除未激活任务"
+                    Content="{Binding Texts[Copilot.Button.Clear]}"
+                    ToolTip.Tip="{Binding Texts[Copilot.Tip.ClearList]}"
                     Click="OnClearListClick"
                     PointerPressed="OnClearListPointerPressed"
                     IsEnabled="{Binding CanEdit}" />
@@ -426,17 +416,17 @@
               IsVisible="{Binding CouldLikeWebJson}">
           <TextBlock Margin="0,10,0,0"
                      VerticalAlignment="Center"
-                     Text="作业怎么样？评价下吧！"
+                     Text="{Binding Texts[Copilot.Rating.Prompt]}"
                      TextWrapping="Wrap" />
           <Button Grid.Column="1"
                   Classes="wpf-button wpf-button-secondary"
                   Margin="8,10,0,0"
-                  Content="点赞"
+                  Content="{Binding Texts[Copilot.Button.Like]}"
                   Click="OnLikeLoadedClick" />
           <Button Grid.Column="2"
                   Classes="wpf-button wpf-button-secondary"
                   Margin="8,10,0,0"
-                  Content="点踩"
+                  Content="{Binding Texts[Copilot.Button.Dislike]}"
                   Click="OnDislikeLoadedClick" />
         </Grid>
 

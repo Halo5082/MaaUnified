@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.Json;
+using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Configuration;
 using MAAUnified.Application.Models;
 
@@ -6,8 +8,13 @@ namespace MAAUnified.App.Features.Settings;
 
 internal static class ConfigurationImportSelectionAnalyzer
 {
-    public static ConfigurationImportSelectionAnalysis Analyze(IEnumerable<string> filePaths)
+    private static readonly RootLocalizationTextMap Texts = new("Root.Localization.Settings.ConfigurationImportSelectionAnalyzer");
+
+    public static ConfigurationImportSelectionAnalysis Analyze(
+        IEnumerable<string> filePaths,
+        Func<string, string>? textResolver = null)
     {
+        textResolver ??= ResolveDefaultText;
         var normalized = filePaths
             .Where(static path => !string.IsNullOrWhiteSpace(path))
             .Select(static path => Path.GetFullPath(path.Trim()))
@@ -16,12 +23,12 @@ internal static class ConfigurationImportSelectionAnalyzer
 
         if (normalized.Length == 0)
         {
-            return ConfigurationImportSelectionAnalysis.Invalid("未选择任何文件。");
+            return ConfigurationImportSelectionAnalysis.Invalid(textResolver("Settings.ConfigurationManager.Import.NoFilesSelected"));
         }
 
         if (normalized.Length > 2)
         {
-            return ConfigurationImportSelectionAnalysis.Invalid("旧配置导入最多选择两个文件；统一配置 json 只支持单文件导入。");
+            return ConfigurationImportSelectionAnalysis.Invalid(textResolver("Settings.ConfigurationManager.Import.TooManyFiles"));
         }
 
         if (normalized.Length == 1)
@@ -38,7 +45,7 @@ internal static class ConfigurationImportSelectionAnalyzer
                 return ConfigurationImportSelectionAnalysis.Legacy(null, singlePath, hasInvalidFiles: false);
             }
 
-            return InspectSingleFile(singlePath);
+            return InspectSingleFile(singlePath, textResolver);
         }
 
         var guiNewPath = normalized.FirstOrDefault(path => IsGuiNewFile(Path.GetFileName(path)));
@@ -48,27 +55,35 @@ internal static class ConfigurationImportSelectionAnalyzer
             var invalidCount = normalized.Length
                                - (string.IsNullOrWhiteSpace(guiNewPath) ? 0 : 1)
                                - (string.IsNullOrWhiteSpace(guiPath) ? 0 : 1);
-            return ConfigurationImportSelectionAnalysis.Legacy(guiNewPath, guiPath, invalidCount > 0);
+            return ConfigurationImportSelectionAnalysis.Legacy(guiNewPath, guiPath, invalidCount > 0, textResolver);
         }
 
         if (normalized.Length == 2 && normalized.Any(path => InspectJsonShape(path) == ConfigurationImportJsonShape.UnifiedConfig))
         {
-            return ConfigurationImportSelectionAnalysis.Invalid("统一配置 json 只支持单文件导入。");
+            return ConfigurationImportSelectionAnalysis.Invalid(textResolver("Settings.ConfigurationManager.Import.UnifiedSingleFileOnly"));
         }
 
-        return ConfigurationImportSelectionAnalysis.Invalid("无法识别导入文件，请选择导出的配置 json，或 gui.json / gui.new.json。");
+        return ConfigurationImportSelectionAnalysis.Invalid(textResolver("Settings.ConfigurationManager.Import.UnrecognizedFiles"));
     }
 
-    private static ConfigurationImportSelectionAnalysis InspectSingleFile(string path)
+    private static ConfigurationImportSelectionAnalysis InspectSingleFile(
+        string path,
+        Func<string, string> textResolver)
     {
         return InspectJsonShape(path) switch
         {
             ConfigurationImportJsonShape.UnifiedConfig => ConfigurationImportSelectionAnalysis.Unified(path),
             ConfigurationImportJsonShape.LegacyConfig => ConfigurationImportSelectionAnalysis.Invalid(
-                "旧配置文件名不正确，请选择 gui.json 或 gui.new.json。"),
+                textResolver("Settings.ConfigurationManager.Import.LegacyFilenameInvalid")),
             _ => ConfigurationImportSelectionAnalysis.Invalid(
-                "无法识别导入文件，请选择导出的配置 json，或 gui.json / gui.new.json。"),
+                textResolver("Settings.ConfigurationManager.Import.UnrecognizedFiles")),
         };
+    }
+
+    internal static string ResolveDefaultText(string key)
+    {
+        Texts.Language = App.Runtime.UiLanguageCoordinator.CurrentLanguage;
+        return Texts[key];
     }
 
     private static ConfigurationImportJsonShape InspectJsonShape(string path)
@@ -140,8 +155,13 @@ internal sealed record ConfigurationImportSelectionAnalysis(
             false,
             string.Empty);
 
-    public static ConfigurationImportSelectionAnalysis Legacy(string? guiNewPath, string? guiPath, bool hasInvalidFiles)
+    public static ConfigurationImportSelectionAnalysis Legacy(
+        string? guiNewPath,
+        string? guiPath,
+        bool hasInvalidFiles,
+        Func<string, string>? textResolver = null)
     {
+        textResolver ??= ConfigurationImportSelectionAnalyzer.ResolveDefaultText;
         var missingParts = new List<string>();
         if (string.IsNullOrWhiteSpace(guiNewPath))
         {
@@ -154,13 +174,19 @@ internal sealed record ConfigurationImportSelectionAnalysis(
         }
 
         var message = missingParts.Count > 0
-            ? $"请同时选择 {string.Join(" 和 ", missingParts)}。"
+            ? string.Format(
+                CultureInfo.CurrentCulture,
+                textResolver("Settings.ConfigurationManager.Import.MissingLegacyParts"),
+                string.Join(textResolver("Settings.Common.JoinAnd"), missingParts))
             : string.Empty;
         if (hasInvalidFiles)
         {
             message = string.IsNullOrWhiteSpace(message)
-                ? "选择中存在文件名不正确的旧配置文件。"
-                : $"{message} 另外存在文件名不正确的旧配置文件。";
+                ? textResolver("Settings.ConfigurationManager.Import.LegacyInvalidFilesOnly")
+                : string.Format(
+                    CultureInfo.CurrentCulture,
+                    textResolver("Settings.ConfigurationManager.Import.LegacyInvalidFilesWithMissing"),
+                    message);
         }
 
         return new ConfigurationImportSelectionAnalysis(

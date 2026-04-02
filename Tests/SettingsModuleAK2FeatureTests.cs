@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using MAAUnified.App.Features.Dialogs;
@@ -238,7 +239,11 @@ public sealed class SettingsModuleAK2FeatureTests
         Assert.Equal("False", ReadScopedString(fixture.Config, ConfigurationKeys.StartEmulator));
         Assert.Equal(string.Empty, ReadScopedString(fixture.Config, ConfigurationKeys.EmulatorPath));
         Assert.True(vm.HasPendingStartPerformanceChanges);
-        Assert.Contains("does not exist", vm.StartPerformanceValidationMessage, StringComparison.OrdinalIgnoreCase);
+        var expectedMessage = string.Format(
+            CultureInfo.InvariantCulture,
+            vm.RootTexts["Settings.StartPerformance.Validation.EmulatorPathNotFound"],
+            missingPath);
+        Assert.Equal(expectedMessage, vm.StartPerformanceValidationMessage);
     }
 
     [Fact]

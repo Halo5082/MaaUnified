@@ -47,6 +47,7 @@ public sealed class MainShellViewModel : ObservableObject
     private readonly OverlaySharedState _overlaySharedState;
     private readonly Dictionary<int, string> _timerSlotMinuteDedup = [];
     private readonly Queue<AchievementUnlockedEvent> _pendingAchievementToasts = [];
+    private Task _pendingLanguageApplyTask = Task.CompletedTask;
     private readonly CancellationTokenSource _startupCts = new();
     private readonly TaskCompletionSource<bool> _startupSnapshotReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource<bool> _firstScreenReadyTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -93,6 +94,7 @@ public sealed class MainShellViewModel : ObservableObject
     {
         Program.RecordStartupStage("FrameworkInit.ViewModel.MainShell.Begin", "Constructing MainShellViewModel.");
         _runtime = runtime;
+        CurrentShellLanguage = StartupShellSnapshot.FromConfig(runtime.ConfigurationService.CurrentConfig).Language;
         _dialogService = dialogService ??
             (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime
                 ? new AvaloniaDialogService(runtime)
@@ -132,10 +134,12 @@ public sealed class MainShellViewModel : ObservableObject
         CopilotRootPage = new RootPageHostViewModel("页面正在后台初始化", "Copilot 页面将在首屏完成后继续加载。");
         ToolboxRootPage = new RootPageHostViewModel("页面正在后台初始化", "Toolbox 页面将在首屏完成后继续加载。");
         SettingsRootPage = new RootPageHostViewModel("页面正在后台初始化", "Settings 页面将在首屏完成后继续加载。");
+        RefreshRootPageHostStatusText();
         TaskQueuePage.Texts.FallbackReported += OnTaskQueueLocalizationFallbackReported;
         _currentSessionState = runtime.SessionService.CurrentState;
         runtime.SessionService.SessionStateChanged += OnSessionStateChanged;
         runtime.PlatformCapabilityService.OverlayStateChanged += OnOverlayStateChanged;
+        runtime.UiLanguageCoordinator.LanguageChanged += OnUiLanguageCoordinatorLanguageChanged;
         _timerScheduleTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1),
@@ -385,6 +389,14 @@ public sealed class MainShellViewModel : ObservableObject
             RootTexts["Main.Blocking.Title"],
             BlockingConfigIssueCount);
 
+    public string TaskQueueTabTitle => RootTexts["Main.Tab.TaskQueue"];
+
+    public string CopilotTabTitle => RootTexts["Main.Tab.Copilot"];
+
+    public string ToolboxTabTitle => RootTexts["Main.Tab.Toolbox"];
+
+    public string SettingsTabTitle => RootTexts["Main.Tab.Settings"];
+
     public bool IsCoreReady
     {
         get => _isCoreReady;
@@ -509,7 +521,6 @@ public sealed class MainShellViewModel : ObservableObject
                 }
 
                 ApplyDeveloperModeFromConfig();
-                _runtime.AchievementTrackerService.SetCurrentLanguage(CurrentShellLanguage);
                 _runtime.AchievementTrackerService.RecordStartup(
                     new AchievementStartupContext(
                         DateTimeOffset.UtcNow,
@@ -522,11 +533,13 @@ public sealed class MainShellViewModel : ObservableObject
                 UpdateStartupPhase("正在应用启动配置", "启动最小配置快照准备中。");
                 _startupSnapshot = StartupShellSnapshot.FromConfig(_runtime.ConfigurationService.CurrentConfig);
                 ApplyStartupShellSnapshot(_startupSnapshot);
+                await SyncLanguageCoordinatorWithConfigAsync(cancellationToken);
+                _runtime.AchievementTrackerService.SetCurrentLanguage(CurrentShellLanguage);
                 ApplyStartupSnapshotToSettingsPageIfCreated();
                 _startupSnapshotReadyTcs.TrySetResult(true);
                 RecordStartupPhase(
                     "StartupSnapshot.End",
-                    $"language={_startupSnapshot.Language}; theme={_startupSnapshot.Theme}; useTray={_startupSnapshot.UseTray}");
+                    $"language={CurrentShellLanguage}; theme={_startupSnapshot.Theme}; useTray={_startupSnapshot.UseTray}");
 
                 _runtime.LogService.Debug(
                     $"App init start: profile={_runtime.ConfigurationService.CurrentConfig.CurrentProfile}, state={_runtime.SessionService.CurrentState}");
@@ -539,7 +552,6 @@ public sealed class MainShellViewModel : ObservableObject
                 var settingsLoaded = await InitializeDeferredPagesAsync(cancellationToken);
                 if (settingsLoaded)
                 {
-                    TaskQueuePage.SetLanguage(SettingsPage.Language);
                     await ApplyGuiSettingsAsync(SettingsPage.CurrentGuiSnapshot, cancellationToken);
                 }
 
@@ -845,10 +857,11 @@ public sealed class MainShellViewModel : ObservableObject
 
     private void ApplyStartupShellSnapshot(StartupShellSnapshot snapshot)
     {
-        CurrentShellLanguage = snapshot.Language;
+        var language = snapshot.Language;
+        CurrentShellLanguage = language;
         AppliedTheme = snapshot.Theme;
         _rootLogTimeFormat = snapshot.LogItemDateFormatString;
-        RootTexts.Language = snapshot.Language;
+        RootTexts.Language = language;
         RefreshRootTextState();
 
         if (Avalonia.Application.Current is not null)
@@ -861,7 +874,10 @@ public sealed class MainShellViewModel : ObservableObject
                         : ThemeVariant.Light;
         }
 
-        TaskQueuePage.SetLanguage(snapshot.Language);
+        TaskQueuePage.SetLanguage(language);
+        CopilotPage.SetLanguage(language);
+        ToolboxPage.SetLanguage(language);
+        RefreshRootPageHostStatusText();
         ApplyWindowTitleScrolling(snapshot.WindowTitleScrollable);
         ShellBackgroundOpacity = snapshot.BackgroundOpacity / 100d;
         ShellBackgroundBlur = snapshot.BackgroundBlur;
@@ -1151,7 +1167,7 @@ public sealed class MainShellViewModel : ObservableObject
         GlobalStatus = ImportStatus;
         await TaskQueuePage.ReloadTasksAsync(cancellationToken);
         await SettingsPage.InitializeAsync(cancellationToken);
-        TaskQueuePage.SetLanguage(SettingsPage.Language);
+        await SyncLanguageCoordinatorWithConfigAsync(cancellationToken);
         await ApplyGuiSettingsAsync(SettingsPage.CurrentGuiSnapshot, cancellationToken);
         SyncConnectionFromProfile();
         RefreshConfigValidationState(_runtime.ConfigurationService.CurrentValidationIssues);
@@ -1562,7 +1578,12 @@ public sealed class MainShellViewModel : ObservableObject
         WindowVersionUpdateInfo = RootTexts["Main.Update.VersionAvailable"];
         WindowResourceUpdateInfo = RootTexts["Main.Update.ResourceAvailable"];
         RefreshWindowTitle();
+        OnPropertyChanged(nameof(RootTexts));
         OnPropertyChanged(nameof(BlockingConfigIssueSummary));
+        OnPropertyChanged(nameof(TaskQueueTabTitle));
+        OnPropertyChanged(nameof(CopilotTabTitle));
+        OnPropertyChanged(nameof(ToolboxTabTitle));
+        OnPropertyChanged(nameof(SettingsTabTitle));
 
         var selected = SelectedImportSource;
         ImportSourceOptions.Clear();
@@ -1572,6 +1593,7 @@ public sealed class MainShellViewModel : ObservableObject
         SelectedImportSource = selected;
         SelectedImportSourceOption = ImportSourceOptions.FirstOrDefault(item => item.Source == SelectedImportSource)
             ?? ImportSourceOptions.FirstOrDefault();
+        RefreshRootPageHostStatusText();
     }
 
     private void RefreshWindowTitle()
@@ -1607,7 +1629,7 @@ public sealed class MainShellViewModel : ObservableObject
 
             case ConfigurationContextChangeReason.LegacyImport:
             case ConfigurationContextChangeReason.UnifiedImport:
-                TaskQueuePage.SetLanguage(SettingsPage.Language);
+                await SyncLanguageCoordinatorWithConfigAsync();
                 await ApplyGuiSettingsAsync(SettingsPage.CurrentGuiSnapshot);
                 await TaskQueuePage.ReloadConfigurationContextAsync(forceReloadStageOptions: true);
                 break;
@@ -1978,10 +2000,9 @@ public sealed class MainShellViewModel : ObservableObject
             await _guiApplySemaphore.WaitAsync(cancellationToken);
             lockAcquired = true;
 
-            CurrentShellLanguage = snapshot.Language;
             AppliedTheme = snapshot.Theme;
             _rootLogTimeFormat = snapshot.LogItemDateFormatString;
-            RootTexts.Language = snapshot.Language;
+            RootTexts.Language = CurrentShellLanguage;
             RefreshRootTextState();
             if (Avalonia.Application.Current is not null)
             {
@@ -1993,11 +2014,10 @@ public sealed class MainShellViewModel : ObservableObject
                             : ThemeVariant.Light;
             }
 
-            TaskQueuePage.SetLanguage(snapshot.Language);
             TaskQueuePage.ApplyGuiSettingsPreview(snapshot);
             ApplyWindowTitleScrolling(snapshot.WindowTitleScrollable);
             SettingsPage.AutostartStatus = PlatformCapabilityTextMap.FormatAutostartStatus(
-                snapshot.Language,
+                CurrentShellLanguage,
                 SettingsPage.StartSelf,
                 ReportLocalizationFallback);
 
@@ -2010,7 +2030,7 @@ public sealed class MainShellViewModel : ObservableObject
 
             var trayRefresh = await _runtime.PlatformCapabilityService.InitializeTrayAsync(
                 "MaaAssistantArknights",
-                PlatformCapabilityTextMap.CreateTrayMenuText(snapshot.Language, ReportLocalizationFallback),
+                PlatformCapabilityTextMap.CreateTrayMenuText(CurrentShellLanguage, ReportLocalizationFallback),
                 cancellationToken);
             if (!trayRefresh.Success)
             {
@@ -2264,27 +2284,49 @@ public sealed class MainShellViewModel : ObservableObject
         await TaskQueuePage.PickOverlayTargetWithDialogAsync(cancellationToken);
     }
 
-    private async Task ApplyLanguageChangeAsync(string next, CancellationToken cancellationToken = default)
+    private void OnUiLanguageCoordinatorLanguageChanged(object? sender, UiLanguageChangedEventArgs e)
     {
-        CurrentShellLanguage = next;
-        _runtime.AchievementTrackerService.SetCurrentLanguage(next);
-        RootTexts.Language = next;
-        SettingsPage.Language = next;
+        _pendingLanguageApplyTask = ScheduleCoordinatedLanguageChangeAsync(e.PreviousLanguage, e.CurrentLanguage);
+    }
+
+    private Task ScheduleCoordinatedLanguageChangeAsync(
+        string previousLanguage,
+        string nextLanguage)
+    {
+        if (Dispatcher.UIThread.CheckAccess() || Avalonia.Application.Current is null)
+        {
+            return ApplyCoordinatedLanguageChangeAsync(previousLanguage, nextLanguage);
+        }
+
+        return Dispatcher.UIThread.InvokeAsync(() => ApplyCoordinatedLanguageChangeAsync(previousLanguage, nextLanguage));
+    }
+
+    private async Task ApplyCoordinatedLanguageChangeAsync(
+        string previousLanguage,
+        string nextLanguage,
+        CancellationToken cancellationToken = default)
+    {
+        CurrentShellLanguage = nextLanguage;
+        _runtime.AchievementTrackerService.SetCurrentLanguage(nextLanguage);
+        RootTexts.Language = nextLanguage;
         SettingsPage.AutostartStatus = PlatformCapabilityTextMap.FormatAutostartStatus(
-            next,
+            nextLanguage,
             SettingsPage.StartSelf,
             ReportLocalizationFallback);
-        TaskQueuePage.SetLanguage(next);
+        TaskQueuePage.SetLanguage(nextLanguage);
+        CopilotPage.SetLanguage(nextLanguage);
+        ToolboxPage.SetLanguage(nextLanguage);
         RefreshRootTextState();
         await RefreshCapabilitySummaryAsync(cancellationToken);
 
         var trayRefresh = await _runtime.PlatformCapabilityService.InitializeTrayAsync(
             "MaaAssistantArknights",
-            PlatformCapabilityTextMap.CreateTrayMenuText(next, ReportLocalizationFallback),
+            PlatformCapabilityTextMap.CreateTrayMenuText(nextLanguage, ReportLocalizationFallback),
             cancellationToken);
-        if (!await ApplyResultAsync(trayRefresh, "App.Shell.SwitchLanguage.TrayRefresh", cancellationToken))
+        if (await ApplyResultAsync(trayRefresh, "App.Shell.SwitchLanguage.TrayRefresh", cancellationToken)
+            && !string.Equals(previousLanguage, nextLanguage, StringComparison.OrdinalIgnoreCase))
         {
-            return;
+            _ = _runtime.AchievementTrackerService.Unlock("Linguist");
         }
     }
 
@@ -2312,7 +2354,15 @@ public sealed class MainShellViewModel : ObservableObject
         }
 
         var next = switchResult.Value;
-        await ApplyLanguageChangeAsync(next, cancellationToken);
+        var changeResult = await _runtime.UiLanguageCoordinator.ChangeLanguageAsync(next, cancellationToken);
+        var appliedLanguage = await ApplyResultAsync(changeResult, successScope, cancellationToken);
+        if (appliedLanguage is null)
+        {
+            return;
+        }
+
+        await _pendingLanguageApplyTask;
+
         PushGrowl($"语言切换为: {next}");
 
         var message = source is null
@@ -2322,6 +2372,133 @@ public sealed class MainShellViewModel : ObservableObject
             successScope,
             message,
             cancellationToken);
+    }
+
+    private async Task SyncLanguageCoordinatorWithConfigAsync(CancellationToken cancellationToken = default)
+    {
+        var normalized = StartupShellSnapshot.FromConfig(_runtime.ConfigurationService.CurrentConfig).Language;
+        if (string.Equals(_runtime.UiLanguageCoordinator.CurrentLanguage, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var result = await _runtime.UiLanguageCoordinator.ChangeLanguageAsync(normalized, cancellationToken);
+        await ApplyResultAsync(result, "App.Shell.Language.SyncFromConfig", cancellationToken);
+        await _pendingLanguageApplyTask;
+    }
+
+    private void RefreshRootPageHostStatusText()
+    {
+        if (TaskQueueRootPage is null || CopilotRootPage is null || ToolboxRootPage is null || SettingsRootPage is null)
+        {
+            return;
+        }
+
+        RefreshRootPageHostStatusText(TaskQueueRootPage, RootPageStatusKind.TaskQueue);
+        RefreshRootPageHostStatusText(CopilotRootPage, RootPageStatusKind.Copilot);
+        RefreshRootPageHostStatusText(ToolboxRootPage, RootPageStatusKind.Toolbox);
+        RefreshRootPageHostStatusText(SettingsRootPage, RootPageStatusKind.Settings);
+    }
+
+    private void RefreshRootPageHostStatusText(RootPageHostViewModel host, RootPageStatusKind page)
+    {
+        switch (host.LoadState)
+        {
+            case RootPageLoadState.NotStarted:
+            {
+                var (title, message) = GetRootPagePendingText(page);
+                host.MarkPending(title, message);
+                break;
+            }
+
+            case RootPageLoadState.Loading:
+            {
+                var (title, message) = GetRootPageLoadingText(page);
+                host.MarkLoading(title, message);
+                break;
+            }
+
+            case RootPageLoadState.Failed:
+            {
+                var (title, message) = GetRootPageFailedText(page);
+                host.MarkFailed(title, message, host.ErrorMessage);
+                break;
+            }
+        }
+    }
+
+    private (string Title, string Message) GetRootPagePendingText(RootPageStatusKind page)
+    {
+        return page switch
+        {
+            RootPageStatusKind.TaskQueue => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "正在初始化首屏", "Preparing first screen"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "TaskQueue 页面正在加载。", "TaskQueue is preparing its first screen.")),
+
+            RootPageStatusKind.Copilot => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "页面正在后台初始化", "Page is initializing in the background"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 页面将在首屏完成后继续加载。", "Copilot will continue loading after the first screen is ready.")),
+
+            RootPageStatusKind.Toolbox => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "页面正在后台初始化", "Page is initializing in the background"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 页面将在首屏完成后继续加载。", "Toolbox will continue loading after the first screen is ready.")),
+
+            _ => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "页面正在后台初始化", "Page is initializing in the background"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 页面将在首屏完成后继续加载。", "Settings will continue loading after the first screen is ready.")),
+        };
+    }
+
+    private (string Title, string Message) GetRootPageLoadingText(RootPageStatusKind page)
+    {
+        return page switch
+        {
+            RootPageStatusKind.TaskQueue => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "正在初始化首屏", "Preparing first screen"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "TaskQueue 页面正在加载。", "TaskQueue is loading.")),
+
+            RootPageStatusKind.Copilot => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "正在后台初始化 Copilot", "Initializing Copilot in the background"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 页面正在后台初始化。", "Copilot is initializing in the background.")),
+
+            RootPageStatusKind.Toolbox => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "正在后台初始化 Toolbox", "Initializing Toolbox in the background"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 页面正在后台初始化。", "Toolbox is initializing in the background.")),
+
+            _ => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "正在后台初始化 Settings", "Initializing Settings in the background"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 页面正在后台初始化。", "Settings is initializing in the background.")),
+        };
+    }
+
+    private (string Title, string Message) GetRootPageFailedText(RootPageStatusKind page)
+    {
+        return page switch
+        {
+            RootPageStatusKind.TaskQueue => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "首屏初始化失败", "First screen failed to initialize"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "TaskQueue 首屏初始化失败。", "TaskQueue failed to initialize the first screen.")),
+
+            RootPageStatusKind.Copilot => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 初始化失败", "Copilot failed to initialize"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 页面未能完成初始化。", "Copilot failed to finish initialization.")),
+
+            RootPageStatusKind.Toolbox => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 初始化失败", "Toolbox failed to initialize"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 页面未能完成初始化。", "Toolbox failed to finish initialization.")),
+
+            _ => (
+                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 初始化失败", "Settings failed to initialize"),
+                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 页面未能完成初始化。", "Settings failed to finish initialization.")),
+        };
+    }
+
+    private enum RootPageStatusKind
+    {
+        TaskQueue,
+        Copilot,
+        Toolbox,
+        Settings,
     }
 
     public void ReportLocalizationFallback(LocalizationFallbackInfo info)

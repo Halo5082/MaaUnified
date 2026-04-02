@@ -3,12 +3,6 @@ namespace MAAUnified.Tests;
 public sealed class WorkPackageQ1BlockingCoverageTests
 {
     [Fact]
-    public void RootDashboard_BlockedPath_ShouldBeDefinedWithFailureAndNonCrashEvidence()
-    {
-        AssertBlockedPathCoverage("RootDashboard");
-    }
-
-    [Fact]
     public void SettingsRoot_BlockedPath_ShouldBeDefinedWithFailureAndNonCrashEvidence()
     {
         AssertBlockedPathCoverage("SettingsRoot");

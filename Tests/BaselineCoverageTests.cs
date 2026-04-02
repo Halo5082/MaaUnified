@@ -5,7 +5,7 @@ namespace MAAUnified.Tests;
 public sealed class BaselineCoverageTests
 {
     [Fact]
-    public void BaselineCoverage_ShouldMatchFeatureManifest44()
+    public void BaselineCoverage_ShouldMatchFeatureManifest36()
     {
         var baseline = BaselineTestSupport.LoadBaseline();
 
@@ -14,13 +14,19 @@ public sealed class BaselineCoverageTests
             .Select(i => i.ItemId)
             .ToList();
 
-        Assert.Equal(44, featureItems.Count);
+        const int expectedFeatureCount = 36;
+
+        // This count is intentionally pinned: if it changes, baseline.freeze + FeatureManifest must be reviewed together.
+        Assert.Equal(expectedFeatureCount, featureItems.Count);
 
         var duplicates = featureItems.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
         Assert.Empty(duplicates);
 
         var manifestKeys = FeatureManifest.All.Select(m => m.Key).ToHashSet(StringComparer.Ordinal);
         var baselineKeys = featureItems.ToHashSet(StringComparer.Ordinal);
+
+        Assert.Equal(expectedFeatureCount, manifestKeys.Count);
+        Assert.Equal(expectedFeatureCount, baselineKeys.Count);
 
         Assert.True(manifestKeys.SetEquals(baselineKeys),
             $"Baseline feature keys mismatch. Missing: {string.Join(", ", manifestKeys.Except(baselineKeys))}; Extra: {string.Join(", ", baselineKeys.Except(manifestKeys))}");

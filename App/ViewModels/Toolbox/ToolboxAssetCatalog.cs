@@ -7,6 +7,8 @@ namespace MAAUnified.App.ViewModels.Toolbox;
 
 internal static class ToolboxAssetCatalog
 {
+    private const string DefaultClientType = "Official";
+    private const string DefaultLanguage = "zh-cn";
     private static readonly object CharacterGate = new();
     private static readonly object ItemGate = new();
     private static readonly object ImageGate = new();
@@ -15,8 +17,22 @@ internal static class ToolboxAssetCatalog
     private static IReadOnlyDictionary<string, ToolboxOperatorAsset>? _characters;
     private static readonly Dictionary<string, IReadOnlyDictionary<string, string>> ItemNamesByLanguage = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, Bitmap?> BitmapCache = new(StringComparer.Ordinal);
-    private static IReadOnlyList<ToolboxMiniGameEntry>? _miniGames;
-    private static readonly IReadOnlyDictionary<string, string> MiniGameTextByKey = new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly Dictionary<string, IReadOnlyList<ToolboxMiniGameEntry>> MiniGamesByClient = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly IReadOnlyDictionary<string, string> MiniGameTextEnUs = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["MiniGameNameEmptyTip"] = "Select a mini-game above to start.",
+        ["MiniGame@SecretFront"] = "Secret Front",
+        ["MiniGame@SecretFrontTip"] = "Start on the squad selection screen. Delete existing save manually if needed.\nWatch tutorial once and disable it later.\nRecommended: enable \"inherit previous squad return data\" in-game.",
+        ["MiniGameNameGreenTicketStore"] = "Green Cert Store",
+        ["MiniGameNameGreenTicketStoreTip"] = "Buy all on floor 1.\nOn floor 2, buy headhunting permits and recruitment permits.",
+        ["MiniGameNameYellowTicketStore"] = "Yellow Cert Store",
+        ["MiniGameNameYellowTicketStoreTip"] = "Make sure you have at least 258 yellow certs.",
+        ["MiniGameNameSsStore"] = "Event Store",
+        ["MiniGameNameSsStoreTip"] = "Start on the event store page.\nDo not buy the infinite pool.",
+        ["MiniGameNameRAStore"] = "Reclamation Store",
+        ["MiniGameNameRAStoreTip"] = "Start on the event store page.",
+    };
+    private static readonly IReadOnlyDictionary<string, string> MiniGameTextZhCn = new Dictionary<string, string>(MiniGameTextEnUs, StringComparer.Ordinal)
     {
         ["MiniGameNameEmptyTip"] = "在上方选择小游戏以开始运行。",
         ["MiniGame@SecretFront"] = "隐秘战线",
@@ -29,6 +45,30 @@ internal static class ToolboxAssetCatalog
         ["MiniGameNameSsStoreTip"] = "请在活动商店页面开始。\n不买无限池。",
         ["MiniGameNameRAStore"] = "生息演算商店",
         ["MiniGameNameRAStoreTip"] = "请在活动商店页面开始。",
+    };
+    private static readonly IReadOnlyDictionary<string, string> MiniGameTextZhTw = new Dictionary<string, string>(MiniGameTextEnUs, StringComparer.Ordinal)
+    {
+        ["MiniGame@SecretFront"] = "隱密戰線",
+        ["MiniGameNameGreenTicketStore"] = "綠票商店",
+        ["MiniGameNameYellowTicketStore"] = "黃票商店",
+        ["MiniGameNameSsStore"] = "活動商店",
+        ["MiniGameNameRAStore"] = "生息演算商店",
+    };
+    private static readonly IReadOnlyDictionary<string, string> MiniGameTextJaJp = new Dictionary<string, string>(MiniGameTextEnUs, StringComparer.Ordinal)
+    {
+        ["MiniGame@SecretFront"] = "シークレットフロント",
+        ["MiniGameNameGreenTicketStore"] = "緑資格証ショップ",
+        ["MiniGameNameYellowTicketStore"] = "黄資格証ショップ",
+        ["MiniGameNameSsStore"] = "イベントショップ",
+        ["MiniGameNameRAStore"] = "生息演算ショップ",
+    };
+    private static readonly IReadOnlyDictionary<string, string> MiniGameTextKoKr = new Dictionary<string, string>(MiniGameTextEnUs, StringComparer.Ordinal)
+    {
+        ["MiniGame@SecretFront"] = "시크릿 프론트",
+        ["MiniGameNameGreenTicketStore"] = "초록 증서 상점",
+        ["MiniGameNameYellowTicketStore"] = "노랑 증서 상점",
+        ["MiniGameNameSsStore"] = "이벤트 상점",
+        ["MiniGameNameRAStore"] = "생식연산 상점",
     };
 
     public static IReadOnlyDictionary<string, ToolboxOperatorAsset> GetOperators()
@@ -58,12 +98,20 @@ internal static class ToolboxAssetCatalog
         }
     }
 
-    public static IReadOnlyList<ToolboxMiniGameEntry> GetMiniGameEntries()
+    public static IReadOnlyList<ToolboxMiniGameEntry> GetMiniGameEntries(string? clientType = null, string? language = null)
     {
+        var normalizedClientType = NormalizeClientType(clientType);
+        var normalizedLanguage = NormalizeLanguage(language);
+        var cacheKey = $"{normalizedClientType}|{normalizedLanguage}";
         lock (MiniGameGate)
         {
-            _miniGames ??= LoadMiniGameEntries();
-            return _miniGames;
+            if (!MiniGamesByClient.TryGetValue(cacheKey, out var entries))
+            {
+                entries = LoadMiniGameEntries(normalizedClientType, normalizedLanguage);
+                MiniGamesByClient[cacheKey] = entries;
+            }
+
+            return entries;
         }
     }
 
@@ -190,7 +238,7 @@ internal static class ToolboxAssetCatalog
 
         lock (MiniGameGate)
         {
-            _miniGames = null;
+            MiniGamesByClient.Clear();
         }
     }
 
@@ -305,15 +353,15 @@ internal static class ToolboxAssetCatalog
         }
     }
 
-    private static IReadOnlyList<ToolboxMiniGameEntry> LoadMiniGameEntries()
+    private static IReadOnlyList<ToolboxMiniGameEntry> LoadMiniGameEntries(string clientType, string language)
     {
         var entries = new List<ToolboxMiniGameEntry>
         {
-            new("活动商店", "SS@Store@Begin", ResolveMiniGameText("MiniGameNameSsStoreTip") ?? string.Empty),
-            new("绿票商店", "GreenTicket@Store@Begin", ResolveMiniGameText("MiniGameNameGreenTicketStoreTip") ?? string.Empty),
-            new("黄票商店", "YellowTicket@Store@Begin", ResolveMiniGameText("MiniGameNameYellowTicketStoreTip") ?? string.Empty),
-            new("生息演算商店", "RA@Store@Begin", ResolveMiniGameText("MiniGameNameRAStoreTip") ?? string.Empty),
-            new("隐秘战线", "MiniGame@SecretFront", ResolveMiniGameText("MiniGame@SecretFrontTip") ?? string.Empty),
+            new(ResolveMiniGameText("MiniGameNameSsStore", language) ?? "Event Store", "SS@Store@Begin", ResolveMiniGameText("MiniGameNameSsStoreTip", language) ?? string.Empty),
+            new(ResolveMiniGameText("MiniGameNameGreenTicketStore", language) ?? "Green Cert Store", "GreenTicket@Store@Begin", ResolveMiniGameText("MiniGameNameGreenTicketStoreTip", language) ?? string.Empty),
+            new(ResolveMiniGameText("MiniGameNameYellowTicketStore", language) ?? "Yellow Cert Store", "YellowTicket@Store@Begin", ResolveMiniGameText("MiniGameNameYellowTicketStoreTip", language) ?? string.Empty),
+            new(ResolveMiniGameText("MiniGameNameRAStore", language) ?? "Reclamation Store", "RA@Store@Begin", ResolveMiniGameText("MiniGameNameRAStoreTip", language) ?? string.Empty),
+            new(ResolveMiniGameText("MiniGame@SecretFront", language) ?? "Secret Front", "MiniGame@SecretFront", ResolveMiniGameText("MiniGame@SecretFrontTip", language) ?? string.Empty),
         };
 
         var path = ResolveMiniGameStagePath();
@@ -330,14 +378,9 @@ internal static class ToolboxAssetCatalog
                 return entries;
             }
 
-            foreach (var clientEntry in root)
+            if (TryResolveMiniGameClientNode(root, clientType, out var clientNode))
             {
-                if (clientEntry.Value is not JsonObject clientNode || clientNode["miniGame"] is null)
-                {
-                    continue;
-                }
-
-                AppendMiniGameEntries(entries, clientNode["miniGame"]);
+                AppendMiniGameEntries(entries, clientNode["miniGame"], language);
             }
         }
         catch
@@ -351,22 +394,57 @@ internal static class ToolboxAssetCatalog
             .ToArray();
     }
 
-    private static void AppendMiniGameEntries(ICollection<ToolboxMiniGameEntry> target, JsonNode? miniGameNode)
+    private static bool TryResolveMiniGameClientNode(JsonObject root, string clientType, out JsonObject clientNode)
+    {
+        if (TryGetClientNode(root, clientType, out clientNode))
+        {
+            return clientNode["miniGame"] is not null;
+        }
+
+        if (!string.Equals(clientType, DefaultClientType, StringComparison.OrdinalIgnoreCase)
+            && TryGetClientNode(root, DefaultClientType, out clientNode))
+        {
+            return clientNode["miniGame"] is not null;
+        }
+
+        clientNode = null!;
+        return false;
+    }
+
+    private static bool TryGetClientNode(JsonObject root, string clientType, out JsonObject clientNode)
+    {
+        clientNode = null!;
+        foreach (var pair in root)
+        {
+            if (!string.Equals(NormalizeClientType(pair.Key), clientType, StringComparison.OrdinalIgnoreCase)
+                || pair.Value is not JsonObject node)
+            {
+                continue;
+            }
+
+            clientNode = node;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void AppendMiniGameEntries(ICollection<ToolboxMiniGameEntry> target, JsonNode? miniGameNode, string language)
     {
         if (miniGameNode is JsonArray array)
         {
             foreach (var item in array)
             {
-                TryAppendMiniGameEntry(target, item);
+                TryAppendMiniGameEntry(target, item, language);
             }
 
             return;
         }
 
-        TryAppendMiniGameEntry(target, miniGameNode);
+        TryAppendMiniGameEntry(target, miniGameNode, language);
     }
 
-    private static void TryAppendMiniGameEntry(ICollection<ToolboxMiniGameEntry> target, JsonNode? node)
+    private static void TryAppendMiniGameEntry(ICollection<ToolboxMiniGameEntry> target, JsonNode? node, string language)
     {
         if (node is null)
         {
@@ -377,9 +455,9 @@ internal static class ToolboxAssetCatalog
         {
             var trimmed = simpleValue.Trim();
             target.Add(new ToolboxMiniGameEntry(
-                ResolveMiniGameText(trimmed) ?? trimmed,
+                ResolveMiniGameText(trimmed, language) ?? trimmed,
                 trimmed,
-                ResolveMiniGameText(trimmed + "Tip") ?? string.Empty));
+                ResolveMiniGameText(trimmed + "Tip", language) ?? string.Empty));
             return;
         }
 
@@ -401,8 +479,8 @@ internal static class ToolboxAssetCatalog
             return;
         }
 
-        var finalDisplay = FirstNonEmpty(display, ResolveMiniGameText(displayKey), finalValue);
-        var finalTip = FirstNonEmpty(ResolveMiniGameText(tipKey), tip, ResolveMiniGameText(displayKey + "Tip"), string.Empty);
+        var finalDisplay = FirstNonEmpty(display, ResolveMiniGameText(displayKey, language), finalValue);
+        var finalTip = FirstNonEmpty(ResolveMiniGameText(tipKey, language), tip, ResolveMiniGameText(displayKey + "Tip", language), string.Empty);
         target.Add(new ToolboxMiniGameEntry(finalDisplay!, finalValue!, finalTip!));
     }
 
@@ -612,12 +690,17 @@ internal static class ToolboxAssetCatalog
     private static string NormalizeClientType(string? clientType)
     {
         var normalized = (clientType ?? string.Empty).Trim();
+        if (string.Equals(normalized, "Bilibili", StringComparison.OrdinalIgnoreCase))
+        {
+            return DefaultClientType;
+        }
+
         if (string.Equals(normalized, "Txwy", StringComparison.OrdinalIgnoreCase))
         {
             return "txwy";
         }
 
-        return string.IsNullOrWhiteSpace(normalized) ? "Official" : normalized;
+        return string.IsNullOrWhiteSpace(normalized) ? DefaultClientType : normalized;
     }
 
     private static string? FirstNonEmpty(params string?[] values)
@@ -633,16 +716,37 @@ internal static class ToolboxAssetCatalog
         return null;
     }
 
-    private static string? ResolveMiniGameText(string? key)
+    private static string? ResolveMiniGameText(string? key, string? language = null)
     {
         if (string.IsNullOrWhiteSpace(key))
         {
             return null;
         }
 
-        return MiniGameTextByKey.TryGetValue(key.Trim(), out var text)
-            ? text
-            : null;
+        var source = ResolveMiniGameTextSource(language);
+        return source.TryGetValue(key.Trim(), out var text) ? text : null;
+    }
+
+    private static IReadOnlyDictionary<string, string> ResolveMiniGameTextSource(string? language)
+    {
+        return NormalizeLanguage(language) switch
+        {
+            "zh-cn" => MiniGameTextZhCn,
+            "zh-tw" => MiniGameTextZhTw,
+            "ja-jp" => MiniGameTextJaJp,
+            "ko-kr" => MiniGameTextKoKr,
+            _ => MiniGameTextEnUs,
+        };
+    }
+
+    private static string NormalizeLanguage(string? language)
+    {
+        if (UiLanguageCatalog.IsSupported(language))
+        {
+            return UiLanguageCatalog.Normalize(language);
+        }
+
+        return DefaultLanguage;
     }
 
     private static bool TryReadString(JsonNode? node, out string value)

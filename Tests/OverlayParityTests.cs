@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using MAAUnified.App.Features.Dialogs;
 using MAAUnified.App.ViewModels;
-using MAAUnified.App.ViewModels.Advanced;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.App.ViewModels.Settings;
 using MAAUnified.App.ViewModels.TaskQueue;
@@ -133,19 +132,22 @@ public sealed class OverlayParityTests
     }
 
     [Fact]
-    public async Task OverlaySharedState_ShouldSyncVisibilityBetweenTaskQueueAndAdvancedPage()
+    public async Task OverlaySharedState_ShouldSyncVisibilityBetweenTaskQueueConsumers()
     {
         await using var fixture = await OverlayFixture.CreateAsync();
         var taskQueue = fixture.Shell.TaskQueuePage;
-        var advanced = new OverlayAdvancedPageViewModel(fixture.Runtime);
+        var secondTaskQueue = new TaskQueuePageViewModel(
+            fixture.Runtime,
+            fixture.Shell.ConnectionGameSharedState,
+            dialogService: NoOpAppDialogService.Instance);
 
         Assert.False(taskQueue.OverlayVisible);
-        Assert.False(advanced.Visible);
+        Assert.False(secondTaskQueue.OverlayVisible);
 
         await taskQueue.ToggleOverlayAsync();
 
         Assert.True(taskQueue.OverlayVisible);
-        Assert.True(advanced.Visible);
+        Assert.True(secondTaskQueue.OverlayVisible);
     }
 
     [Fact]
@@ -191,7 +193,10 @@ public sealed class OverlayParityTests
     {
         await using var fixture = await OverlayFixture.CreateAsync();
         var taskQueue = fixture.Shell.TaskQueuePage;
-        var advanced = new OverlayAdvancedPageViewModel(fixture.Runtime);
+        var secondTaskQueue = new TaskQueuePageViewModel(
+            fixture.Runtime,
+            fixture.Shell.ConnectionGameSharedState,
+            dialogService: NoOpAppDialogService.Instance);
         var applyMethod = typeof(MainShellViewModel).GetMethod(
             "ApplyOverlayStateChanged",
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
@@ -211,7 +216,8 @@ public sealed class OverlayParityTests
 
         Assert.Equal(OverlayRuntimeMode.Preview, taskQueue.OverlayMode);
         Assert.True(taskQueue.OverlayVisible);
-        Assert.True(advanced.Visible);
+        Assert.True(secondTaskQueue.OverlayVisible);
+        Assert.Equal(OverlayRuntimeMode.Preview, secondTaskQueue.OverlayMode);
         Assert.Equal("Overlay switched to Preview + Logs mode.", taskQueue.OverlayStatusText);
         Assert.Equal("Preview + Logs", taskQueue.OverlayTargetSummaryText);
         Assert.Contains("Overlay switched to Preview + Logs mode.", taskQueue.OverlayButtonToolTip, StringComparison.Ordinal);

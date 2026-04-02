@@ -242,8 +242,9 @@ public interface IVersionUpdateFeatureService
         string? clientType,
         CancellationToken cancellationToken = default);
 
-    Task<UiOperationResult<string>> CheckForUpdatesAsync(
+    Task<UiOperationResult<VersionUpdateCheckResult>> CheckForUpdatesAsync(
         VersionUpdatePolicy policy,
+        string currentVersion,
         CancellationToken cancellationToken = default);
 }
 
@@ -263,6 +264,18 @@ public interface IAnnouncementFeatureService
 
 public interface IStageManagerFeatureService
 {
+    Task<UiOperationResult<StageManagerState>> LoadStateAsync(CancellationToken cancellationToken = default);
+
+    Task<UiOperationResult<StageManagerState>> RefreshLocalAsync(
+        string? clientType = null,
+        CancellationToken cancellationToken = default);
+
+    Task<UiOperationResult<StageManagerState>> RefreshWebAsync(
+        string? clientType = null,
+        CancellationToken cancellationToken = default);
+
+    IReadOnlyList<string> GetStageCodes(string? clientType = null, bool forceReload = false);
+
     Task<UiOperationResult<StageManagerConfig>> LoadConfigAsync(CancellationToken cancellationToken = default);
 
     Task<UiOperationResult> SaveConfigAsync(StageManagerConfig config, CancellationToken cancellationToken = default);

@@ -19,55 +19,6 @@
   ],
   "items": [
     {
-      "item_id": "RootDashboard",
-      "kind": "Feature",
-      "group": "Root",
-      "display_name": "Root 主框架",
-      "wpf_reference": "WPF::Root 主框架",
-      "avalonia_path": "App/Features/Root/RootDashboardView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "N/A",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.RootDashboard",
-        "case_id": "BL-001"
-      }
-    },
-    {
       "item_id": "TaskQueueRoot",
       "kind": "Feature",
       "group": "Root",
@@ -604,55 +555,6 @@
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Feature.Settings.HotKey",
         "case_id": "BL-012"
-      }
-    },
-    {
-      "item_id": "Settings.HotKeyEditor",
-      "kind": "Feature",
-      "group": "Settings",
-      "display_name": "HotKey Editor",
-      "wpf_reference": "WPF::HotKey Editor",
-      "avalonia_path": "App/Features/Settings/HotKeyEditorView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "N/A",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Settings/HotKeyEditorView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.Settings.HotKeyEditor",
-        "case_id": "BL-013"
       }
     },
     {
@@ -1537,312 +1439,6 @@
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Feature.Advanced.Toolbox",
         "case_id": "BL-031"
-      },
-      "waiver": null,
-      "waiver_scope": null
-    },
-    {
-      "item_id": "Advanced.RemoteControlCenter",
-      "kind": "Feature",
-      "group": "Advanced",
-      "display_name": "Remote Control Center",
-      "wpf_reference": "WPF::Remote Control Center",
-      "avalonia_path": "App/Features/Advanced/RemoteControlCenterView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "N/A",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Advanced/RemoteControlCenterView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.Advanced.RemoteControlCenter",
-        "case_id": "BL-032"
-      },
-      "waiver": null,
-      "waiver_scope": null
-    },
-    {
-      "item_id": "Advanced.Overlay",
-      "kind": "Feature",
-      "group": "Advanced",
-      "display_name": "Overlay",
-      "wpf_reference": "WPF::Overlay",
-      "avalonia_path": "App/Features/Advanced/OverlayView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "SelectedOverlayTarget=preview; OverlayVisible=false",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Advanced/OverlayView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.Advanced.Overlay",
-        "case_id": "BL-033"
-      },
-      "waiver": null,
-      "waiver_scope": null
-    },
-    {
-      "item_id": "Advanced.TrayIntegration",
-      "kind": "Feature",
-      "group": "Advanced",
-      "display_name": "Tray Integration",
-      "wpf_reference": "WPF::Tray Integration",
-      "avalonia_path": "App/Features/Advanced/TrayIntegrationView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "N/A",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Advanced/TrayIntegrationView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.Advanced.TrayIntegration",
-        "case_id": "BL-034"
-      },
-      "waiver": null,
-      "waiver_scope": null
-    },
-    {
-      "item_id": "Advanced.StageManager",
-      "kind": "Feature",
-      "group": "Advanced",
-      "display_name": "Stage Manager",
-      "wpf_reference": "WPF::Stage Manager",
-      "avalonia_path": "App/Features/Advanced/StageManagerView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "N/A",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Advanced/StageManagerView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.Advanced.StageManager",
-        "case_id": "BL-035"
-      },
-      "waiver": null,
-      "waiver_scope": null
-    },
-    {
-      "item_id": "Advanced.WebApi",
-      "kind": "Feature",
-      "group": "Advanced",
-      "display_name": "Web API",
-      "wpf_reference": "WPF::Web API",
-      "avalonia_path": "App/Features/Advanced/WebApiView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "N/A",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Advanced/WebApiView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.Advanced.WebApi",
-        "case_id": "BL-036"
-      },
-      "waiver": null,
-      "waiver_scope": null
-    },
-    {
-      "item_id": "Advanced.ExternalNotificationProviders",
-      "kind": "Feature",
-      "group": "Advanced",
-      "display_name": "Notification Providers",
-      "wpf_reference": "WPF::Notification Providers",
-      "avalonia_path": "App/Features/Advanced/ExternalNotificationProvidersView.axaml",
-      "parity_status": "Aligned",
-      "priority": "P0",
-      "fields": [
-        {
-          "field_id": "primary_state",
-          "name": "PrimaryState",
-          "default_value": "N/A",
-          "source": "WPF baseline freeze",
-          "notes": "Default value snapshot for migration acceptance."
-        }
-      ],
-      "interactions": [
-        {
-          "interaction_id": "open",
-          "action": "Open module page from root navigation.",
-          "expected_result": "Page renders and remains interactive.",
-          "fallback_behavior": "Show readable error message without process crash."
-        }
-      ],
-      "visibility_rules": [
-        {
-          "rule_id": "active_module",
-          "condition": "Module selected from root tabs/section list.",
-          "expected_visibility": "Visible"
-        }
-      ],
-      "error_feedback": [
-        {
-          "code": "UiOperationFailed",
-          "trigger": "Feature operation failure.",
-          "user_message": "Error is surfaced via LastError/LastErrorMessage.",
-          "log_path": "debug/avalonia-ui-errors.log",
-          "non_crash": true
-        }
-      ],
-      "evidence": {
-        "ui_path": "App/Features/Advanced/ExternalNotificationProvidersView.axaml",
-        "log_path": "debug/avalonia-ui-events.log",
-        "scope": "Feature.Advanced.ExternalNotificationProviders",
-        "case_id": "BL-037"
       },
       "waiver": null,
       "waiver_scope": null
@@ -2831,12 +2427,12 @@
   "config_key_mappings": [
     {
       "key": "Current",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.ConfigurationManager",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConfigurationManagerView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Current",
         "case_id": "CFG-001"
@@ -2848,12 +2444,12 @@
     },
     {
       "key": "Default",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.ConfigurationManager",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConfigurationManagerView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Default",
         "case_id": "CFG-002"
@@ -2865,12 +2461,12 @@
     },
     {
       "key": "Global",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.ConfigurationManager",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConfigurationManagerView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Global",
         "case_id": "CFG-003"
@@ -2882,12 +2478,12 @@
     },
     {
       "key": "Configurations",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.ConfigurationManager",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConfigurationManagerView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Configurations",
         "case_id": "CFG-004"
@@ -2899,12 +2495,12 @@
     },
     {
       "key": "Data",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.ConfigurationManager",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConfigurationManagerView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Data",
         "case_id": "CFG-005"
@@ -2916,12 +2512,12 @@
     },
     {
       "key": "Cron",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Timer",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/TimerSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Cron",
         "case_id": "CFG-006"
@@ -3276,12 +2872,12 @@
     },
     {
       "key": "HotKeys",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.HotKey",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/HotKeySettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.HotKeys",
         "case_id": "CFG-032"
@@ -4023,12 +3619,12 @@
     },
     {
       "key": "Depot.DepotResult",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Advanced.Toolbox",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Advanced/ToolboxView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Depot.DepotResult",
         "case_id": "CFG-088"
@@ -5567,12 +5163,12 @@
     },
     {
       "key": "Penguin.Id",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Game",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/GameSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Penguin.Id",
         "case_id": "CFG-200"
@@ -5584,12 +5180,12 @@
     },
     {
       "key": "Penguin.IsDrGrandet",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Game",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/GameSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Penguin.IsDrGrandet",
         "case_id": "CFG-201"
@@ -5601,12 +5197,12 @@
     },
     {
       "key": "Penguin.EnablePenguin",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Game",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/GameSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Penguin.EnablePenguin",
         "case_id": "CFG-202"
@@ -5618,12 +5214,12 @@
     },
     {
       "key": "Yituliu.EnableYituliu",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Game",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/GameSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Yituliu.EnableYituliu",
         "case_id": "CFG-203"
@@ -5635,12 +5231,12 @@
     },
     {
       "key": "TimeOut.Timer.TaskTimeoutMinutes",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Game",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/GameSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.TimeOut.Timer.TaskTimeoutMinutes",
         "case_id": "CFG-204"
@@ -5652,12 +5248,12 @@
     },
     {
       "key": "TimeOut.Timer.ReminderIntervalMinutes",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Game",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/GameSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.TimeOut.Timer.ReminderIntervalMinutes",
         "case_id": "CFG-205"
@@ -5669,12 +5265,12 @@
     },
     {
       "key": "Bluestacks.Config.Path",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Connect",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConnectSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Bluestacks.Config.Path",
         "case_id": "CFG-206"
@@ -5686,12 +5282,12 @@
     },
     {
       "key": "Bluestacks.Config.Keyword",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Connect",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConnectSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Bluestacks.Config.Keyword",
         "case_id": "CFG-207"
@@ -5703,12 +5299,12 @@
     },
     {
       "key": "Bluestacks.Config.Error",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Connect",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/ConnectSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Bluestacks.Config.Error",
         "case_id": "CFG-208"
@@ -6588,12 +6184,12 @@
     },
     {
       "key": "OperBox.Data",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Advanced.Toolbox",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Advanced/ToolboxView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.OperBox.Data",
         "case_id": "CFG-274"
@@ -6605,12 +6201,12 @@
     },
     {
       "key": "Gacha.ShowDisclaimerNoMore",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Advanced.Toolbox",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Advanced/ToolboxView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Gacha.ShowDisclaimerNoMore",
         "case_id": "CFG-275"
@@ -6622,12 +6218,12 @@
     },
     {
       "key": "Peep.TargetFps",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Advanced.Toolbox",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Advanced/ToolboxView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Peep.TargetFps",
         "case_id": "CFG-276"
@@ -6639,12 +6235,12 @@
     },
     {
       "key": "Guide.StepIndex",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Settings.Gui",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Settings/GuiSettingsView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Guide.StepIndex",
         "case_id": "CFG-277"
@@ -6695,12 +6291,12 @@
     },
     {
       "key": "Debug.TaskName",
-      "owner_item_id": "RootDashboard",
+      "owner_item_id": "Advanced.Toolbox",
       "parity_status": "Aligned",
       "priority": "P0",
       "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
       "evidence": {
-        "ui_path": "App/Features/Root/RootDashboardView.axaml",
+        "ui_path": "App/Features/Advanced/ToolboxView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Debug.TaskName",
         "case_id": "CFG-281"
@@ -6797,12 +6393,12 @@
     },
     {
       "key": "Overlay.PreviewPinned",
-      "owner_item_id": "Advanced.Overlay",
+      "owner_item_id": "TaskQueueRoot",
       "parity_status": "Aligned",
       "priority": "P0",
-      "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
+      "notes": "Mapped to the TaskQueue overlay entry and shared overlay persistence.",
       "evidence": {
-        "ui_path": "App/Features/Advanced/OverlayView.axaml",
+        "ui_path": "App/Features/Root/TaskQueueView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Overlay.PreviewPinned",
         "case_id": "CFG-292"
@@ -6814,12 +6410,12 @@
     },
     {
       "key": "Overlay.Target",
-      "owner_item_id": "Advanced.Overlay",
+      "owner_item_id": "TaskQueueRoot",
       "parity_status": "Aligned",
       "priority": "P0",
-      "notes": "Implemented in Avalonia runtime and covered by baseline evidence.",
+      "notes": "Mapped to the TaskQueue overlay entry and shared overlay persistence.",
       "evidence": {
-        "ui_path": "App/Features/Advanced/OverlayView.axaml",
+        "ui_path": "App/Features/Root/TaskQueueView.axaml",
         "log_path": "debug/avalonia-ui-events.log",
         "scope": "Config.Overlay.Target",
         "case_id": "CFG-287"
@@ -7177,7 +6773,7 @@
     }
   ],
   "metadata": {
-    "feature_item_count": 44,
+    "feature_item_count": 36,
     "system_item_count": 13,
     "config_key_count": 293,
     "fallback_record_count": 15

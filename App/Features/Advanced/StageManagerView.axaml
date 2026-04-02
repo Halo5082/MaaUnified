@@ -1,9 +1,20 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MAAUnified.App.Features.Advanced.StageManagerView">
-  <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnDefinitions="*">
     <TextBlock Classes="section-title" Text="Stage Manager" />
-    <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,Auto,Auto" RowDefinitions="Auto">
+      <TextBlock VerticalAlignment="Center" Text="客户端" />
+      <ComboBox Grid.Column="1"
+                ItemsSource="{Binding ClientTypeOptions}"
+                SelectedItem="{Binding ClientType}" />
+      <Button Grid.Column="2" Classes="wpf-button" Content="刷新本地" Click="OnRefreshLocalClick" />
+      <Button Grid.Column="3" Classes="wpf-button" Content="刷新Web" Click="OnRefreshWebClick" />
+      <Button Grid.Column="4" Classes="wpf-button" Content="校验" Click="OnValidateClick" />
+    </Grid>
+
+    <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
       <TextBlock VerticalAlignment="Top" Text="关卡列表" />
       <TextBox Text="{Binding StageCodesText}"
                AcceptsReturn="True"
@@ -11,16 +22,33 @@
                Watermark="一行一个或用逗号分隔，例如 1-7, CE-5"
                TextWrapping="Wrap" />
     </Grid>
-    <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,*">
+
+    <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
+      <TextBlock VerticalAlignment="Top" Text="本地资源" />
+      <TextBox Text="{Binding LocalStageCodesText}"
+               AcceptsReturn="True"
+               Height="90"
+               IsReadOnly="True"
+               TextWrapping="Wrap" />
+    </Grid>
+
+    <Grid Grid.Row="4" ColumnDefinitions="Auto,*">
+      <TextBlock VerticalAlignment="Top" Text="Web 资源" />
+      <TextBox Text="{Binding WebStageCodesText}"
+               AcceptsReturn="True"
+               Height="90"
+               IsReadOnly="True"
+               TextWrapping="Wrap" />
+    </Grid>
+
+    <Grid Grid.Row="5" ColumnDefinitions="Auto,Auto,Auto,*">
       <CheckBox Content="自动轮转" IsChecked="{Binding AutoIterate}" />
       <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="上次关卡" />
       <TextBox Grid.Column="2" Text="{Binding LastSelectedStage}" Width="180" />
-      <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="{DynamicResource MAA.Spacing.Small}">
-        <Button Classes="wpf-button" Content="校验" Click="OnValidateClick" />
-        <Button Classes="wpf-button" Content="保存" Click="OnSaveClick" />
-      </StackPanel>
+      <Button Grid.Column="3" Classes="wpf-button" Content="保存" HorizontalAlignment="Left" Click="OnSaveClick" />
     </Grid>
-    <TextBlock Grid.Row="3" Classes="long-wrap" Text="{Binding StatusMessage}" />
-    <TextBlock Grid.Row="4" Classes="state-error long-wrap" Text="{Binding LastErrorMessage}" />
+
+    <TextBlock Grid.Row="6" Classes="long-wrap" Text="{Binding StatusMessage}" />
+    <TextBlock Grid.Row="7" Classes="state-error long-wrap" Text="{Binding LastErrorMessage}" />
   </Grid>
 </UserControl>

@@ -8,7 +8,7 @@ public sealed class FeatureManifestTests
     public void FeatureManifest_HasExpectedCoverage()
     {
         var all = FeatureManifest.All;
-        Assert.True(all.Count >= 44);
+        Assert.Equal(36, all.Count);
 
         var duplicateKeys = all.GroupBy(m => m.Key).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
         Assert.Empty(duplicateKeys);
@@ -17,5 +17,13 @@ public sealed class FeatureManifestTests
         Assert.Contains(all, m => m.Key == "Task.PostAction");
         Assert.Contains(all, m => m.Key == "Advanced.Copilot");
         Assert.Contains(all, m => m.Key == "Dialog.Error");
+        Assert.DoesNotContain(all, m => m.Key == "Settings.HotKeyEditor");
+        Assert.DoesNotContain(all, m => m.Key == "RootDashboard");
+        Assert.DoesNotContain(all, m => m.Key == "Advanced.RemoteControlCenter");
+        Assert.DoesNotContain(all, m => m.Key == "Advanced.Overlay");
+        Assert.DoesNotContain(all, m => m.Key == "Advanced.TrayIntegration");
+        Assert.DoesNotContain(all, m => m.Key == "Advanced.StageManager");
+        Assert.DoesNotContain(all, m => m.Key == "Advanced.WebApi");
+        Assert.DoesNotContain(all, m => m.Key == "Advanced.ExternalNotificationProviders");
     }
 }

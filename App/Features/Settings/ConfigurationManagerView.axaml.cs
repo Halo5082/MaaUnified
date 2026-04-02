@@ -1,10 +1,10 @@
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using MAAUnified.App.Features.Dialogs;
-using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.App.ViewModels.Settings;
 using MAAUnified.Application.Models;
 
@@ -12,17 +12,13 @@ namespace MAAUnified.App.Features.Settings;
 
 public partial class ConfigurationManagerView : UserControl
 {
-    private static readonly FilePickerFileType JsonFileType = new("JSON")
-    {
-        Patterns = ["*.json"],
-        MimeTypes = ["application/json"],
-    };
     public ConfigurationManagerView()
     {
         InitializeComponent();
     }
 
     private SettingsPageViewModel? VM => DataContext as SettingsPageViewModel;
+    private string T(string key) => VM?.RootTexts[key] ?? key;
 
     private async void OnConfigurationProfileSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -55,19 +51,16 @@ public partial class ConfigurationManagerView : UserControl
         }
 
         var owner = TopLevel.GetTopLevel(this) as Window;
-        var language = vm.Language;
         var confirmed = await ShowWarningDialogAsync(
             owner,
-            language,
-            Localize(language, "删除配置", "Delete Profile"),
+            vm.Language,
+            T("Settings.ConfigurationManager.Dialog.DeleteTitle"),
             string.Format(
-                Localize(
-                    language,
-                    "确认删除配置“{0}”？",
-                    "Delete profile \"{0}\"?"),
+                CultureInfo.CurrentCulture,
+                T("Settings.ConfigurationManager.Dialog.DeleteMessage"),
                 target),
-            confirmText: Localize(language, "删除", "Delete"),
-            cancelText: Localize(language, "取消", "Cancel"));
+            confirmText: T("Settings.Action.Delete"),
+            cancelText: T("Settings.Action.Cancel"));
         if (!confirmed)
         {
             return;
@@ -85,8 +78,10 @@ public partial class ConfigurationManagerView : UserControl
         }
 
         var savePath = await PickSavePathAsync(
-            "导出所有配置",
-            BuildSuggestedFileName("config-all", profileName: null));
+            T("Settings.ConfigurationManager.Dialog.ExportAllTitle"),
+            BuildSuggestedFileName(
+                T("Settings.ConfigurationManager.ExportAll.FileNamePrefix"),
+                profileName: null));
         if (string.IsNullOrWhiteSpace(savePath))
         {
             return;
@@ -104,8 +99,10 @@ public partial class ConfigurationManagerView : UserControl
         }
 
         var savePath = await PickSavePathAsync(
-            "导出当前配置",
-            BuildSuggestedFileName("config-current", vm.ConfigurationManagerSelectedProfile));
+            T("Settings.ConfigurationManager.Dialog.ExportCurrentTitle"),
+            BuildSuggestedFileName(
+                T("Settings.ConfigurationManager.ExportCurrent.FileNamePrefix"),
+                vm.ConfigurationManagerSelectedProfile));
         if (string.IsNullOrWhiteSpace(savePath))
         {
             return;
@@ -123,16 +120,17 @@ public partial class ConfigurationManagerView : UserControl
         }
         var owner = TopLevel.GetTopLevel(this) as Window;
         var language = vm.Language;
+        Func<string, string> text = key => vm.RootTexts[key];
 
         while (true)
         {
-            var importPaths = await PickImportPathsAsync();
+            var importPaths = await PickImportPathsAsync(T("Settings.ConfigurationManager.Dialog.ImportTitle"));
             if (importPaths.Count == 0)
             {
                 return;
             }
 
-            var analysis = ConfigurationImportSelectionAnalyzer.Analyze(importPaths);
+            var analysis = ConfigurationImportSelectionAnalyzer.Analyze(importPaths, text);
             switch (analysis.Kind)
             {
                 case ConfigurationImportSelectionKind.UnifiedConfig:
@@ -140,7 +138,7 @@ public partial class ConfigurationManagerView : UserControl
                     return;
 
                 case ConfigurationImportSelectionKind.LegacyReady:
-                    if (await TryRunLegacyImportAsync(vm, analysis, owner, language))
+                    if (await TryRunLegacyImportAsync(vm, analysis, owner, language, text))
                     {
                         return;
                     }
@@ -152,16 +150,16 @@ public partial class ConfigurationManagerView : UserControl
                     var forceImport = await ShowWarningDialogAsync(
                         owner,
                         language,
-                        Localize(language, "导入旧配置", "Import Legacy Config"),
+                        text("Settings.ConfigurationManager.Dialog.ImportLegacyTitle"),
                         analysis.Message,
-                        confirmText: Localize(language, "强行导入", "Import Anyway"),
-                        cancelText: Localize(language, "重新选择", "Choose Again"));
+                        confirmText: text("Settings.Action.ImportAnyway"),
+                        cancelText: text("Settings.Action.ChooseAgain"));
                     if (!forceImport)
                     {
                         continue;
                     }
 
-                    if (await TryRunLegacyImportAsync(vm, analysis, owner, language, allowPartialImport: true))
+                    if (await TryRunLegacyImportAsync(vm, analysis, owner, language, text, allowPartialImport: true))
                     {
                         return;
                     }
@@ -174,10 +172,10 @@ public partial class ConfigurationManagerView : UserControl
                     var close = await ShowWarningDialogAsync(
                         owner,
                         language,
-                        Localize(language, "导入配置", "Import Config"),
+                        text("Settings.ConfigurationManager.Dialog.ImportConfigTitle"),
                         analysis.Message,
-                        confirmText: Localize(language, "关闭", "Close"),
-                        cancelText: Localize(language, "重新选择", "Choose Again"));
+                        confirmText: text("Settings.Action.Close"),
+                        cancelText: text("Settings.Action.ChooseAgain"));
                     if (!close)
                     {
                         continue;
@@ -206,13 +204,13 @@ public partial class ConfigurationManagerView : UserControl
                 ShowOverwritePrompt = true,
                 FileTypeChoices =
                 [
-                    JsonFileType,
+                    CreateJsonFileType(),
                 ],
             });
         return file?.TryGetLocalPath();
     }
 
-    private async Task<IReadOnlyList<string>> PickImportPathsAsync()
+    private async Task<IReadOnlyList<string>> PickImportPathsAsync(string title)
     {
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel?.StorageProvider is not { CanOpen: true } storageProvider)
@@ -223,11 +221,11 @@ public partial class ConfigurationManagerView : UserControl
         var files = await storageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
-                Title = "导入配置",
+                Title = title,
                 AllowMultiple = true,
                 FileTypeFilter =
                 [
-                    JsonFileType,
+                    CreateJsonFileType(),
                 ],
             });
         return files
@@ -242,6 +240,7 @@ public partial class ConfigurationManagerView : UserControl
         ConfigurationImportSelectionAnalysis analysis,
         Window? owner,
         string? language,
+        Func<string, string> text,
         bool allowPartialImport = false)
     {
         var request = new LegacyImportRequest(
@@ -260,13 +259,13 @@ public partial class ConfigurationManagerView : UserControl
             var importUsable = await ShowWarningDialogAsync(
                 owner,
                 language,
-                Localize(language, "导入旧配置", "Import Legacy Config"),
-                Localize(
-                    language,
-                    $"{string.Join("、", report.DamagedFiles)} 文件损坏。",
-                    $"These files are damaged: {string.Join(", ", report.DamagedFiles)}."),
-                confirmText: Localize(language, "导入可用内容", "Import Valid Content"),
-                cancelText: Localize(language, "重新选择", "Choose Again"));
+                text("Settings.ConfigurationManager.Dialog.ImportLegacyTitle"),
+                string.Format(
+                    CultureInfo.CurrentCulture,
+                    text("Settings.ConfigurationManager.Dialog.DamagedFiles"),
+                    string.Join(", ", report.DamagedFiles)),
+                confirmText: text("Settings.Action.ImportValidContent"),
+                cancelText: text("Settings.Action.ChooseAgain"));
             if (!importUsable)
             {
                 return false;
@@ -283,13 +282,13 @@ public partial class ConfigurationManagerView : UserControl
                 var close = await ShowWarningDialogAsync(
                     owner,
                     language,
-                    Localize(language, "导入旧配置", "Import Legacy Config"),
-                    Localize(
-                        language,
-                        $"{string.Join("、", retriedReport.DamagedFiles)} 文件损坏，未导入任何配置。",
-                        $"These files are damaged and no configuration was imported: {string.Join(", ", retriedReport.DamagedFiles)}."),
-                    confirmText: Localize(language, "关闭", "Close"),
-                    cancelText: Localize(language, "重新选择", "Choose Again"));
+                    text("Settings.ConfigurationManager.Dialog.ImportLegacyTitle"),
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        text("Settings.ConfigurationManager.Dialog.DamagedFilesNoImport"),
+                        string.Join(", ", retriedReport.DamagedFiles)),
+                    confirmText: text("Settings.Action.Close"),
+                    cancelText: text("Settings.Action.ChooseAgain"));
                 return close;
             }
 
@@ -301,13 +300,13 @@ public partial class ConfigurationManagerView : UserControl
             var close = await ShowWarningDialogAsync(
                 owner,
                 language,
-                Localize(language, "导入旧配置", "Import Legacy Config"),
-                Localize(
-                    language,
-                    $"{string.Join("、", report.DamagedFiles)} 文件损坏，未导入任何配置。",
-                    $"These files are damaged and no configuration was imported: {string.Join(", ", report.DamagedFiles)}."),
-                confirmText: Localize(language, "关闭", "Close"),
-                cancelText: Localize(language, "重新选择", "Choose Again"));
+                text("Settings.ConfigurationManager.Dialog.ImportLegacyTitle"),
+                string.Format(
+                    CultureInfo.CurrentCulture,
+                    text("Settings.ConfigurationManager.Dialog.DamagedFilesNoImport"),
+                    string.Join(", ", report.DamagedFiles)),
+                confirmText: text("Settings.Action.Close"),
+                cancelText: text("Settings.Action.ChooseAgain"));
             return close;
         }
 
@@ -332,29 +331,37 @@ public partial class ConfigurationManagerView : UserControl
         return await dialog.ShowDialog<bool>(owner);
     }
 
-    private static string Localize(string? language, string zh, string en)
+    private FilePickerFileType CreateJsonFileType() => new(T("Settings.ConfigurationManager.FileType.Json"))
     {
-        return DialogTextCatalog.Select(language, zh, en);
-    }
+        Patterns = ["*.json"],
+        MimeTypes = ["application/json"],
+    };
 
     private static string BuildSuggestedFileName(string prefix, string? profileName)
     {
         var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        if (string.IsNullOrWhiteSpace(profileName))
+        var safePrefix = SanitizeFileNameSegment(prefix);
+        var safeProfileName = SanitizeFileNameSegment(profileName);
+
+        var baseName = string.Join(
+            "-",
+            new[] { "maa", safePrefix, safeProfileName, timestamp }
+                .Where(segment => !string.IsNullOrWhiteSpace(segment)));
+        return $"{baseName}.json";
+    }
+
+    private static string SanitizeFileNameSegment(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
         {
-            return $"maa-{prefix}-{timestamp}.json";
+            return string.Empty;
         }
 
         var invalidChars = Path.GetInvalidFileNameChars();
-        var safeName = new string(profileName
-            .Trim()
-            .Select(c => invalidChars.Contains(c) ? '_' : c)
-            .ToArray());
-        if (string.IsNullOrWhiteSpace(safeName))
-        {
-            return $"maa-{prefix}-{timestamp}.json";
-        }
-
-        return $"maa-{prefix}-{safeName}-{timestamp}.json";
+        return new string(value
+                .Trim()
+                .Select(c => invalidChars.Contains(c) ? '_' : c)
+                .ToArray())
+            .Trim();
     }
 }

@@ -3,7 +3,7 @@
 ## 执行摘要
 - Baseline: `src/MAAUnified/Compat/Mapping/Baseline/baseline.freeze.v1.json`
 - Template: `src/MAAUnified/Compat/Mapping/Baseline/acceptance.template.v1.json`
-- Case total: `58`
+- Case total: `50`
 - Executed at (UTC): `2026-03-06T00:00:00Z`
 - Verifier: `Q-Team`
 - Commit: `e40709a149df0223154eb1e2c99f5aba1d16d95c`
@@ -11,7 +11,6 @@
 ## 执行记录
 | case_id | item_id | result | executed_at_utc | evidence_ui_path | evidence_log_path | evidence_scope | baseline_case_id | verifier | note |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `ACC-001` | `RootDashboard` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Root/RootDashboardView.axaml` | `debug/avalonia-ui-events.log` | `Feature.RootDashboard` | `BL-001` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-002` | `TaskQueueRoot` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Root/TaskQueueView.axaml` | `debug/avalonia-ui-events.log` | `Feature.TaskQueueRoot` | `BL-002` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-003` | `SettingsRoot` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Root/SettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.SettingsRoot` | `BL-003` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-004` | `Settings.About` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/AboutSettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.About` | `BL-004` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
@@ -23,7 +22,6 @@
 | `ACC-010` | `Settings.Game` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/GameSettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.Game` | `BL-010` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-011` | `Settings.Gui` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/GuiSettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.Gui` | `BL-011` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-012` | `Settings.HotKey` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/HotKeySettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.HotKey` | `BL-012` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
-| `ACC-013` | `Settings.HotKeyEditor` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/HotKeyEditorView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.HotKeyEditor` | `BL-013` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-014` | `Settings.IssueReport` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/IssueReportView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.IssueReport` | `BL-014` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-015` | `Settings.Performance` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/PerformanceSettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.Performance` | `BL-015` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-016` | `Settings.RemoteControl` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Settings/RemoteControlSettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Settings.RemoteControl` | `BL-016` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
@@ -42,12 +40,6 @@
 | `ACC-029` | `Task.PostAction` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/TaskQueue/PostActionSettingsView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Task.PostAction` | `BL-029` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-030` | `Advanced.Copilot` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Advanced/CopilotView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.Copilot` | `BL-030` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-031` | `Advanced.Toolbox` | `Pass` | `2026-03-12T00:00:00Z` | `App/Features/Advanced/ToolboxView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.Toolbox` | `BL-031` | `Q-Team` | WPF-aligned 6-tab toolbox verified on Avalonia; gacha keeps the only risk gate and runtime state is callback-driven. |
-| `ACC-032` | `Advanced.RemoteControlCenter` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Advanced/RemoteControlCenterView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.RemoteControlCenter` | `BL-032` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
-| `ACC-033` | `Advanced.Overlay` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Advanced/OverlayView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.Overlay` | `BL-033` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
-| `ACC-034` | `Advanced.TrayIntegration` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Advanced/TrayIntegrationView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.TrayIntegration` | `BL-034` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
-| `ACC-035` | `Advanced.StageManager` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Advanced/StageManagerView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.StageManager` | `BL-035` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
-| `ACC-036` | `Advanced.WebApi` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Advanced/WebApiView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.WebApi` | `BL-036` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
-| `ACC-037` | `Advanced.ExternalNotificationProviders` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Advanced/ExternalNotificationProvidersView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Advanced.ExternalNotificationProviders` | `BL-037` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-038` | `Dialog.Announcement` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Dialogs/AnnouncementDialogView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Dialog.Announcement` | `BL-038` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-039` | `Dialog.VersionUpdate` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Dialogs/VersionUpdateDialogView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Dialog.VersionUpdate` | `BL-039` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |
 | `ACC-040` | `Dialog.ProcessPicker` | `Pass` | `2026-03-06T00:00:00Z` | `App/Features/Dialogs/ProcessPickerDialogView.axaml` | `debug/avalonia-ui-events.log` | `Feature.Dialog.ProcessPicker` | `BL-040` | `Q-Team` | Q1/Q2 gates green; Q3 release closeout record. |

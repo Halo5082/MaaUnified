@@ -41,6 +41,7 @@ public sealed class AvaloniaParityCoverageTests
         "App/Features/Dialogs/ErrorDialogView.axaml",
         "App/Features/Dialogs/AchievementListDialogView.axaml",
         "App/Features/Dialogs/TextDialogView.axaml",
+        "App/Features/Dialogs/WarningConfirmDialogView.axaml",
     ];
 
     [Fact]

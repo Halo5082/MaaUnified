@@ -3,7 +3,7 @@
 ## 摘要
 - Schema version: `1.0.0`
 - Baseline ref: `src/MAAUnified/Compat/Mapping/Baseline/baseline.freeze.v1.json`
-- Case count: `58`
+- Case count: `50`
 
 ## Matrix Strategy
 - Tier-1: Root + Settings + System entries, full platform/theme/locale matrix.
@@ -22,7 +22,6 @@
 ## Acceptance Cases
 | Case ID | Tier | Item ID | Platforms | Themes | Locales |
 | --- | --- | --- | --- | --- | --- |
-| `ACC-001` | Tier-1 | `RootDashboard` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-002` | Tier-1 | `TaskQueueRoot` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-003` | Tier-1 | `SettingsRoot` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-004` | Tier-1 | `Settings.About` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
@@ -34,7 +33,6 @@
 | `ACC-010` | Tier-1 | `Settings.Game` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-011` | Tier-1 | `Settings.Gui` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-012` | Tier-1 | `Settings.HotKey` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
-| `ACC-013` | Tier-1 | `Settings.HotKeyEditor` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-014` | Tier-1 | `Settings.IssueReport` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-015` | Tier-1 | `Settings.Performance` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-016` | Tier-1 | `Settings.RemoteControl` | windows, macos, linux | Light, Dark | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
@@ -53,12 +51,6 @@
 | `ACC-029` | Tier-2 | `Task.PostAction` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-030` | Tier-2 | `Advanced.Copilot` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-031` | Tier-2 | `Advanced.Toolbox` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
-| `ACC-032` | Tier-2 | `Advanced.RemoteControlCenter` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
-| `ACC-033` | Tier-2 | `Advanced.Overlay` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
-| `ACC-034` | Tier-2 | `Advanced.TrayIntegration` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
-| `ACC-035` | Tier-2 | `Advanced.StageManager` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
-| `ACC-036` | Tier-2 | `Advanced.WebApi` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
-| `ACC-037` | Tier-2 | `Advanced.ExternalNotificationProviders` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-038` | Tier-2 | `Dialog.Announcement` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-039` | Tier-2 | `Dialog.VersionUpdate` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |
 | `ACC-040` | Tier-2 | `Dialog.ProcessPicker` | windows | Light | zh-cn, zh-tw, en-us, ja-jp, ko-kr, pallas |

@@ -40,7 +40,7 @@
           <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.Language]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                     ItemsSource="{Binding SupportedLanguages}"
-                    SelectedItem="{Binding SelectedLanguageOption}">
+                    SelectedItem="{Binding SelectedLanguageOption, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:DisplayValueOption">
                 <TextBlock Text="{Binding Display}" />

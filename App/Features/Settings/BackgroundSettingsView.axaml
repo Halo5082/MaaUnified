@@ -22,7 +22,7 @@
     <StackPanel Grid.Row="1"
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.SectionTopMargin}">
-      <TextBlock Classes="settings-field-caption" Text="背景图片" />
+      <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Background.ImagePath]}" />
       <Grid Width="{DynamicResource MAA.Size.Settings.FieldPathWidth}"
             ColumnDefinitions="*,Auto">
         <TextBox Text="{Binding BackgroundImagePath, UpdateSourceTrigger=LostFocus}"
@@ -31,14 +31,15 @@
         <Button Grid.Column="1"
                 Classes="wpf-button wpf-button-secondary"
                 Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-                Content="选择" />
+                Content="{Binding RootTexts[Settings.Start.SelectButton]}"
+                Click="OnSelectBackgroundImageClick" />
       </Grid>
     </StackPanel>
 
     <StackPanel Grid.Row="2"
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}">
-      <TextBlock Classes="settings-field-caption" Text="背景不透明度" />
+      <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Background.Opacity]}" />
       <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                                       Minimum="0"
                                       Maximum="100"
@@ -48,7 +49,7 @@
     <StackPanel Grid.Row="3"
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}">
-      <TextBlock Classes="settings-field-caption" Text="背景模糊半径" />
+      <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Background.BlurRadius]}" />
       <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                                       Minimum="0"
                                       Maximum="80"
@@ -58,7 +59,7 @@
     <StackPanel Grid.Row="4"
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}">
-      <TextBlock Classes="settings-field-caption" Text="背景填充模式" />
+      <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Background.StretchMode]}" />
       <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                 ItemsSource="{Binding BackgroundStretchModes}"
                 SelectedItem="{Binding SelectedBackgroundStretchModeOption}">
@@ -78,7 +79,7 @@
                  Text="{Binding BackgroundValidationMessage}"
                  IsVisible="{Binding HasBackgroundValidationMessage}" />
       <TextBlock Classes="settings-note settings-centered-text"
-                 Text="背景图与模糊参数与 Windows 保持同名配置键。若路径不存在，将阻断本次 GUI 保存。" />
+                 Text="{Binding RootTexts[Settings.Background.Note]}" />
     </StackPanel>
   </Grid>
 </UserControl>

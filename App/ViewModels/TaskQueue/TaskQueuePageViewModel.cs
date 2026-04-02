@@ -56,16 +56,100 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     private static readonly IReadOnlyDictionary<string, string[]> LegacyTaskNameAliases =
         new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
-            [TaskModuleTypes.StartUp] = ["StartUp", "Start Up", "WakeUp", "Wake Up"],
-            [TaskModuleTypes.Fight] = ["Fight", "Combat"],
-            [TaskModuleTypes.Infrast] = ["Infrast", "Infrastructure", "Base"],
-            [TaskModuleTypes.Recruit] = ["Recruit", "Auto Recruit"],
-            [TaskModuleTypes.Mall] = ["Mall", "Credit"],
-            [TaskModuleTypes.Award] = ["Award", "Awards"],
-            [TaskModuleTypes.Roguelike] = ["Roguelike", "IS"],
-            [TaskModuleTypes.Reclamation] = ["Reclamation"],
-            [TaskModuleTypes.Custom] = ["Custom", "Custom Task"],
-            [TaskModuleTypes.PostAction] = ["PostAction", "Post Action", "After Completion"],
+            [TaskModuleTypes.StartUp] =
+            [
+                "StartUp",
+                "Start Up",
+                "WakeUp",
+                "Wake Up",
+                "开始唤醒",
+                "開始喚醒",
+            ],
+            [TaskModuleTypes.Fight] =
+            [
+                "Fight",
+                "Combat",
+                "理智作战",
+                "理智作戰",
+                "刷理智",
+                "作戦",
+                "이성 사용",
+            ],
+            [TaskModuleTypes.Infrast] =
+            [
+                "Infrast",
+                "Infrastructure",
+                "Base",
+                "基建换班",
+                "基建換班",
+                "基建",
+            ],
+            [TaskModuleTypes.Recruit] =
+            [
+                "Recruit",
+                "Auto Recruit",
+                "自动公招",
+                "自動公招",
+                "公开招募",
+                "公開招募",
+                "公開求人",
+                "공개채용",
+            ],
+            [TaskModuleTypes.Mall] =
+            [
+                "Mall",
+                "Credit",
+                "信用收支",
+                "信用收支",
+                "商店",
+            ],
+            [TaskModuleTypes.Award] =
+            [
+                "Award",
+                "Awards",
+                "领取奖励",
+                "領取獎勵",
+                "奖励",
+                "獎勵",
+                "報酬",
+                "보상",
+            ],
+            [TaskModuleTypes.Roguelike] =
+            [
+                "Roguelike",
+                "IS",
+                "自动肉鸽",
+                "自動肉鴿",
+                "肉鸽",
+                "肉鴿",
+                "ローグライク",
+                "로그라이크",
+            ],
+            [TaskModuleTypes.Reclamation] =
+            [
+                "Reclamation",
+                "生息演算",
+                "生息演算",
+                "생식연산",
+            ],
+            [TaskModuleTypes.Custom] =
+            [
+                "Custom",
+                "Custom Task",
+                "自定义任务",
+                "自訂任務",
+                "カスタム",
+                "커스텀",
+            ],
+            [TaskModuleTypes.PostAction] =
+            [
+                "PostAction",
+                "Post Action",
+                "After Completion",
+                "完成后",
+                "完成後",
+                "後置動作",
+            ],
         };
 
     private const int MaxLogCards = 180;
@@ -135,6 +219,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     private int _expiringMedicineUsedTimes;
     private int _stoneUsedTimes;
     private string _logTimestampFormat = DefaultLogItemDateFormat;
+    private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
 
     public TaskQueuePageViewModel(
         MAAUnifiedRuntime runtime,
@@ -150,6 +235,8 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         _dialogService = dialogService ?? NoOpAppDialogService.Instance;
         _navigateToSettingsSection = navigateToSettingsSection;
         _ensureCoreReadyForExecutionAsync = ensureCoreReadyForExecutionAsync;
+        _uiLanguageCoordinator = runtime.UiLanguageCoordinator;
+        _uiLanguageCoordinator.LanguageChanged += OnUnifiedLanguageChanged;
         TaskModules = new ObservableCollection<TaskModuleOption>();
         Tasks = new ObservableCollection<TaskQueueItemViewModel>();
         LogCards = new ObservableCollection<TaskQueueLogCardViewModel>();
@@ -170,6 +257,9 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         RootTexts.FallbackReported += info => _localizationFallbackReporter?.Invoke(info);
         _logTimestampFormat = ResolveLogTimestampFormat();
         _dailyStageHint = Texts.GetOrDefault("TaskQueue.DailyStageHintDefault", "Daily stage hints will be shown after resources are loaded.");
+        _noTaskSelectedHint = RootTexts.GetOrDefault(
+            "TaskQueue.SelectionHint",
+            "Select a task from the left list to edit its settings.");
         _overlayStatusText = string.IsNullOrWhiteSpace(_overlaySharedState.StatusMessage)
             ? Texts.GetOrDefault("TaskQueue.OverlayDisconnected", "Overlay disconnected")
             : _overlaySharedState.StatusMessage;
@@ -209,7 +299,6 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         {
             Dispatcher.UIThread.Post(() =>
             {
-                SetLanguage(ResolveLanguage());
                 ApplyGuiSettingsFromConfig();
                 RefreshConfigValidationState(runtime.ConfigurationService.CurrentValidationIssues);
             });
@@ -821,20 +910,31 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     public void SetLanguage(string language)
     {
         var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(Texts.Language, normalized, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(RootTexts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
         Texts.Language = normalized;
         RootTexts.Language = normalized;
+        OnPropertyChanged(nameof(Texts));
+        OnPropertyChanged(nameof(RootTexts));
         DailyStageHint = FightTaskModuleViewModel.BuildDailyResourceHint(
             Texts.Language,
             _connectionGameSharedState.ClientType,
             Runtime.ConfigurationService.CurrentConfig);
-        NoTaskSelectedHint = Texts.GetOrDefault(
+        NoTaskSelectedHint = RootTexts.GetOrDefault(
             "TaskQueue.SelectionHint",
             "Select a task from the left list to edit its settings.");
-        OverlayStatusText = Texts.GetOrDefault("TaskQueue.OverlayDisconnected", "Overlay disconnected");
+        OverlayStatusText = string.IsNullOrWhiteSpace(_overlaySharedState.StatusMessage)
+            ? Texts.GetOrDefault("TaskQueue.OverlayDisconnected", "Overlay disconnected")
+            : _overlaySharedState.StatusMessage;
         FightModule.RefreshStageOptions(_connectionGameSharedState.ClientType);
         RebuildTaskModuleOptions();
         RefreshTaskItemsLocalization();
         UpdatePostActionSummary();
+        RefreshSelectedTaskValidationSummaryLocalization();
         OnPropertyChanged(nameof(RunButtonText));
         OnPropertyChanged(nameof(WaitAndStopButtonText));
         OnPropertyChanged(nameof(BatchActionText));
@@ -1327,12 +1427,14 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         }
 
         var request = new TextDialogRequest(
-            Title: $"Rename Task {index + 1}",
-            Prompt: Texts.GetOrDefault("TaskQueue.Error.SelectTaskToRename", "Rename task"),
+            Title: string.Format(
+                RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogTitle", "Rename Task {0}"),
+                index + 1),
+            Prompt: RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogPrompt", "Rename task"),
             DefaultText: SelectedTask.Name,
             MultiLine: false,
-            ConfirmText: "Confirm",
-            CancelText: "Cancel");
+            ConfirmText: RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogConfirm", "Confirm"),
+            CancelText: RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogCancel", "Cancel"));
         var dialogResult = await _dialogService.ShowTextAsync(request, "TaskQueue.RenameTask.Dialog", cancellationToken);
         if (dialogResult.Return == DialogReturnSemantic.Confirm && dialogResult.Payload is not null)
         {
@@ -1349,8 +1451,8 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         }
 
         StatusMessage = dialogResult.Return == DialogReturnSemantic.Cancel
-            ? "Rename cancelled."
-            : "Rename dialog closed.";
+            ? RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogCancelStatus", "Rename cancelled.")
+            : RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogClosedStatus", "Rename dialog closed.");
     }
 
     public async Task MoveSelectedTaskAsync(int delta, CancellationToken cancellationToken = default)
@@ -2459,21 +2561,30 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         }
 
         var request = new ProcessPickerDialogRequest(
-            Title: "Overlay Target Picker",
+            Title: RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerTitle", "Overlay Target Picker"),
             Items: OverlayTargets.Select(t => new ProcessPickerItem(t.Id, t.DisplayName, t.IsPrimary)).ToArray(),
             SelectedId: SelectedOverlayTarget?.Id,
-            ConfirmText: "Select",
-            CancelText: "Cancel");
+            ConfirmText: RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerConfirm", "Select"),
+            CancelText: RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerCancel", "Cancel"),
+            RefreshItemsAsync: RefreshOverlayPickerItemsAsync);
         var dialogResult = await _dialogService.ShowProcessPickerAsync(request, "TaskQueue.Overlay.PickTarget", cancellationToken);
         if (dialogResult.Return != DialogReturnSemantic.Confirm || dialogResult.Payload is null)
         {
             StatusMessage = dialogResult.Return == DialogReturnSemantic.Cancel
-                ? "Overlay target selection cancelled."
-                : "Overlay target picker closed.";
+                ? RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerCancelStatus", "Overlay target selection cancelled.")
+                : RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerClosedStatus", "Overlay target picker closed.");
             return;
         }
 
         await ApplyOverlayTargetAsync(dialogResult.Payload.SelectedId, cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<ProcessPickerItem>> RefreshOverlayPickerItemsAsync(CancellationToken cancellationToken)
+    {
+        await ReloadOverlayTargetsAsync(cancellationToken);
+        return OverlayTargets
+            .Select(target => new ProcessPickerItem(target.Id, target.DisplayName, target.IsPrimary))
+            .ToArray();
     }
 
     public async Task ApplyOverlayTargetAsync(string targetId, CancellationToken cancellationToken = default)
@@ -2659,6 +2770,24 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         SelectedTaskValidationSummary = string.Format(
             Texts.GetOrDefault("TaskQueue.Validation.BlockingCount", "{0} blocking issue(s)."),
             blockingCount);
+    }
+
+    private void RefreshSelectedTaskValidationSummaryLocalization()
+    {
+        if (SelectedTaskValidationIssueCount > 0)
+        {
+            SelectedTaskValidationSummary = string.Format(
+                Texts.GetOrDefault("TaskQueue.Validation.BlockingCount", "{0} blocking issue(s)."),
+                SelectedTaskValidationIssueCount);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(SelectedTaskValidationSummary))
+        {
+            SelectedTaskValidationSummary = Texts.GetOrDefault(
+                "TaskQueue.Validation.LoadFailed",
+                "Failed to load validation report.");
+        }
     }
 
     private async Task<bool> ValidateEnabledTasksBeforeStartAsync(CancellationToken cancellationToken)
@@ -5123,7 +5252,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
 
     private string ResolveLanguage()
     {
-        if (Runtime.ConfigurationService.CurrentConfig.GlobalValues.TryGetValue("GUI.Localization", out var value)
+        if (Runtime.ConfigurationService.CurrentConfig.GlobalValues.TryGetValue(ConfigurationKeys.Localization, out var value)
             && value is JsonValue jsonValue
             && jsonValue.TryGetValue(out string? language)
             && !string.IsNullOrWhiteSpace(language))
@@ -5131,7 +5260,18 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             return UiLanguageCatalog.Normalize(language);
         }
 
-        return UiLanguageCatalog.DefaultLanguage;
+        return UiLanguageCatalog.Normalize(_uiLanguageCoordinator.CurrentLanguage);
+    }
+
+    private void OnUnifiedLanguageChanged(object? sender, UiLanguageChangedEventArgs e)
+    {
+        if (Dispatcher.UIThread.CheckAccess() || Avalonia.Application.Current is null)
+        {
+            SetLanguage(e.CurrentLanguage);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => SetLanguage(e.CurrentLanguage));
     }
 
     private void RefreshSelectionBatchModeFromConfig()

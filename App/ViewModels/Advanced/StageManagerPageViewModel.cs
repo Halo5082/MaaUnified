@@ -6,7 +6,20 @@ namespace MAAUnified.App.ViewModels.Advanced;
 
 public sealed class StageManagerPageViewModel : PageViewModelBase
 {
+    private static readonly IReadOnlyList<string> DefaultClientTypes =
+    [
+        "Official",
+        "Bilibili",
+        "YoStarEN",
+        "YoStarJP",
+        "YoStarKR",
+        "txwy",
+    ];
+
     private string _stageCodesText = string.Empty;
+    private string _localStageCodesText = string.Empty;
+    private string _webStageCodesText = string.Empty;
+    private string _clientType = "Official";
     private bool _autoIterate;
     private string _lastSelectedStage = string.Empty;
 
@@ -15,10 +28,30 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
     {
     }
 
+    public IReadOnlyList<string> ClientTypeOptions => DefaultClientTypes;
+
+    public string ClientType
+    {
+        get => _clientType;
+        set => SetProperty(ref _clientType, string.IsNullOrWhiteSpace(value) ? "Official" : value.Trim());
+    }
+
     public string StageCodesText
     {
         get => _stageCodesText;
         set => SetProperty(ref _stageCodesText, value ?? string.Empty);
+    }
+
+    public string LocalStageCodesText
+    {
+        get => _localStageCodesText;
+        private set => SetProperty(ref _localStageCodesText, value ?? string.Empty);
+    }
+
+    public string WebStageCodesText
+    {
+        get => _webStageCodesText;
+        private set => SetProperty(ref _webStageCodesText, value ?? string.Empty);
     }
 
     public bool AutoIterate
@@ -35,18 +68,53 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        var state = await ApplyResultAsync(
+            await Runtime.StageManagerFeatureService.LoadStateAsync(cancellationToken),
+            "Advanced.StageManager.LoadState",
+            cancellationToken);
+
+        if (state is not null)
+        {
+            ApplyState(state);
+        }
+
         var config = await ApplyResultAsync(
             await Runtime.StageManagerFeatureService.LoadConfigAsync(cancellationToken),
-            "Advanced.StageManager.Load",
+            "Advanced.StageManager.LoadConfig",
             cancellationToken);
+
         if (config is null)
         {
             return;
         }
 
-        StageCodesText = string.Join(Environment.NewLine, config.StageCodes);
-        AutoIterate = config.AutoIterate;
-        LastSelectedStage = config.LastSelectedStage;
+        ApplyConfig(config);
+    }
+
+    public async Task RefreshLocalAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await Runtime.StageManagerFeatureService.RefreshLocalAsync(ClientType, cancellationToken);
+        var state = await ApplyResultAsync(result, "Advanced.StageManager.RefreshLocal", cancellationToken);
+        if (state is null)
+        {
+            return;
+        }
+
+        ApplyState(state);
+        StatusMessage = $"Loaded local stage resources for `{state.ClientType}`.";
+    }
+
+    public async Task RefreshWebAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await Runtime.StageManagerFeatureService.RefreshWebAsync(ClientType, cancellationToken);
+        var state = await ApplyResultAsync(result, "Advanced.StageManager.RefreshWeb", cancellationToken);
+        if (state is null)
+        {
+            return;
+        }
+
+        ApplyState(state);
+        StatusMessage = $"Loaded web stage resources for `{state.ClientType}`.";
     }
 
     public async Task ValidateAsync(CancellationToken cancellationToken = default)
@@ -73,10 +141,31 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
         var config = new StageManagerConfig(
             StageCodes: parse.Value,
             AutoIterate: AutoIterate,
-            LastSelectedStage: LastSelectedStage);
+            LastSelectedStage: LastSelectedStage,
+            ClientType: ClientType);
         await ApplyResultAsync(
             await Runtime.StageManagerFeatureService.SaveConfigAsync(config, cancellationToken),
             "Advanced.StageManager.Save",
             cancellationToken);
     }
+
+    private void ApplyState(StageManagerState state)
+    {
+        ClientType = state.ClientType;
+        LocalStageCodesText = state.LocalStageCodesText;
+        WebStageCodesText = state.WebStageCodesText;
+        if (string.IsNullOrWhiteSpace(StageCodesText))
+        {
+            StageCodesText = state.ActiveStageCodesText;
+        }
+    }
+
+    private void ApplyConfig(StageManagerConfig config)
+    {
+        StageCodesText = string.Join(Environment.NewLine, config.StageCodes);
+        AutoIterate = config.AutoIterate;
+        LastSelectedStage = config.LastSelectedStage;
+        ClientType = config.ClientType;
+    }
+
 }

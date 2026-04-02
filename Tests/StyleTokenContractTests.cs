@@ -14,7 +14,6 @@ public sealed class StyleTokenContractTests
     ];
     private static readonly string[] TokenizedCoreEntryViews =
     [
-        "App/Views/MainWindow.axaml",
         "App/Features/Root/SettingsView.axaml",
     ];
 

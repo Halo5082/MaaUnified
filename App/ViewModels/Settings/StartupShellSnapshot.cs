@@ -24,6 +24,7 @@ public sealed record StartupShellSnapshot(
 {
     private const string ThemeModeKey = "Theme.Mode";
     private const string DefaultTheme = "Light";
+    private const string DefaultLanguage = UiLanguageCatalog.DefaultLanguage;
     private const string DefaultBackgroundStretchMode = "Fill";
     private const string DefaultLogItemDateFormat = "HH:mm:ss";
     private const string DeveloperModeConfigKey = "GUI.DeveloperMode";
@@ -36,7 +37,7 @@ public sealed record StartupShellSnapshot(
 
     public static StartupShellSnapshot Default { get; } = new(
         Theme: DefaultTheme,
-        Language: UiLanguageCatalog.DefaultLanguage,
+        Language: DefaultLanguage,
         UseTray: true,
         MinimizeToTray: false,
         DeveloperModeEnabled: false,
@@ -60,7 +61,7 @@ public sealed record StartupShellSnapshot(
 
         return new StartupShellSnapshot(
             Theme: NormalizeTheme(ReadGlobalString(config, ThemeModeKey, DefaultTheme)),
-            Language: UiLanguageCatalog.Normalize(ReadGlobalString(config, ConfigurationKeys.Localization, UiLanguageCatalog.DefaultLanguage)),
+            Language: NormalizeLanguage(ReadGlobalString(config, ConfigurationKeys.Localization, DefaultLanguage)),
             UseTray: useTray,
             MinimizeToTray: useTray && ReadGlobalBool(config, ConfigurationKeys.MinimizeToTray, false),
             DeveloperModeEnabled: ReadGlobalBool(config, DeveloperModeConfigKey, false),
@@ -175,6 +176,15 @@ public sealed record StartupShellSnapshot(
             .Select(static option => option.Value)
             .FirstOrDefault(option => string.Equals(option, normalized, StringComparison.OrdinalIgnoreCase))
             ?? DefaultBackgroundStretchMode;
+    }
+
+    private static string NormalizeLanguage(string? value)
+    {
+        var normalized = value?.Trim();
+        return SettingsOptionCatalog.BuildLanguageOptions()
+            .Select(static option => option.Value)
+            .FirstOrDefault(option => string.Equals(option, normalized, StringComparison.OrdinalIgnoreCase))
+            ?? DefaultLanguage;
     }
 
     private static string NormalizeBackgroundPath(string? value)

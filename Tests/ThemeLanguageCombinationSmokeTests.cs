@@ -89,7 +89,6 @@ public sealed class ThemeLanguageCombinationSmokeTests
                     var snapshot = vm.SettingsPage.CurrentGuiSnapshot with
                     {
                         Theme = theme,
-                        Language = normalizedLanguage,
                     };
 
                     var applyTask = applyMethod!.Invoke(vm, [snapshot, CancellationToken.None]) as Task;

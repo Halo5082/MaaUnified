@@ -1,13 +1,19 @@
 using MAAUnified.Application.Configuration;
 using MAAUnified.Application.Orchestration;
 using MAAUnified.Application.Services.Features;
+using MAAUnified.Application.Services.Localization;
 using MAAUnified.CoreBridge;
 using MAAUnified.Platform;
+using RemoteControlFeatureServiceImpl = MAAUnified.Application.Services.Features.RemoteControlFeatureService;
+using StageManagerFeatureServiceImpl = MAAUnified.Application.Services.Features.StageManagerFeatureService;
+using WebApiFeatureServiceImpl = MAAUnified.Application.Services.Features.WebApiFeatureService;
 
 namespace MAAUnified.Application.Services;
 
 public sealed class MAAUnifiedRuntime : IAsyncDisposable
 {
+    private IUiLanguageCoordinator? _uiLanguageCoordinator;
+
     public required IMaaCoreBridge CoreBridge { get; init; }
 
     public required UnifiedConfigurationService ConfigurationService { get; init; }
@@ -42,6 +48,16 @@ public sealed class MAAUnifiedRuntime : IAsyncDisposable
 
     public required ISettingsFeatureService SettingsFeatureService { get; init; }
 
+    public IUiLanguageCoordinator UiLanguageCoordinator
+    {
+        get
+        {
+            _uiLanguageCoordinator ??= new UiLanguageCoordinator(ConfigurationService);
+            return _uiLanguageCoordinator;
+        }
+        init => _uiLanguageCoordinator = value;
+    }
+
     public IConfigurationProfileFeatureService ConfigurationProfileFeatureService { get; init; } = new ConfigurationProfileFeatureService();
 
     public IVersionUpdateFeatureService VersionUpdateFeatureService { get; init; } = new VersionUpdateFeatureService();
@@ -52,9 +68,9 @@ public sealed class MAAUnifiedRuntime : IAsyncDisposable
 
     public IAnnouncementFeatureService AnnouncementFeatureService { get; init; } = new AnnouncementFeatureService();
 
-    public IStageManagerFeatureService StageManagerFeatureService { get; init; } = new StageManagerFeatureService();
+    public IStageManagerFeatureService StageManagerFeatureService { get; init; } = new StageManagerFeatureServiceImpl();
 
-    public IWebApiFeatureService WebApiFeatureService { get; init; } = new WebApiFeatureService();
+    public IWebApiFeatureService WebApiFeatureService { get; init; } = new WebApiFeatureServiceImpl();
 
     public required IDialogFeatureService DialogFeatureService { get; init; }
 
@@ -118,20 +134,32 @@ public static class MAAUnifiedRuntimeFactory
         var taskQueueFeatureService = new TaskQueueFeatureService(sessionService, configService);
         var copilotFeatureService = new CopilotFeatureService();
         var toolboxFeatureService = new ToolboxFeatureService(bridge, connectFeatureService);
-        var remoteControlFeatureService = new RemoteControlFeatureService();
+        var remoteControlFeatureService = new RemoteControlFeatureServiceImpl(
+            configService,
+            sessionService,
+            connectFeatureService,
+            taskQueueFeatureService,
+            toolboxFeatureService,
+            bridge,
+            logService);
         var platformCapabilityService = new PlatformCapabilityFeatureService(platform, diagnosticsService);
         var overlayFeatureService = new OverlayFeatureService(platformCapabilityService);
         var notificationProviderFeatureService = new NotificationProviderFeatureService();
         var settingsFeatureService = new SettingsFeatureService(configService, platformCapabilityService, diagnosticsService);
         var configurationProfileFeatureService = new ConfigurationProfileFeatureService(configService);
+        var uiLanguageCoordinator = new UiLanguageCoordinator(configService);
+        var appLifecycleService = new ProcessAppLifecycleService();
         var achievementTrackerService = new AchievementTrackerService(configService, baseDirectory);
         var versionUpdateFeatureService = new VersionUpdateFeatureService(configService, diagnosticsService, achievementTrackerService);
         var achievementFeatureService = new AchievementFeatureService(configService);
         var announcementFeatureService = new AnnouncementFeatureService(configService);
-        var stageManagerFeatureService = new StageManagerFeatureService(configService);
-        var webApiFeatureService = new WebApiFeatureService(configService);
+        var stageManagerFeatureService = new StageManagerFeatureServiceImpl(configService);
+        var webApiFeatureService = new WebApiFeatureServiceImpl(
+            configService,
+            sessionService,
+            connectFeatureService,
+            appLifecycleService);
         var dialogFeatureService = new DialogFeatureService(diagnosticsService);
-        var appLifecycleService = new ProcessAppLifecycleService();
         var postActionFeatureService = new PostActionFeatureService(
             configService,
             diagnosticsService,
@@ -139,6 +167,8 @@ public static class MAAUnifiedRuntimeFactory
             bridge,
             appLifecycleService,
             new NoOpPostActionPromptService());
+
+        _ = remoteControlFeatureService.StartRemotePollingAsync();
 
         return new MAAUnifiedRuntime {
             CoreBridge = bridge,
@@ -158,6 +188,7 @@ public static class MAAUnifiedRuntimeFactory
             OverlayFeatureService = overlayFeatureService,
             NotificationProviderFeatureService = notificationProviderFeatureService,
             SettingsFeatureService = settingsFeatureService,
+            UiLanguageCoordinator = uiLanguageCoordinator,
             ConfigurationProfileFeatureService = configurationProfileFeatureService,
             VersionUpdateFeatureService = versionUpdateFeatureService,
             AchievementFeatureService = achievementFeatureService,

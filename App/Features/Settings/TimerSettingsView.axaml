@@ -26,14 +26,14 @@
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   Spacing="{DynamicResource MAA.Spacing.Large}">
-        <CheckBox Content="强制定时启动" IsChecked="{Binding ForceScheduledStart}" />
-        <CheckBox Content="自定义配置选择" IsChecked="{Binding CustomTimerConfig}" />
+        <CheckBox Content="{Binding RootTexts[Settings.Timer.ForceScheduledStart]}" IsChecked="{Binding ForceScheduledStart}" />
+        <CheckBox Content="{Binding RootTexts[Settings.Timer.CustomConfig]}" IsChecked="{Binding CustomTimerConfig}" />
       </StackPanel>
 
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   IsVisible="{Binding ForceScheduledStart}">
-        <CheckBox Content="强制启动前显示窗口"
+        <CheckBox Content="{Binding RootTexts[Settings.Timer.ShowWindowBeforeForceScheduledStart]}"
                   IsChecked="{Binding ShowWindowBeforeForceScheduledStart}"
                   IsVisible="{Binding ForceScheduledStart}" />
       </StackPanel>
@@ -58,8 +58,15 @@
                         HorizontalAlignment="Center"
                         Spacing="{DynamicResource MAA.Spacing.Small}">
               <CheckBox Margin="{DynamicResource MAA.Thickness.Settings.ItemMarginSmall}"
-                        Content="{Binding Index, StringFormat=定时 {0}}"
-                        IsChecked="{Binding Enabled}" />
+                        IsChecked="{Binding Enabled}">
+                <CheckBox.Content>
+                  <MultiBinding StringFormat="{}{0} {1}">
+                    <Binding RelativeSource="{RelativeSource AncestorType=UserControl}"
+                             Path="DataContext.RootTexts[Settings.Timer.SlotLabel]" />
+                    <Binding Path="Index" />
+                  </MultiBinding>
+                </CheckBox.Content>
+              </CheckBox>
               <StackPanel Orientation="Horizontal"
                           VerticalAlignment="Center"
                           Spacing="{DynamicResource MAA.Spacing.Small}">

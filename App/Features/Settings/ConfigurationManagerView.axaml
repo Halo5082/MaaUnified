@@ -7,7 +7,7 @@
     <StackPanel Grid.Row="1"
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.SectionTopMargin}">
-      <TextBlock Classes="settings-field-caption" Text="配置名称" />
+      <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.ConfigurationManager.ProfileName]}" />
       <ComboBox Width="{DynamicResource MAA.Size.Settings.ColumnWidth}"
                 ItemsSource="{Binding ConfigurationProfiles}"
                 SelectedItem="{Binding ConfigurationManagerSelectedProfile}"
@@ -20,11 +20,11 @@
           ColumnDefinitions="*,Auto"
           Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}">
       <TextBox Text="{Binding ConfigurationManagerNewProfileName, UpdateSourceTrigger=LostFocus}"
-               Watermark="新配置名称" />
+               Watermark="{Binding RootTexts[Settings.ConfigurationManager.NewProfileWatermark]}" />
       <Button Grid.Column="1"
               Classes="wpf-button wpf-button-secondary"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="另存为新配置"
+              Content="{Binding RootTexts[Settings.ConfigurationManager.SaveAsNew]}"
               Click="OnCreateProfileClick" />
     </Grid>
 
@@ -33,13 +33,13 @@
           ColumnDefinitions="Auto,Auto"
           Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}">
       <Button Classes="wpf-button wpf-button-secondary"
-              Content="删除当前配置"
+              Content="{Binding RootTexts[Settings.ConfigurationManager.DeleteCurrent]}"
               Click="OnDeleteCurrentProfileClick" />
       <TextBlock Grid.Column="1"
                  Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
                  VerticalAlignment="Center"
                  Classes="state-success"
-                 Text="已自动保存当前配置" />
+                 Text="{Binding RootTexts[Settings.ConfigurationManager.AutoSavedCurrent]}" />
     </Grid>
 
     <Grid Grid.Row="4"
@@ -47,17 +47,17 @@
           ColumnDefinitions="Auto,Auto,Auto"
           Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}">
       <Button Classes="wpf-button wpf-button-secondary"
-              Content="导出所有配置"
+              Content="{Binding RootTexts[Settings.ConfigurationManager.ExportAll]}"
               Click="OnExportAllProfilesClick" />
       <Button Grid.Column="1"
               Classes="wpf-button wpf-button-secondary"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="导出当前配置"
+              Content="{Binding RootTexts[Settings.ConfigurationManager.ExportCurrent]}"
               Click="OnExportCurrentProfileClick" />
       <Button Grid.Column="2"
               Classes="wpf-button wpf-button-secondary"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="导入配置"
+              Content="{Binding RootTexts[Settings.ConfigurationManager.Import]}"
               Click="OnImportProfilesClick" />
     </Grid>
 

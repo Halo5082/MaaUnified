@@ -365,6 +365,7 @@ public static class TaskParamCompiler
             ChooseLevel3 = confirm.Contains(3),
             ChooseLevel4 = confirm.Contains(4),
             ChooseLevel5 = confirm.Contains(5),
+            ChooseLevel6 = confirm.Contains(6) || select.Contains(6),
             Level3Time = ReadInt(recruitmentTime, "3", strict, issues, "recruit.time.3", 540),
             Level4Time = ReadInt(recruitmentTime, "4", strict, issues, "recruit.time.4", 540),
             Level5Time = ReadInt(recruitmentTime, "5", strict, issues, "recruit.time.5", 540),
@@ -430,6 +431,12 @@ public static class TaskParamCompiler
         {
             select.Add(5);
             confirm.Add(5);
+        }
+
+        if (dto.ChooseLevel6)
+        {
+            select.Add(6);
+            confirm.Add(6);
         }
 
         var parameters = new JsonObject

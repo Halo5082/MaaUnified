@@ -1,13 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MAAUnified.App.Features.Settings.HotKeyEditorView">
-  <StackPanel Margin="4" Spacing="6">
-    <TextBlock Classes="section-title" Text="HotKey Editor" />
-    <TextBlock Text="全局热键编辑器（显示 GUI / LinkStart）。" />
-    <Grid ColumnDefinitions="Auto,160,Auto">
-      <TextBlock VerticalAlignment="Center" Text="快捷键" />
-      <TextBox Text="Ctrl+Shift+M" />
-      <Button Classes="wpf-button wpf-button-secondary" Grid.Column="2" Content="监听录入" />
-    </Grid>
-  </StackPanel>
+  <Grid />
 </UserControl>

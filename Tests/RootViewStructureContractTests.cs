@@ -3,16 +3,20 @@ namespace MAAUnified.Tests;
 public sealed class RootViewStructureContractTests
 {
     [Fact]
-    public void MainWindow_ShouldUseRootLocalizationBindings_ForTabsAndMenus()
+    public void MainWindow_ShouldUseMainShellTabTitleBindings_ForTabsAndMenus()
     {
         var root = GetMaaUnifiedRoot();
         var text = File.ReadAllText(Path.Combine(root, "App", "Views", "MainWindow.axaml"));
 
-        Assert.Contains("{Binding RootTexts[Main.Tab.TaskQueue]}", text, StringComparison.Ordinal);
-        Assert.Contains("{Binding RootTexts[Main.Tab.Copilot]}", text, StringComparison.Ordinal);
-        Assert.Contains("{Binding RootTexts[Main.Tab.Toolbox]}", text, StringComparison.Ordinal);
-        Assert.Contains("{Binding RootTexts[Main.Tab.Settings]}", text, StringComparison.Ordinal);
+        Assert.Contains("{Binding TaskQueueTabTitle}", text, StringComparison.Ordinal);
+        Assert.Contains("{Binding CopilotTabTitle}", text, StringComparison.Ordinal);
+        Assert.Contains("{Binding ToolboxTabTitle}", text, StringComparison.Ordinal);
+        Assert.Contains("{Binding SettingsTabTitle}", text, StringComparison.Ordinal);
         Assert.DoesNotContain("{Binding RootTexts[Main.Tab.Advanced]}", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("{Binding RootTexts[Main.Tab.TaskQueue]}", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("{Binding RootTexts[Main.Tab.Copilot]}", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("{Binding RootTexts[Main.Tab.Toolbox]}", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("{Binding RootTexts[Main.Tab.Settings]}", text, StringComparison.Ordinal);
         Assert.DoesNotContain("{Binding RootTexts[Main.Menu.Start]}", text, StringComparison.Ordinal);
         Assert.DoesNotContain("{Binding RootTexts[Main.Menu.SwitchLanguage]}", text, StringComparison.Ordinal);
         Assert.Contains("Title=\"{Binding WindowTitle}\"", text, StringComparison.Ordinal);
@@ -96,7 +100,20 @@ public sealed class RootViewStructureContractTests
             var fullPath = Path.Combine(root, file.Replace('/', Path.DirectorySeparatorChar));
             var text = File.ReadAllText(fullPath);
             Assert.DoesNotContain("<WrapPanel", text, StringComparison.Ordinal);
-            Assert.DoesNotContain("Orientation=\"Horizontal\"", text, StringComparison.Ordinal);
+
+            if (file.EndsWith("RecruitSettingsView.axaml", StringComparison.Ordinal))
+            {
+                // Recruit has one intentional horizontal row (checkbox + inline hint text).
+                var horizontalCount = System.Text.RegularExpressions.Regex.Matches(text, "Orientation=\"Horizontal\"").Count;
+                Assert.Equal(1, horizontalCount);
+                Assert.Contains("Content=\"{Binding Texts[Recruit.AutoSelectLevel6]}\"", text, StringComparison.Ordinal);
+                Assert.Contains("Text=\"{Binding Texts[Recruit.AutoSelectLevel6FixedTime]}\"", text, StringComparison.Ordinal);
+            }
+            else
+            {
+                // For task settings: keep a predictable vertical form layout (avoid horizontal stack layouts drifting in).
+                Assert.DoesNotContain("Orientation=\"Horizontal\"", text, StringComparison.Ordinal);
+            }
         }
 
         var postActionText = File.ReadAllText(
@@ -148,12 +165,18 @@ public sealed class RootViewStructureContractTests
 
         Assert.Contains("SelectionChanged=\"OnConfigurationProfileSelectionChanged\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Click=\"OnImportProfilesClick\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Watermark=\"新配置名称\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"另存为新配置\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Watermark=\"{Binding RootTexts[Settings.ConfigurationManager.NewProfileWatermark]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding RootTexts[Settings.ConfigurationManager.SaveAsNew]}\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("留空使用当前时间", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("切换到别的配置", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("保存当前配置的修改", xaml, StringComparison.Ordinal);
-        Assert.Contains("确认删除配置“{0}”？", codeBehind, StringComparison.Ordinal);
+
+        // Confirm dialog strings should come from RootTexts (not hard-coded literals) and include profile name formatting.
+        Assert.Contains("Settings.ConfigurationManager.Dialog.DeleteTitle", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Settings.ConfigurationManager.Dialog.DeleteMessage", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Settings.Action.Delete", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Settings.Action.Cancel", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("string.Format", codeBehind, StringComparison.Ordinal);
     }
 
     private static string GetMaaUnifiedRoot()

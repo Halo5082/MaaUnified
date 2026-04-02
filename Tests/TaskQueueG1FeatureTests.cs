@@ -40,6 +40,52 @@ public sealed class TaskQueueG1FeatureTests
     }
 
     [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldKeepTextsAndRootTextsAligned()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        var changedProperties = new List<string>();
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.PropertyName))
+            {
+                changedProperties.Add(e.PropertyName);
+            }
+        };
+        var generalSettingsBefore = vm.RootTexts["TaskQueue.Root.GeneralSettings"];
+        var advancedSettingsBefore = vm.RootTexts["TaskQueue.Root.AdvancedSettings"];
+
+        vm.SetLanguage("en-us");
+
+        Assert.Equal("en-us", vm.Texts.Language);
+        Assert.Equal("en-us", vm.RootTexts.Language);
+        Assert.Contains(nameof(TaskQueuePageViewModel.Texts), changedProperties);
+        Assert.Contains(nameof(TaskQueuePageViewModel.RootTexts), changedProperties);
+        Assert.NotEqual(generalSettingsBefore, vm.RootTexts["TaskQueue.Root.GeneralSettings"]);
+        Assert.NotEqual(advancedSettingsBefore, vm.RootTexts["TaskQueue.Root.AdvancedSettings"]);
+    }
+
+    [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldRelocalizeDefaultTaskNamesAcrossLocales()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Fight, "理智作战")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Recruit, "公開招募")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        Assert.Equal("理智作战", vm.Tasks[0].DisplayName);
+        Assert.Equal("自动公招", vm.Tasks[1].DisplayName);
+
+        vm.SetLanguage("en-us");
+
+        Assert.Equal("Combat", vm.Tasks[0].DisplayName);
+        Assert.Equal("Recruit", vm.Tasks[1].DisplayName);
+    }
+
+    [Fact]
     public async Task SelectedTask_ShouldProjectTaskConfigVisibilityFlags()
     {
         await using var fixture = await TestFixture.CreateAsync();

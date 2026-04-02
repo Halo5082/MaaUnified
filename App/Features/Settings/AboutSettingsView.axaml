@@ -22,8 +22,12 @@
       <StackPanel Grid.Column="1"
                   Classes="settings-centered-column"
                   Spacing="{DynamicResource MAA.Spacing.Small}">
-        <Button Classes="wpf-button wpf-button-secondary" Content="社区" Click="OnOpenCommunityClick" />
-        <Button Classes="wpf-button wpf-button-secondary" Content="下载页" Click="OnOpenDownloadClick" />
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="{Binding RootTexts[Settings.Action.OpenCommunity]}"
+                Click="OnOpenCommunityClick" />
+        <Button Classes="wpf-button wpf-button-secondary"
+                Content="{Binding RootTexts[Settings.Action.OpenDownload]}"
+                Click="OnOpenDownloadClick" />
       </StackPanel>
     </Grid>
 

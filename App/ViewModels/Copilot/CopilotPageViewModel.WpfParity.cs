@@ -47,6 +47,9 @@ public sealed partial class CopilotPageViewModel
     private string _copilotUrl = PrtsPlusUrl;
     private string _mapUrl = MapPrtsUrl;
     private bool _suppressAutoAddLoadedCopilot;
+    private string _lastRenderedHelpText = string.Empty;
+    private IReadOnlyList<IntOption> _supportUnitUsageOptions = [];
+    private IReadOnlyList<IntOption> _moduleOptions = [];
 
     public ObservableCollection<CopilotFileItemViewModel> FileItems => _fileItems;
 
@@ -60,38 +63,19 @@ public sealed partial class CopilotPageViewModel
         new(4, "4"),
     ];
 
-    public IReadOnlyList<IntOption> SupportUnitUsageOptions { get; } =
-    [
-        new(1, "补漏"),
-        new(3, "随机"),
-    ];
+    public IReadOnlyList<IntOption> SupportUnitUsageOptions
+    {
+        get => _supportUnitUsageOptions;
+        private set => SetProperty(ref _supportUnitUsageOptions, value);
+    }
 
-    public IReadOnlyList<IntOption> ModuleOptions { get; } =
-    [
-        new(0, "不使用模组"),
-        new(1, "χ"),
-        new(2, "γ"),
-        new(3, "α"),
-        new(4, "Δ"),
-    ];
+    public IReadOnlyList<IntOption> ModuleOptions
+    {
+        get => _moduleOptions;
+        private set => SetProperty(ref _moduleOptions, value);
+    }
 
-    public string HelpText =>
-        "小提示:\n\n" +
-        "1. 使用前请确认作业与所选的关卡类型一致。\n\n" +
-        "2. 主线、故事集、SideStory: 请在关卡界面的右下角存在「开始行动」按钮界面启动。\n\n" +
-        "3. 保全派驻: resource/copilot 文件夹内置多份作业。请先手动编队，在右下角存在「开始部署」按钮界面启动，可配合「循环次数」。\n\n" +
-        "4. 悖论模拟: 选好技能后，在技能选择界面存在「开始模拟」按钮界面启动，1/2 星干员（无技能）在右下角存在「开始模拟」按钮界面开始。若使用「战斗列表」，请从干员列表「等级/稀有度」筛选下启动。\n\n" +
-        "5. 使用好友助战时，请关闭「自动编队」和「战斗列表」，手动选择干员后，在编队界面右下角存在「开始行动」按钮界面启动。\n\n" +
-        "6. 干员若被标记为「特别关注」，可能影响「自动编队」的识别与选择。建议使用「自动编队」时移除关注，或在报错后关闭「自动编队」，根据提示手动补充缺失的干员。\n\n" +
-        "7. Copilot 作业站的神秘代码可通过输入框右侧的粘贴按钮粘贴：\n" +
-        "● 单击第 2 个按钮 = 添加作业。\n" +
-        "● 单击第 3 个按钮 = 添加作业集。\n\n" +
-        "8. 战斗列表:\n" +
-        "● 选择作业后，检查下方关卡名是否正确 (例: CV-EX-1)。\n" +
-        "● 添加: 左键 = 普通难度，右键 = 突袭难度。\n" +
-        "● 清除: 左键 = 全部清空，右键 = 仅移除未激活任务。\n" +
-        "● 请在能看到目标关卡名的界面启动，不支持跨章节导航。\n" +
-        "● 遇到理智不足、战斗失败、未能三星结算时将自动中止。";
+    public string HelpText => T("Copilot.HelpText", string.Empty);
 
     public int CopilotTabIndex
     {
@@ -332,8 +316,8 @@ public sealed partial class CopilotPageViewModel
 
     public string ListSelectionHint
         => ShowCopilotListPanel
-            ? "战斗列表中的勾选项会参与启动。"
-            : "当前将直接启动输入框中的单个作业。";
+            ? T("Copilot.Hint.ListPanelEnabled", "战斗列表中的勾选项会参与启动。")
+            : T("Copilot.Hint.ListPanelDisabled", "当前将直接启动输入框中的单个作业。");
 
     private void InitializeWpfParityState()
     {
@@ -344,6 +328,7 @@ public sealed partial class CopilotPageViewModel
 
         Items.CollectionChanged += OnItemsCollectionChangedForWpfParity;
         LoadPersistedWpfParitySettings();
+        RebuildLocalizedOptionLists();
         EnsureHelpLogPresent();
         RefreshVisibilityState();
     }
@@ -356,6 +341,43 @@ public sealed partial class CopilotPageViewModel
         }
 
         AddLog(HelpText, showTime: false);
+        _lastRenderedHelpText = HelpText;
+    }
+
+    private void RebuildLocalizedOptionLists()
+    {
+        SupportUnitUsageOptions =
+        [
+            new IntOption(1, T("Copilot.Option.SupportUnitUsage.FillGap", "补漏")),
+            new IntOption(3, T("Copilot.Option.SupportUnitUsage.Random", "随机")),
+        ];
+
+        ModuleOptions =
+        [
+            new IntOption(0, T("Copilot.Option.Module.None", "不使用模组")),
+            new IntOption(1, T("Copilot.Option.Module.Chi", "χ")),
+            new IntOption(2, T("Copilot.Option.Module.Gamma", "γ")),
+            new IntOption(3, T("Copilot.Option.Module.Alpha", "α")),
+            new IntOption(4, T("Copilot.Option.Module.Delta", "Δ")),
+        ];
+
+        OnPropertyChanged(nameof(SelectedSupportUnitUsageOption));
+    }
+
+    private void RefreshLocalizedUiState()
+    {
+        RebuildLocalizedOptionLists();
+        OnPropertyChanged(nameof(HelpText));
+        OnPropertyChanged(nameof(ListSelectionHint));
+        RefreshVisibilityState();
+
+        if (Logs.Count == 1 && string.Equals(Logs[0].Content, _lastRenderedHelpText, StringComparison.Ordinal))
+        {
+            Logs.Clear();
+            AddLog(HelpText, showTime: false);
+        }
+
+        _lastRenderedHelpText = HelpText;
     }
 
     private void OnSelectedTypeIndexChanged()
@@ -622,7 +644,7 @@ public sealed partial class CopilotPageViewModel
         }
 
         FilePath = expanded;
-        StatusMessage = "已更新作业输入。";
+        StatusMessage = T("Copilot.Status.InputUpdated", "已更新作业输入。");
         LastErrorMessage = string.Empty;
     }
 
@@ -632,7 +654,7 @@ public sealed partial class CopilotPageViewModel
         var result = await Runtime.CopilotFeatureService.ImportFromFileAsync(normalizedPath, cancellationToken);
         if (!result.Success)
         {
-            StatusMessage = "读取作业失败。";
+            StatusMessage = T("Copilot.Status.LoadCurrentFailed", "读取作业失败。");
             LastErrorMessage = result.Message;
             await RecordFailedResultAsync("Copilot.LoadCurrent.File", result, cancellationToken);
             return;
@@ -645,20 +667,20 @@ public sealed partial class CopilotPageViewModel
         }
         catch (Exception ex)
         {
-            StatusMessage = "读取作业失败。";
+            StatusMessage = T("Copilot.Status.LoadCurrentFailed", "读取作业失败。");
             LastErrorMessage = ex.Message;
             await RecordUnhandledExceptionAsync(
                 "Copilot.LoadCurrent.File",
                 ex,
                 UiErrorCode.CopilotFileReadFailed,
-                "读取作业文件失败。",
+                T("Copilot.Error.ReadFileFailed", "读取作业文件失败。"),
                 cancellationToken);
             return;
         }
 
         if (!TryReadLoadedCopilotDescriptor(payload, normalizedPath, out var descriptor, out var warning))
         {
-            StatusMessage = "读取作业失败。";
+            StatusMessage = T("Copilot.Status.LoadCurrentFailed", "读取作业失败。");
             LastErrorMessage = warning;
             await RecordFailedResultAsync(
                 "Copilot.LoadCurrent.File",
@@ -680,7 +702,7 @@ public sealed partial class CopilotPageViewModel
         var result = await Runtime.CopilotFeatureService.ImportFromClipboardAsync(normalized, cancellationToken);
         if (!result.Success)
         {
-            StatusMessage = "读取剪贴板作业失败。";
+            StatusMessage = T("Copilot.Status.LoadClipboardFailed", "读取剪贴板作业失败。");
             LastErrorMessage = result.Message;
             await RecordFailedResultAsync("Copilot.LoadCurrent.Clipboard", result, cancellationToken);
             return;
@@ -695,7 +717,7 @@ public sealed partial class CopilotPageViewModel
 
         if (!TryReadLoadedCopilotDescriptor(normalized, sourcePath: null, out var descriptor, out var warning))
         {
-            StatusMessage = "读取剪贴板作业失败。";
+            StatusMessage = T("Copilot.Status.LoadClipboardFailed", "读取剪贴板作业失败。");
             LastErrorMessage = warning;
             await RecordFailedResultAsync(
                 "Copilot.LoadCurrent.Clipboard",
@@ -725,21 +747,21 @@ public sealed partial class CopilotPageViewModel
         }
         catch (Exception ex)
         {
-            StatusMessage = "读取作业集失败。";
+            StatusMessage = T("Copilot.Status.LoadSetFailed", "读取作业集失败。");
             LastErrorMessage = ex.Message;
             await RecordUnhandledExceptionAsync(
                 "Copilot.LoadSet.Clipboard",
                 ex,
                 UiErrorCode.CopilotPayloadInvalidJson,
-                "读取作业集失败。",
+                T("Copilot.Status.LoadSetFailed", "读取作业集失败。"),
                 cancellationToken);
             return;
         }
 
         if (root is not JsonArray array)
         {
-            StatusMessage = "读取作业集失败。";
-            LastErrorMessage = "作业集必须是 JSON 数组。";
+            StatusMessage = T("Copilot.Status.LoadSetFailed", "读取作业集失败。");
+            LastErrorMessage = T("Copilot.Error.LoadSetNotArray", "作业集必须是 JSON 数组。");
             await RecordFailedResultAsync(
                 "Copilot.LoadSet.Clipboard",
                 UiOperationResult.Fail(UiErrorCode.CopilotPayloadInvalidType, LastErrorMessage),
@@ -764,13 +786,15 @@ public sealed partial class CopilotPageViewModel
 
         if (added == 0)
         {
-            StatusMessage = "读取作业集失败。";
-            LastErrorMessage = "作业集内没有可识别的作业条目。";
+            StatusMessage = T("Copilot.Status.LoadSetFailed", "读取作业集失败。");
+            LastErrorMessage = T("Copilot.Error.LoadSetNoRecognized", "作业集内没有可识别的作业条目。");
             return;
         }
 
         await PersistItemsAsync(cancellationToken);
-        StatusMessage = $"已添加 {added} 个作业到战斗列表。";
+        StatusMessage = string.Format(
+            T("Copilot.Status.LoadSetAddedCount", "已添加 {0} 个作业到战斗列表。"),
+            added);
         LastErrorMessage = string.Empty;
         await RecordEventAsync("Copilot.LoadSet.Clipboard", StatusMessage, cancellationToken);
     }
@@ -789,7 +813,7 @@ public sealed partial class CopilotPageViewModel
             var result = await Runtime.CopilotFeatureService.ImportFromFileAsync(normalizedPath, cancellationToken);
             if (!result.Success)
             {
-                StatusMessage = "批量导入失败。";
+                StatusMessage = T("Copilot.Status.BatchImportFailed", "批量导入失败。");
                 LastErrorMessage = result.Message;
                 await RecordFailedResultAsync("Copilot.ImportFiles", result, cancellationToken);
                 return;
@@ -807,14 +831,16 @@ public sealed partial class CopilotPageViewModel
 
         if (added == 0)
         {
-            StatusMessage = "批量导入失败。";
-            LastErrorMessage = "未找到可导入的作业文件。";
+            StatusMessage = T("Copilot.Status.BatchImportFailed", "批量导入失败。");
+            LastErrorMessage = T("Copilot.Error.BatchImportNone", "未找到可导入的作业文件。");
             return;
         }
 
         UseCopilotList = CopilotTabIndex is 0 or 2;
         await PersistItemsAsync(cancellationToken);
-        StatusMessage = $"已批量导入 {added} 个作业。";
+        StatusMessage = string.Format(
+            T("Copilot.Status.BatchImportedCount", "已批量导入 {0} 个作业。"),
+            added);
         LastErrorMessage = string.Empty;
         await RecordEventAsync("Copilot.ImportFiles", StatusMessage, cancellationToken);
     }
@@ -824,8 +850,8 @@ public sealed partial class CopilotPageViewModel
         cancellationToken.ThrowIfCancellationRequested();
         if (!HasLoadedCopilot)
         {
-            StatusMessage = "添加作业失败。";
-            LastErrorMessage = "请先选择一个作业。";
+            StatusMessage = T("Copilot.Status.AddCurrentFailed", "添加作业失败。");
+            LastErrorMessage = T("Copilot.Error.SelectCopilotBeforeAdd", "请先选择一个作业。");
             await RecordFailedResultAsync(
                 "Copilot.List.AddCurrent",
                 UiOperationResult.Fail(UiErrorCode.CopilotFileMissing, LastErrorMessage),
@@ -844,7 +870,9 @@ public sealed partial class CopilotPageViewModel
         SetSelectedItemSilently(item);
         UseCopilotList = CopilotTabIndex is 0 or 2;
         await PersistItemsAsync(cancellationToken);
-        StatusMessage = isRaid ? "已添加突袭作业到战斗列表。" : "已添加作业到战斗列表。";
+        StatusMessage = isRaid
+            ? T("Copilot.Status.AddCurrentRaidSuccess", "已添加突袭作业到战斗列表。")
+            : T("Copilot.Status.AddCurrentSuccess", "已添加作业到战斗列表。");
         LastErrorMessage = string.Empty;
         await RecordEventAsync("Copilot.List.AddCurrent", StatusMessage, cancellationToken);
     }
@@ -864,7 +892,7 @@ public sealed partial class CopilotPageViewModel
         }
 
         await PersistItemsAsync(cancellationToken);
-        StatusMessage = "已删除作业。";
+        StatusMessage = T("Copilot.Status.DeleteItemSuccess", "已删除作业。");
         LastErrorMessage = string.Empty;
         await RecordEventAsync("Copilot.List.Delete", StatusMessage, cancellationToken);
     }
@@ -874,7 +902,9 @@ public sealed partial class CopilotPageViewModel
         cancellationToken.ThrowIfCancellationRequested();
         var removed = Items.RemoveAll(item => !item.IsChecked);
         await PersistItemsAsync(cancellationToken);
-        StatusMessage = removed == 0 ? "没有未激活作业需要清理。" : $"已清理 {removed} 个未激活作业。";
+        StatusMessage = removed == 0
+            ? T("Copilot.Status.CleanInactiveNone", "没有未激活作业需要清理。")
+            : string.Format(T("Copilot.Status.CleanInactiveCount", "已清理 {0} 个未激活作业。"), removed);
         LastErrorMessage = string.Empty;
         await RecordEventAsync("Copilot.List.CleanInactive", StatusMessage, cancellationToken);
     }
@@ -909,8 +939,8 @@ public sealed partial class CopilotPageViewModel
             _suppressAutoAddLoadedCopilot = false;
         }
 
-        StatusMessage = "读取作业失败。";
-        LastErrorMessage = "所选列表项缺少可用的作业来源。";
+        StatusMessage = T("Copilot.Status.LoadCurrentFailed", "读取作业失败。");
+        LastErrorMessage = T("Copilot.Error.ListItemMissingSource", "所选列表项缺少可用的作业来源。");
     }
 
     public void OpenUserAdditionalPopup()
@@ -980,21 +1010,23 @@ public sealed partial class CopilotPageViewModel
                 : string.Empty;
         if (string.IsNullOrWhiteSpace(copilotId))
         {
-            StatusMessage = "反馈失败。";
-            LastErrorMessage = "当前作业没有可反馈的作业站 ID。";
+            StatusMessage = T("Copilot.Status.FeedbackFailed", "反馈失败。");
+            LastErrorMessage = T("Copilot.Error.LoadedFeedbackMissingId", "当前作业没有可反馈的作业站 ID。");
             return;
         }
 
         var result = await Runtime.CopilotFeatureService.SubmitFeedbackAsync(copilotId, like, cancellationToken);
         if (!result.Success)
         {
-            StatusMessage = "反馈失败。";
+            StatusMessage = T("Copilot.Status.FeedbackFailed", "反馈失败。");
             LastErrorMessage = result.Message;
             await RecordFailedResultAsync("Copilot.Feedback.Loaded", result, cancellationToken);
             return;
         }
 
-        StatusMessage = like ? "已提交点赞。" : "已提交点踩。";
+        StatusMessage = like
+            ? T("Copilot.Status.LoadedFeedbackLikeSuccess", "已提交点赞。")
+            : T("Copilot.Status.LoadedFeedbackDislikeSuccess", "已提交点踩。");
         LastErrorMessage = string.Empty;
         await RecordEventAsync("Copilot.Feedback.Loaded", StatusMessage, cancellationToken);
     }
@@ -1172,7 +1204,7 @@ public sealed partial class CopilotPageViewModel
 
         if (root is not JsonObject obj)
         {
-            warning = "当前作业必须是单个 JSON 对象。";
+            warning = T("Copilot.Error.CurrentPayloadNotObject", "当前作业必须是单个 JSON 对象。");
             return false;
         }
 
@@ -1355,8 +1387,8 @@ public sealed partial class CopilotPageViewModel
             return await AppendSingleItemAsync(SelectedItem, cancellationToken);
         }
 
-        StatusMessage = "启动失败。";
-        LastErrorMessage = "请选择要执行的作业。";
+        StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+        LastErrorMessage = T("Copilot.Error.StartSelectTask", "请选择要执行的作业。");
         await RecordFailedResultAsync(
             "Copilot.Start",
             UiOperationResult.Fail(UiErrorCode.CopilotSelectionMissing, LastErrorMessage),
@@ -1379,7 +1411,7 @@ public sealed partial class CopilotPageViewModel
         {
             return await FailStartValidationAsync(
                 "Copilot.Start.Validate",
-                "当前选择的作业与页签不匹配",
+                T("Copilot.Error.ValidateTabMismatch", "当前选择的作业与页签不匹配"),
                 UiErrorCode.TaskValidationFailed,
                 cancellationToken);
         }
@@ -1396,7 +1428,7 @@ public sealed partial class CopilotPageViewModel
         {
             await FailStartValidationAsync(
                 "Copilot.Start.List",
-                "正在使用「战斗列表」，但未勾选任何作业。",
+                T("Copilot.Error.ListNoChecked", "正在使用「战斗列表」，但未勾选任何作业。"),
                 UiErrorCode.CopilotSelectionMissing,
                 cancellationToken);
             return null;
@@ -1406,7 +1438,7 @@ public sealed partial class CopilotPageViewModel
         {
             await FailStartValidationAsync(
                 "Copilot.Start.List",
-                "正在使用「战斗列表」，但列表包含旧版本条目（缺少页签信息），请在正确的页签重新添加这些作业后再启动",
+                T("Copilot.Error.ListLegacyMissingTab", "正在使用「战斗列表」，但列表包含旧版本条目（缺少页签信息），请在正确的页签重新添加这些作业后再启动"),
                 UiErrorCode.TaskValidationFailed,
                 cancellationToken);
             return null;
@@ -1420,7 +1452,7 @@ public sealed partial class CopilotPageViewModel
         {
             await FailStartValidationAsync(
                 "Copilot.Start.List",
-                "正在使用「战斗列表」，但不允许混用「主线/故事集/SideStory」与「悖论模拟」，请分别在对应页签建立列表后再启动",
+                T("Copilot.Error.ListMixedTabs", "正在使用「战斗列表」，但不允许混用「主线/故事集/SideStory」与「悖论模拟」，请分别在对应页签建立列表后再启动"),
                 UiErrorCode.TaskValidationFailed,
                 cancellationToken);
             return null;
@@ -1431,7 +1463,10 @@ public sealed partial class CopilotPageViewModel
         {
             await FailStartValidationAsync(
                 "Copilot.Start.List",
-                $"正在使用「战斗列表」，当前页签为「{GetCopilotTabDisplayName(CopilotTabIndex)}」，但列表来自「{GetCopilotTabDisplayName(listTab)}」，请切换到对应页签后再启动",
+                string.Format(
+                    T("Copilot.Error.ListTabMismatch", "正在使用「战斗列表」，当前页签为「{0}」，但列表来自「{1}」，请切换到对应页签后再启动"),
+                    GetCopilotTabDisplayName(CopilotTabIndex),
+                    GetCopilotTabDisplayName(listTab)),
                 UiErrorCode.TaskValidationFailed,
                 cancellationToken);
             return null;
@@ -1441,14 +1476,14 @@ public sealed partial class CopilotPageViewModel
         {
             if (checkedItems.Count == 1)
             {
-                AddLog("正在使用「战斗列表」执行单个作业, 不推荐此行为。 单个作业请直接运行", "WARN", showTime: false);
+                AddLog(T("Copilot.Warn.ListSingleItem", "正在使用「战斗列表」执行单个作业, 不推荐此行为。 单个作业请直接运行"), "WARN", showTime: false);
             }
 
             if (checkedItems.Any(item => string.IsNullOrWhiteSpace(item.Name)))
             {
                 await FailStartValidationAsync(
                     "Copilot.Start.List",
-                    "存在关卡名为空的作业",
+                    T("Copilot.Error.ListEmptyStageName", "存在关卡名为空的作业"),
                     UiErrorCode.TaskValidationFailed,
                     cancellationToken);
                 return null;
@@ -1464,7 +1499,7 @@ public sealed partial class CopilotPageViewModel
         string errorCode,
         CancellationToken cancellationToken)
     {
-        StatusMessage = "启动失败。";
+        StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
         LastErrorMessage = message;
         AddLog(message, "ERROR", showTime: false);
         await RecordFailedResultAsync(
@@ -1496,8 +1531,11 @@ public sealed partial class CopilotPageViewModel
         var appendResult = await Runtime.CoreBridge.AppendTaskAsync(request, cancellationToken);
         if (!appendResult.Success)
         {
-            StatusMessage = "启动失败。";
-            LastErrorMessage = $"追加 Copilot 任务失败：{appendResult.Error?.Code} {appendResult.Error?.Message}";
+            StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+            LastErrorMessage = string.Format(
+                T("Copilot.Error.AppendTaskFailed", "追加 Copilot 任务失败：{0} {1}"),
+                appendResult.Error?.Code,
+                appendResult.Error?.Message);
             await RecordFailedResultAsync(
                 "Copilot.Append.Loaded",
                 UiOperationResult.Fail(UiErrorCode.CopilotFileReadFailed, LastErrorMessage),
@@ -1524,8 +1562,11 @@ public sealed partial class CopilotPageViewModel
         var appendResult = await Runtime.CoreBridge.AppendTaskAsync(request, cancellationToken);
         if (!appendResult.Success)
         {
-            StatusMessage = "启动失败。";
-            LastErrorMessage = $"追加 Copilot 任务失败：{appendResult.Error?.Code} {appendResult.Error?.Message}";
+            StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+            LastErrorMessage = string.Format(
+                T("Copilot.Error.AppendTaskFailed", "追加 Copilot 任务失败：{0} {1}"),
+                appendResult.Error?.Code,
+                appendResult.Error?.Message);
             await RecordFailedResultAsync(
                 "Copilot.Append",
                 UiOperationResult.Fail(UiErrorCode.CopilotFileReadFailed, LastErrorMessage),
@@ -1619,8 +1660,11 @@ public sealed partial class CopilotPageViewModel
         var appendResult = await Runtime.CoreBridge.AppendTaskAsync(request, cancellationToken);
         if (!appendResult.Success)
         {
-            StatusMessage = "启动失败。";
-            LastErrorMessage = $"追加 Copilot 任务失败：{appendResult.Error?.Code} {appendResult.Error?.Message}";
+            StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+            LastErrorMessage = string.Format(
+                T("Copilot.Error.AppendTaskFailed", "追加 Copilot 任务失败：{0} {1}"),
+                appendResult.Error?.Code,
+                appendResult.Error?.Message);
             await RecordFailedResultAsync(
                 "Copilot.Append.List",
                 UiOperationResult.Fail(UiErrorCode.CopilotFileReadFailed, LastErrorMessage),
@@ -1686,8 +1730,10 @@ public sealed partial class CopilotPageViewModel
         {
             if (!File.Exists(resolvedSourcePath))
             {
-                StatusMessage = "启动失败。";
-                LastErrorMessage = $"作业文件不存在：{resolvedSourcePath}";
+                StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+                LastErrorMessage = string.Format(
+                    T("Copilot.Error.StartInputFileNotFound", "作业文件不存在：{0}"),
+                    resolvedSourcePath);
                 await RecordFailedResultAsync(
                     "Copilot.Start.Input",
                     UiOperationResult.Fail(UiErrorCode.CopilotFileNotFound, LastErrorMessage),
@@ -1700,8 +1746,8 @@ public sealed partial class CopilotPageViewModel
 
         if (string.IsNullOrWhiteSpace(inlinePayload))
         {
-            StatusMessage = "启动失败。";
-            LastErrorMessage = "当前作业缺少可执行来源（文件路径或 JSON 内容）。";
+            StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+            LastErrorMessage = T("Copilot.Error.StartInputMissingSource", "当前作业缺少可执行来源（文件路径或 JSON 内容）。");
             await RecordFailedResultAsync(
                 "Copilot.Start.Input",
                 UiOperationResult.Fail(UiErrorCode.CopilotFileMissing, LastErrorMessage),
@@ -1720,14 +1766,14 @@ public sealed partial class CopilotPageViewModel
         return filePath;
     }
 
-    private static string GetCopilotTabDisplayName(int tabIndex)
+    private string GetCopilotTabDisplayName(int tabIndex)
     {
         return tabIndex switch
         {
-            1 => "保全派驻",
-            2 => "悖论模拟",
-            3 => "其他活动",
-            _ => "主线/故事集/SideStory",
+            1 => T("Copilot.Tab.Display.Security", "保全派驻"),
+            2 => T("Copilot.Tab.Display.Paradox", "悖论模拟"),
+            3 => T("Copilot.Tab.Display.Other", "其他活动"),
+            _ => T("Copilot.Tab.Display.Main", "主线/故事集/SideStory"),
         };
     }
 

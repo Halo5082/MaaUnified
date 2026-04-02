@@ -8,7 +8,7 @@
                MaxWidth="{DynamicResource MAA.Size.Settings.ContentMaxWidth}"
                Margin="{DynamicResource MAA.Thickness.Settings.SectionTopMargin}"
                Classes="settings-centered-text"
-               Text="请先升级并测试新版是否仍有此问题，确认非「常见问题」后再进行「问题反馈」。" />
+               Text="{Binding RootTexts[Settings.IssueReport.PreflightNote]}" />
 
     <Grid Grid.Row="2"
           Classes="settings-form"
@@ -17,8 +17,8 @@
       <StackPanel Grid.Column="0"
                   Classes="settings-centered-column"
                   Spacing="{DynamicResource MAA.Spacing.Small}">
-        <Button Classes="wpf-button wpf-button-secondary" Content="常见问题" Click="OnOpenHelpClick" />
-        <Button Classes="wpf-button wpf-button-secondary" Content="问题反馈" Click="OnOpenIssueEntryClick" />
+        <Button Classes="wpf-button wpf-button-secondary" Content="{Binding RootTexts[Settings.IssueReport.Faq]}" Click="OnOpenHelpClick" />
+        <Button Classes="wpf-button wpf-button-secondary" Content="{Binding RootTexts[Settings.IssueReport.IssueEntry]}" Click="OnOpenIssueEntryClick" />
       </StackPanel>
 
       <StackPanel Grid.Column="1"
@@ -27,7 +27,7 @@
         <Button Classes="wpf-button wpf-button-secondary"
                 Content="{Binding RootTexts[Settings.Action.BuildIssueReport]}"
                 Click="OnBuildIssueReportClick" />
-        <Button Classes="wpf-button wpf-button-secondary" Content="打开日志窗口" Click="OnOpenRuntimeLogWindowClick" />
+        <Button Classes="wpf-button wpf-button-secondary" Content="{Binding RootTexts[Settings.IssueReport.OpenRuntimeLogWindow]}" Click="OnOpenRuntimeLogWindowClick" />
         <Button Classes="wpf-button wpf-button-secondary"
                 Content="{Binding RootTexts[Settings.Action.OpenDebugDirectory]}"
                 Click="OnOpenDebugDirectoryClick" />
@@ -42,11 +42,11 @@
                 Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}"
                 Spacing="0">
       <CheckBox HorizontalAlignment="Center"
-                Content="开发者模式（输出详细日志）"
+                Content="{Binding RootTexts[Settings.IssueReport.DeveloperMode]}"
                 IsChecked="{Binding DeveloperModeEnabled}" />
       <TextBlock MaxWidth="{DynamicResource MAA.Size.Settings.ContentMaxWidth}"
                  Classes="settings-note settings-centered-text"
-                 Text="开启后会记录更详细的 Bridge 初始化/连接诊断日志。建议复现问题前先开启。" />
+                 Text="{Binding RootTexts[Settings.IssueReport.DeveloperModeNote]}" />
     </StackPanel>
 
     <TextBlock Grid.Row="4"

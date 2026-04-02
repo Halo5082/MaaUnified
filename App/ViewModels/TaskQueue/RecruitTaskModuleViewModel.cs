@@ -53,6 +53,7 @@ public sealed class RecruitTaskModuleViewModel : TypedTaskModuleViewModelBase<Re
     private bool _chooseLevel3 = true;
     private bool _chooseLevel4 = true;
     private bool _chooseLevel5;
+    private bool _chooseLevel6;
     private int _level3Time = 540;
     private int _level4Time = 540;
     private int _level5Time = 540;
@@ -158,6 +159,12 @@ public sealed class RecruitTaskModuleViewModel : TypedTaskModuleViewModelBase<Re
     {
         get => _chooseLevel5;
         set => SetTrackedProperty(ref _chooseLevel5, value);
+    }
+
+    public bool ChooseLevel6
+    {
+        get => _chooseLevel6;
+        set => SetTrackedProperty(ref _chooseLevel6, value);
     }
 
     public int Level3Time
@@ -267,6 +274,7 @@ public sealed class RecruitTaskModuleViewModel : TypedTaskModuleViewModelBase<Re
         ChooseLevel3 = dto.ChooseLevel3;
         ChooseLevel4 = dto.ChooseLevel4;
         ChooseLevel5 = dto.ChooseLevel5;
+        ChooseLevel6 = dto.ChooseLevel6;
         Level3Time = dto.Level3Time;
         Level4Time = dto.Level4Time;
         Level5Time = dto.Level5Time;
@@ -293,6 +301,7 @@ public sealed class RecruitTaskModuleViewModel : TypedTaskModuleViewModelBase<Re
             ChooseLevel3 = ChooseLevel3,
             ChooseLevel4 = ChooseLevel4,
             ChooseLevel5 = ChooseLevel5,
+            ChooseLevel6 = ChooseLevel6,
             Level3Time = Level3Time,
             Level4Time = Level4Time,
             Level5Time = Level5Time,

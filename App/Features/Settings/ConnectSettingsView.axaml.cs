@@ -48,7 +48,7 @@ public partial class ConnectSettingsView : UserControl
             new FilePickerOpenOptions
             {
                 AllowMultiple = false,
-                Title = "选择 ADB 路径",
+                Title = T("Settings.Connect.Dialog.SelectAdbPath"),
             });
         var selected = files.FirstOrDefault();
         if (selected is null)
@@ -74,7 +74,7 @@ public partial class ConnectSettingsView : UserControl
 
         try
         {
-            vm.TestLinkInfo = "正在连接模拟器...";
+            vm.TestLinkInfo = T("Settings.Connect.Status.ConnectingEmulator");
             App.Runtime.LogService.Debug("Screenshot test started: trying connection with current settings.");
             var connectResult = await ConnectWithCurrentSettingsAsync(vm);
             if (!connectResult.Success)
@@ -96,12 +96,10 @@ public partial class ConnectSettingsView : UserControl
                 watch.Stop();
                 if (!imageResult.Success || imageResult.Value is null || imageResult.Value.Length == 0)
                 {
-                    var errorMessage = imageResult.Error?.Message ?? "GetImage failed.";
+                    var errorMessage = imageResult.Error?.Message ?? T("Settings.Connect.Error.GetImageFailed");
                     App.Runtime.LogService.Debug(
                         $"Screenshot test GetImage failed on sample {i + 1}: {errorMessage}");
-                    vm.TestLinkInfo = BuildBilingualMessage(
-                        $"截图测试失败：{errorMessage}",
-                        $"Screenshot test failed: {errorMessage}");
+                    vm.TestLinkInfo = Tf("Settings.Connect.Error.ScreenshotTestFailed", errorMessage);
                     return;
                 }
 
@@ -124,9 +122,7 @@ public partial class ConnectSettingsView : UserControl
         }
         catch (Exception ex)
         {
-            vm.TestLinkInfo = BuildBilingualMessage(
-                $"截图测试异常：{ex.Message}",
-                $"Screenshot test exception: {ex.Message}");
+            vm.TestLinkInfo = Tf("Settings.Connect.Error.ScreenshotTestException", ex.Message);
         }
     }
 
@@ -143,13 +139,11 @@ public partial class ConnectSettingsView : UserControl
             var package = ResolveAdbPackageInfo();
             if (package is null)
             {
-                vm.TestLinkInfo = BuildBilingualMessage(
-                    "当前系统不支持自动替换 ADB。",
-                    "Automatic ADB replace is not supported on this platform.");
+                vm.TestLinkInfo = T("Settings.Connect.Error.AutoReplaceUnsupported");
                 return;
             }
 
-            vm.TestLinkInfo = "正在下载 ADB...";
+            vm.TestLinkInfo = T("Settings.Connect.Status.DownloadingAdb");
 
             var baseDirectory = AppContext.BaseDirectory;
             var cacheDirectory = Path.Combine(baseDirectory, "cache", "adb");
@@ -169,27 +163,21 @@ public partial class ConnectSettingsView : UserControl
             var adbPath = package.Value.ResolveExtractedAdbPath(extractDirectory);
             if (!File.Exists(adbPath))
             {
-                vm.TestLinkInfo = BuildBilingualMessage(
-                    "ADB 替换失败：未找到解压后的 adb 可执行文件。",
-                    "ADB replace failed: extracted adb executable was not found.");
+                vm.TestLinkInfo = T("Settings.Connect.Error.ReplaceAdbExtractedNotFound");
                 return;
             }
 
             vm.AdbPath = adbPath;
             vm.AdbReplaced = true;
-            vm.TestLinkInfo = BuildBilingualMessage(
-                $"已替换 ADB：{adbPath}",
-                $"ADB replaced: {adbPath}");
+            vm.TestLinkInfo = Tf("Settings.Connect.Status.ReplacedAdb", adbPath);
         }
         catch (Exception ex)
         {
-            vm.TestLinkInfo = BuildBilingualMessage(
-                $"替换 ADB 失败：{ex.Message}",
-                $"Replace ADB failed: {ex.Message}");
+            vm.TestLinkInfo = Tf("Settings.Connect.Error.ReplaceAdbFailed", ex.Message);
         }
     }
 
-    private static async Task<UiOperationResult> ConnectWithCurrentSettingsAsync(ConnectionGameSharedStateViewModel vm)
+    private async Task<UiOperationResult> ConnectWithCurrentSettingsAsync(ConnectionGameSharedStateViewModel vm)
     {
         var effectiveAdbPath = vm.ResolveEffectiveAdbPath(updateStateWhenResolved: true);
         var adbPath = string.IsNullOrWhiteSpace(effectiveAdbPath) ? null : effectiveAdbPath;
@@ -215,7 +203,7 @@ public partial class ConnectSettingsView : UserControl
             lastFailure = result;
         }
 
-        return lastFailure ?? UiOperationResult.Fail(UiErrorCode.UiOperationFailed, "Connection failed.");
+        return lastFailure ?? UiOperationResult.Fail(UiErrorCode.UiOperationFailed, T("Settings.Connect.Error.ConnectionFailedShort"));
     }
 
     private static async Task DownloadFileAsync(string url, string targetPath)
@@ -260,25 +248,26 @@ public partial class ConnectSettingsView : UserControl
         return null;
     }
 
-    private static string BuildBilingualMessage(string zh, string en)
+    private string T(string key)
     {
-        return $"{zh}{Environment.NewLine}{en}";
+        return VM?.RootTexts[key] ?? key;
     }
 
-    private static string BuildConnectFailureMessage(
+    private string Tf(string key, params object[] args)
+    {
+        return string.Format(System.Globalization.CultureInfo.CurrentCulture, T(key), args);
+    }
+
+    private string BuildConnectFailureMessage(
         ConnectionGameSharedStateViewModel vm,
         UiOperationResult connectResult)
     {
         var builder = new StringBuilder();
-        builder.AppendLine(BuildBilingualMessage(
-            $"连接失败：{connectResult.Message}",
-            $"Connect failed: {connectResult.Message}"));
+        builder.AppendLine(Tf("Settings.Connect.Error.ConnectFailed", connectResult.Message));
 
         if (!string.IsNullOrWhiteSpace(connectResult.Error?.Details))
         {
-            builder.AppendLine(BuildBilingualMessage(
-                $"错误详情：{connectResult.Error.Details}",
-                $"Error details: {connectResult.Error.Details}"));
+            builder.AppendLine(Tf("Settings.Connect.Error.Details", connectResult.Error.Details));
         }
 
         var settingsHint = vm.BuildConnectionSettingsHintMessage();
@@ -350,7 +339,7 @@ public partial class ConnectSettingsView : UserControl
 
         var window = new Window
         {
-            Title = "截图预览",
+            Title = T("Settings.Connect.Dialog.ScreenshotPreview"),
             Width = 800,
             Height = 480,
             MinWidth = 480,

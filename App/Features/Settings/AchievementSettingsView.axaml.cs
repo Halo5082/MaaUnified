@@ -20,6 +20,7 @@ public partial class AchievementSettingsView : UserControl
     }
 
     private SettingsPageViewModel? VM => DataContext as SettingsPageViewModel;
+    private string T(string key) => VM?.RootTexts[key] ?? key;
 
     private async void OnSaveAchievementClick(object? sender, RoutedEventArgs e)
     {
@@ -69,7 +70,7 @@ public partial class AchievementSettingsView : UserControl
         var file = await storageProvider.SaveFilePickerAsync(
             new FilePickerSaveOptions
             {
-                Title = "备份成就",
+                Title = T("Settings.Achievement.Backup"),
                 SuggestedFileName = $"Achievement_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json",
                 DefaultExtension = "json",
                 ShowOverwritePrompt = true,
@@ -98,7 +99,7 @@ public partial class AchievementSettingsView : UserControl
         var files = await storageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
-                Title = "加载备份",
+                Title = T("Settings.Achievement.Restore"),
                 AllowMultiple = false,
                 FileTypeFilter = [JsonFileType],
             });

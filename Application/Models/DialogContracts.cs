@@ -73,7 +73,8 @@ public sealed record ProcessPickerDialogRequest(
     IReadOnlyList<ProcessPickerItem> Items,
     string? SelectedId,
     string ConfirmText = "Select",
-    string CancelText = "Cancel");
+    string CancelText = "Cancel",
+    Func<CancellationToken, Task<IReadOnlyList<ProcessPickerItem>>>? RefreshItemsAsync = null);
 
 public sealed record ProcessPickerDialogPayload(
     string SelectedId,

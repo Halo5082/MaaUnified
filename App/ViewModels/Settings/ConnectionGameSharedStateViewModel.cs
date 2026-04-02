@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,7 +14,6 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
     private const int MaxConnectAddressHistory = 5;
     private const string DefaultAttachWindowScreencapMethod = "2";
     private const string DefaultAttachWindowInputMethod = "64";
-    private const string DefaultScreencapCostText = "截图耗时 min/avg/max(ms): --- / --- / --- (--)";
     private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> _defaultAddressByConnectConfig =
         new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase)
         {
@@ -53,7 +53,11 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
     private string _attachWindowMouseMethod = DefaultAttachWindowInputMethod;
     private string _attachWindowKeyboardMethod = DefaultAttachWindowInputMethod;
     private string _testLinkInfo = string.Empty;
-    private string _screencapCost = DefaultScreencapCostText;
+    private string _screencapCost = string.Empty;
+    private long? _lastScreencapCostMin;
+    private long? _lastScreencapCostAvg;
+    private long? _lastScreencapCostMax;
+    private DateTimeOffset? _lastScreencapCostTimestamp;
     private IReadOnlyList<ConnectionGameOptionItem> _connectConfigOptions = [];
     private IReadOnlyList<ConnectionGameOptionItem> _clientTypeOptions = [];
     private IReadOnlyList<ConnectionGameOptionItem> _touchModeOptions = [];
@@ -63,9 +67,13 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
 
     public ConnectionGameSharedStateViewModel()
     {
+        RootTexts.Language = _language;
         RebuildOptions();
+        ScreencapCost = BuildCurrentScreencapCostText();
         UpdateConnectAddressHistory(_connectAddress);
     }
+
+    public RootLocalizationTextMap RootTexts { get; } = new("Root.Localization.Settings");
 
     public IReadOnlyList<ConnectionGameOptionItem> ConnectConfigOptions
     {
@@ -192,7 +200,9 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         }
 
         _language = normalized;
+        RootTexts.Language = normalized;
         RebuildOptions();
+        RefreshLocalizedConnectTexts();
     }
 
     public string ConnectAddress
@@ -468,17 +478,21 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
     public string ScreencapCost
     {
         get => _screencapCost;
-        set => SetProperty(ref _screencapCost, string.IsNullOrWhiteSpace(value) ? DefaultScreencapCostText : value);
+        set => SetProperty(ref _screencapCost, string.IsNullOrWhiteSpace(value) ? BuildDefaultScreencapCostText() : value);
     }
 
     public void UpdateScreencapCost(long min, long avg, long max, DateTimeOffset timestamp)
     {
-        ScreencapCost = FormatScreencapCost(min, avg, max, timestamp);
+        _lastScreencapCostMin = min;
+        _lastScreencapCostAvg = avg;
+        _lastScreencapCostMax = max;
+        _lastScreencapCostTimestamp = timestamp;
+        ScreencapCost = BuildCurrentScreencapCostText();
     }
 
     public static string FormatScreencapCost(long min, long avg, long max, DateTimeOffset timestamp)
     {
-        return $"截图耗时 min/avg/max(ms): {min} / {avg} / {max} ({timestamp.ToLocalTime():HH:mm:ss})";
+        return BuildScreencapCostText(UiLanguageCatalog.DefaultLanguage, min, avg, max, timestamp);
     }
 
     public IReadOnlyList<string> BuildConnectAddressCandidates(bool includeConfiguredAddress = true)
@@ -512,7 +526,8 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(ConnectAddress) && !AutoDetect && !AlwaysAutoDetect)
         {
-            return BuildBilingualMessage(
+            return BuildLocalizedOrBilingualMessage(
+                "Settings.Connect.Hint.ConnectionAddressEmpty",
                 "连接地址为空，请填写“IP:端口”后再连接。",
                 "Connection address is empty. Enter \"IP:port\" and try again.");
         }
@@ -537,9 +552,11 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         {
             if (string.IsNullOrEmpty(TryFindAdbUnderDirectory(normalized)))
             {
-                return BuildBilingualMessage(
-                    $"ADB 路径是目录，但目录内未找到 adb 可执行文件：{normalized}",
-                    $"ADB path is a directory, but adb executable was not found in it: {normalized}");
+                return BuildLocalizedOrBilingualMessage(
+                    "Settings.Connect.Hint.AdbPathDirectoryMissingExecutable",
+                    "ADB 路径是目录，但目录内未找到 adb 可执行文件：{0}",
+                    "ADB path is a directory, but adb executable was not found in it: {0}",
+                    normalized);
             }
 
             return null;
@@ -547,21 +564,28 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
 
         if (IsWindowsDrivePathMissingSlash(normalized))
         {
-            return BuildBilingualMessage(
-                $"ADB 路径格式可能不正确（盘符后缺少斜杠）：{normalized}",
-                $"ADB path format looks invalid (missing slash after drive letter): {normalized}");
+            return BuildLocalizedOrBilingualMessage(
+                "Settings.Connect.Hint.AdbPathMissingDriveSlash",
+                "ADB 路径格式可能不正确（盘符后缺少斜杠）：{0}",
+                "ADB path format looks invalid (missing slash after drive letter): {0}",
+                normalized);
         }
 
         if (!OperatingSystem.IsWindows() && LooksLikeWindowsPath(normalized))
         {
-            return BuildBilingualMessage(
-                $"当前系统是 {GetPlatformDisplayName()}，但 ADB 路径看起来是 Windows 路径：{normalized}",
-                $"Current system is {GetPlatformDisplayName()}, but ADB path looks like a Windows path: {normalized}");
+            return BuildLocalizedOrBilingualMessage(
+                "Settings.Connect.Hint.AdbPathWindowsPathOnNonWindows",
+                "当前系统是 {0}，但 ADB 路径看起来是 Windows 路径：{1}",
+                "Current system is {0}, but ADB path looks like a Windows path: {1}",
+                GetPlatformDisplayName(),
+                normalized);
         }
 
-        return BuildBilingualMessage(
-            $"ADB 路径不存在：{normalized}",
-            $"ADB path does not exist: {normalized}");
+        return BuildLocalizedOrBilingualMessage(
+            "Settings.Connect.Hint.AdbPathNotFound",
+            "ADB 路径不存在：{0}",
+            "ADB path does not exist: {0}",
+            normalized);
     }
 
     public string? ResolveEffectiveAdbPath(bool updateStateWhenResolved = false)
@@ -825,6 +849,92 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         }
 
         return "Unknown";
+    }
+
+    private void RefreshLocalizedConnectTexts()
+    {
+        var previousScreencapCost = ScreencapCost;
+        ScreencapCost = BuildCurrentScreencapCostText();
+        if (string.Equals(TestLinkInfo, previousScreencapCost, StringComparison.Ordinal))
+        {
+            TestLinkInfo = ScreencapCost;
+        }
+    }
+
+    private string BuildCurrentScreencapCostText()
+    {
+        return _lastScreencapCostTimestamp.HasValue
+            && _lastScreencapCostMin.HasValue
+            && _lastScreencapCostAvg.HasValue
+            && _lastScreencapCostMax.HasValue
+            ? BuildScreencapCostText(_language, _lastScreencapCostMin.Value, _lastScreencapCostAvg.Value, _lastScreencapCostMax.Value, _lastScreencapCostTimestamp.Value)
+            : BuildDefaultScreencapCostText();
+    }
+
+    private string BuildDefaultScreencapCostText()
+    {
+        return TryFormatRootText("Settings.Connect.Status.ScreencapCost", "---", "---", "---", "--")
+            ?? BuildFallbackScreencapCostText(_language, "---", "---", "---", "--");
+    }
+
+    private string BuildLocalizedOrBilingualMessage(string key, string zhFormat, string enFormat, params object[] args)
+    {
+        return TryFormatRootText(key, args)
+            ?? BuildBilingualMessage(
+                string.Format(CultureInfo.CurrentCulture, zhFormat, args),
+                string.Format(CultureInfo.CurrentCulture, enFormat, args));
+    }
+
+    private string? TryFormatRootText(string key, params object[] args)
+    {
+        var template = RootTexts[key];
+        if (string.Equals(template, key, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        return args.Length == 0
+            ? template
+            : string.Format(CultureInfo.CurrentCulture, template, args);
+    }
+
+    private static string BuildScreencapCostText(string language, long min, long avg, long max, DateTimeOffset timestamp)
+    {
+        var texts = new RootLocalizationTextMap("Root.Localization.Settings")
+        {
+            Language = language,
+        };
+        var template = texts["Settings.Connect.Status.ScreencapCost"];
+        if (string.Equals(template, "Settings.Connect.Status.ScreencapCost", StringComparison.Ordinal))
+        {
+            return BuildFallbackScreencapCostText(
+                language,
+                min.ToString(CultureInfo.CurrentCulture),
+                avg.ToString(CultureInfo.CurrentCulture),
+                max.ToString(CultureInfo.CurrentCulture),
+                timestamp.ToLocalTime().ToString("HH:mm:ss", CultureInfo.CurrentCulture));
+        }
+
+        return string.Format(
+            CultureInfo.CurrentCulture,
+            template,
+            min,
+            avg,
+            max,
+            timestamp.ToLocalTime().ToString("HH:mm:ss", CultureInfo.CurrentCulture));
+    }
+
+    private static string BuildFallbackScreencapCostText(string language, string min, string avg, string max, string timestamp)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        return normalized switch
+        {
+            "zh-cn" => $"截图耗时 min/avg/max(ms): {min} / {avg} / {max} ({timestamp})",
+            "zh-tw" => $"截圖耗時 min/avg/max(ms): {min} / {avg} / {max} ({timestamp})",
+            "ja-jp" => $"スクリーンショット時間 min/avg/max(ms): {min} / {avg} / {max} ({timestamp})",
+            "ko-kr" => $"스크린샷 시간 min/avg/max(ms): {min} / {avg} / {max} ({timestamp})",
+            _ => $"Screenshot time min/avg/max (ms): {min} / {avg} / {max} ({timestamp})",
+        };
     }
 
     private static string BuildBilingualMessage(string zh, string en)

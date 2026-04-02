@@ -86,6 +86,50 @@ public sealed class ToolboxModuleO3FeatureTests
     }
 
     [Fact]
+    public async Task SetLanguage_AfterRecruitResult_ShouldRelocalizeRecruitOperatorText()
+    {
+        await using var fixture = await ToolboxTestFixture.CreateAsync();
+        var vm = new ToolboxPageViewModel(fixture.Runtime, fixture.ConnectionState);
+        await vm.InitializeAsync();
+
+        await vm.StartRecruitAsync();
+        vm.ApplyRuntimeCallback(CreateCallback(
+            "SubTaskExtraInfo",
+            new JsonObject
+            {
+                ["taskchain"] = "Recruit",
+                ["what"] = "RecruitResult",
+                ["details"] = new JsonObject
+                {
+                    ["result"] = new JsonArray
+                    {
+                        new JsonObject
+                        {
+                            ["level"] = 4,
+                            ["tags"] = new JsonArray("先锋干员", "费用回复"),
+                            ["opers"] = new JsonArray
+                            {
+                                new JsonObject
+                                {
+                                    ["level"] = 5,
+                                    ["id"] = "char_102_texas",
+                                    ["name"] = "德克萨斯",
+                                },
+                            },
+                        },
+                    },
+                },
+            }));
+
+        var before = string.Join('\n', vm.RecruitResultLines.Select(line => line.Text));
+        vm.SetLanguage("en-us");
+        var after = string.Join('\n', vm.RecruitResultLines.Select(line => line.Text));
+
+        Assert.Equal("en-us", vm.RootTexts.Language);
+        Assert.NotEqual(before, after);
+    }
+
+    [Fact]
     public async Task ApplyRuntimeCallback_OperBoxDone_ShouldPersistLegacyBoxData()
     {
         await using var fixture = await ToolboxTestFixture.CreateAsync();
@@ -204,25 +248,39 @@ public sealed class ToolboxModuleO3FeatureTests
         var root = GetMaaUnifiedRoot();
         var xaml = File.ReadAllText(Path.Combine(root, "App", "Features", "Advanced", "ToolboxView.axaml"));
 
-        Assert.Contains("Header=\"招募识别\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"干员识别\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"仓库识别\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Recruit]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.OperBox]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Depot]}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Classes=\"toolbox-nav\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding Segments}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"抽卡\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"窥屏\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"小游戏\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"开始识别\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("复制到剪切板", xaml, StringComparison.Ordinal);
-        Assert.Contains("导出至企鹅物流刷图规划", xaml, StringComparison.Ordinal);
-        Assert.Contains("导出至明日方舟工具箱", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"寻访一次\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"寻访十次\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"知道了\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"下次不再提示\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Gacha]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Peep]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.MiniGame]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Advanced]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("advanced:StageManagerView DataContext=\"{Binding StageManagerPage}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("advanced:OverlayView DataContext=\"{Binding OverlayPage}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("advanced:TrayIntegrationView DataContext=\"{Binding TrayIntegrationPage}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("advanced:RemoteControlCenterView DataContext=\"{Binding RemoteControlCenterPage}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("advanced:ExternalNotificationProvidersView DataContext=\"{Binding ExternalNotificationProvidersPage}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("advanced:WebApiView DataContext=\"{Binding WebApiPage}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding Texts[Toolbox.Recruit.FixedSixStar]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding Texts[Toolbox.Action.StartRecognition]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding Texts[Toolbox.OperBox.CopyToClipboard]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding Texts[Toolbox.Depot.ExportArkPlanner]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding Texts[Toolbox.Depot.ExportLolicon]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.DrawOnce]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.DrawTen]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.Disclaimer.Acknowledge]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.Disclaimer.NoMore]}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("IsChecked=\"{Binding GachaShowDisclaimerNoMore}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding PeepCommandText}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding MiniGameCommandText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding Texts[Toolbox.Section.ExecutionReview]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding ResultText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding CurrentToolParameters}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ItemsSource=\"{Binding ExecutionHistory}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Classes.status-success=\"{Binding Success}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Classes.status-error=\"{Binding HasErrorCode}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Source=\"{Binding EliteIconImage}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Source=\"{Binding PotentialIconImage}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Source=\"{Binding ItemImage}\"", xaml, StringComparison.Ordinal);
@@ -231,8 +289,6 @@ public sealed class ToolboxModuleO3FeatureTests
         Assert.Contains("DropShadowDirectionEffect", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("执行成功示例", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("执行失败示例", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("CurrentToolParameters", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("Text=\"状态\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Content=\"下次不再提示\"\r\n                        IsChecked=\"{Binding GachaShowDisclaimerNoMore}\"\r\n                        IsEnabled=\"False\"", xaml, StringComparison.Ordinal);
     }
 

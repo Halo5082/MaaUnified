@@ -3,12 +3,14 @@ namespace MAAUnified.Application.Models;
 public sealed record StageManagerConfig(
     IReadOnlyList<string> StageCodes,
     bool AutoIterate,
-    string LastSelectedStage)
+    string LastSelectedStage,
+    string ClientType)
 {
     public static StageManagerConfig Default { get; } = new(
         StageCodes: Array.Empty<string>(),
         AutoIterate: false,
-        LastSelectedStage: string.Empty);
+        LastSelectedStage: string.Empty,
+        ClientType: "Official");
 
     public IReadOnlyDictionary<string, string> ToGlobalSettingUpdates()
     {
@@ -17,6 +19,7 @@ public sealed record StageManagerConfig(
             ["Advanced.StageManager.StageCodes"] = string.Join(";", StageCodes),
             ["Advanced.StageManager.AutoIterate"] = AutoIterate.ToString(),
             ["Advanced.StageManager.LastSelectedStage"] = LastSelectedStage,
+            ["Advanced.StageManager.ClientType"] = ClientType,
         };
     }
 }

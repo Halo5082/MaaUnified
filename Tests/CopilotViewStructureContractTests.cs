@@ -8,7 +8,9 @@ public sealed class CopilotViewStructureContractTests
         var root = GetMaaUnifiedRoot();
         var xaml = File.ReadAllText(Path.Combine(root, "App", "Features", "Advanced", "CopilotView.axaml"));
 
-        Assert.Contains("Content=\"开始\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding Texts[Copilot.Action.Start]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding Texts[Copilot.Tab.Main]}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Content=\"开始\"", xaml, StringComparison.Ordinal);
         Assert.Contains("IsVisible=\"{Binding CanEdit}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<controls:CheckComboBox", xaml, StringComparison.Ordinal);
         Assert.Contains("IsEditable=\"True\"", xaml, StringComparison.Ordinal);

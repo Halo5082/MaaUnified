@@ -52,6 +52,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
     private CopilotItemViewModel? _selectedItem;
     private bool _suppressSelectionFeedback;
     private readonly RootLocalizationTextMap _rootTexts;
+    private readonly CopilotLocalizationTextMap _texts;
+    private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
 
     public CopilotPageViewModel(MAAUnifiedRuntime runtime)
         : base(runtime)
@@ -66,14 +68,19 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         Items = new ObservableCollection<CopilotItemViewModel>();
         Items.CollectionChanged += (_, _) => NotifySelectionDerivedPropertiesChanged();
         Logs = new ObservableCollection<TaskQueueLogEntryViewModel>();
+        _uiLanguageCoordinator = runtime.UiLanguageCoordinator;
+        _uiLanguageCoordinator.LanguageChanged += OnUnifiedLanguageChanged;
+        var currentLanguage = ResolveLanguage();
         _rootTexts = new RootLocalizationTextMap("Root.Localization.Copilot")
         {
-            Language = ResolveLanguage(),
+            Language = currentLanguage,
+        };
+        _texts = new CopilotLocalizationTextMap
+        {
+            Language = currentLanguage,
         };
         runtime.SessionService.CallbackReceived += callback => _ = HandleCallbackAsync(callback);
         runtime.SessionService.SessionStateChanged += OnSessionStateChanged;
-        runtime.ConfigurationService.ConfigChanged += _ =>
-            Dispatcher.UIThread.Post(() => _rootTexts.Language = ResolveLanguage());
         _currentSessionState = runtime.SessionService.CurrentState;
         LoadPersistedItems();
         InitializeWpfParityState();
@@ -84,6 +91,10 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
     public ObservableCollection<CopilotItemViewModel> Items { get; }
 
     public ObservableCollection<TaskQueueLogEntryViewModel> Logs { get; }
+
+    public RootLocalizationTextMap RootTexts => _rootTexts;
+
+    public CopilotLocalizationTextMap Texts => _texts;
 
     public string FilePath
     {
@@ -208,7 +219,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
             if (!importResult.Success)
             {
                 RestoreListSnapshot(snapshot);
-                StatusMessage = "导入作业文件失败。";
+                StatusMessage = T("Copilot.Status.ImportFileFailed", "导入作业文件失败。");
                 LastErrorMessage = importResult.Message;
                 await RecordFailedResultAsync("Copilot.ImportFile", importResult, cancellationToken);
                 return;
@@ -230,7 +241,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
             if (!persistResult.Success)
             {
                 RestoreListSnapshot(snapshot);
-                StatusMessage = "导入作业成功，但列表保存失败，已回滚。";
+                StatusMessage = T("Copilot.Status.ImportFilePersistRollback", "导入作业成功，但列表保存失败，已回滚。");
                 LastErrorMessage = persistResult.Message;
                 await RecordFailedResultAsync(
                     "Copilot.ImportFile",
@@ -250,8 +261,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         catch (Exception ex)
         {
             RestoreListSnapshot(snapshot);
-            StatusMessage = "导入作业文件失败。";
-            LastErrorMessage = "导入作业文件失败，请检查路径和 JSON 格式后重试。";
+            StatusMessage = T("Copilot.Status.ImportFileFailed", "导入作业文件失败。");
+            LastErrorMessage = T("Copilot.Error.ImportFileRetry", "导入作业文件失败，请检查路径和 JSON 格式后重试。");
             await RecordUnhandledExceptionAsync(
                 "Copilot.ImportFile",
                 ex,
@@ -270,7 +281,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
             if (!importResult.Success)
             {
                 RestoreListSnapshot(snapshot);
-                StatusMessage = "导入剪贴板作业失败。";
+                StatusMessage = T("Copilot.Status.ImportClipboardFailed", "导入剪贴板作业失败。");
                 LastErrorMessage = importResult.Message;
                 await RecordFailedResultAsync("Copilot.ImportClipboard", importResult, cancellationToken);
                 return;
@@ -290,7 +301,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
             if (!persistResult.Success)
             {
                 RestoreListSnapshot(snapshot);
-                StatusMessage = "导入剪贴板成功，但列表保存失败，已回滚。";
+                StatusMessage = T("Copilot.Status.ImportClipboardPersistRollback", "导入剪贴板成功，但列表保存失败，已回滚。");
                 LastErrorMessage = persistResult.Message;
                 await RecordFailedResultAsync(
                     "Copilot.ImportClipboard",
@@ -310,8 +321,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         catch (Exception ex)
         {
             RestoreListSnapshot(snapshot);
-            StatusMessage = "导入剪贴板作业失败。";
-            LastErrorMessage = "导入剪贴板作业失败，请检查路径或 JSON 内容后重试。";
+            StatusMessage = T("Copilot.Status.ImportClipboardFailed", "导入剪贴板作业失败。");
+            LastErrorMessage = T("Copilot.Error.ImportClipboardRetry", "导入剪贴板作业失败，请检查路径或 JSON 内容后重试。");
             await RecordUnhandledExceptionAsync(
                 "Copilot.ImportClipboard",
                 ex,
@@ -331,8 +342,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
                 SetSelectedItemSilently(item);
             },
             "Copilot.Add",
-            "已新增空白作业。",
-            "新增作业失败：列表保存失败。",
+            T("Copilot.Status.AddEmptyTaskSuccess", "已新增空白作业。"),
+            T("Copilot.Error.AddEmptyTaskPersistFail", "新增作业失败：列表保存失败。"),
             cancellationToken);
     }
 
@@ -341,8 +352,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         cancellationToken.ThrowIfCancellationRequested();
         if (SelectedItem is null)
         {
-            StatusMessage = "删除作业失败。";
-            LastErrorMessage = "请选择要删除的作业。";
+            StatusMessage = T("Copilot.Status.RemoveFailed", "删除作业失败。");
+            LastErrorMessage = T("Copilot.Error.SelectTaskToRemove", "请选择要删除的作业。");
             await RecordFailedResultAsync(
                 "Copilot.Remove",
                 UiOperationResult.Fail(UiErrorCode.CopilotSelectionMissing, LastErrorMessage),
@@ -371,8 +382,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
                 SetSelectedItemSilently(Items[nextIndex]);
             },
             "Copilot.Remove",
-            "已删除选中作业。",
-            "删除作业失败：列表保存失败。",
+            T("Copilot.Status.RemoveSuccess", "已删除选中作业。"),
+            T("Copilot.Error.RemovePersistFail", "删除作业失败：列表保存失败。"),
             cancellationToken);
     }
 
@@ -385,8 +396,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
                 SetSelectedItemSilently(null);
             },
             "Copilot.Clear",
-            "已清空作业列表。",
-            "清空作业列表失败：列表保存失败。",
+            T("Copilot.Status.ClearSuccess", "已清空作业列表。"),
+            T("Copilot.Error.ClearPersistFail", "清空作业列表失败：列表保存失败。"),
             cancellationToken);
     }
 
@@ -395,8 +406,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         cancellationToken.ThrowIfCancellationRequested();
         if (SelectedItem is null)
         {
-            StatusMessage = "排序失败。";
-            LastErrorMessage = "请选择要排序的作业。";
+            StatusMessage = T("Copilot.Status.SortFailed", "排序失败。");
+            LastErrorMessage = T("Copilot.Error.SelectTaskToSort", "请选择要排序的作业。");
             await RecordFailedResultAsync(
                 "Copilot.Sort",
                 UiOperationResult.Fail(UiErrorCode.CopilotSelectionMissing, LastErrorMessage),
@@ -407,7 +418,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         var index = Items.IndexOf(SelectedItem);
         if (index <= 0)
         {
-            StatusMessage = "当前作业已在顶部。";
+            StatusMessage = T("Copilot.Status.AlreadyTop", "当前作业已在顶部。");
             LastErrorMessage = string.Empty;
             await RecordEventAsync("Copilot.Sort", StatusMessage, cancellationToken);
             return;
@@ -416,8 +427,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         await MutateListAndPersistAsync(
             () => Items.Move(index, index - 1),
             "Copilot.Sort",
-            "已将选中作业上移。",
-            "排序失败：列表保存失败。",
+            T("Copilot.Status.MoveUpSuccess", "已将选中作业上移。"),
+            T("Copilot.Error.SortPersistFail", "排序失败：列表保存失败。"),
             cancellationToken);
     }
 
@@ -426,8 +437,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         cancellationToken.ThrowIfCancellationRequested();
         if (SelectedItem is null)
         {
-            StatusMessage = "排序失败。";
-            LastErrorMessage = "请选择要排序的作业。";
+            StatusMessage = T("Copilot.Status.SortFailed", "排序失败。");
+            LastErrorMessage = T("Copilot.Error.SelectTaskToSort", "请选择要排序的作业。");
             await RecordFailedResultAsync(
                 "Copilot.Sort",
                 UiOperationResult.Fail(UiErrorCode.CopilotSelectionMissing, LastErrorMessage),
@@ -438,7 +449,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         var index = Items.IndexOf(SelectedItem);
         if (index < 0 || index >= Items.Count - 1)
         {
-            StatusMessage = "当前作业已在底部。";
+            StatusMessage = T("Copilot.Status.AlreadyBottom", "当前作业已在底部。");
             LastErrorMessage = string.Empty;
             await RecordEventAsync("Copilot.Sort", StatusMessage, cancellationToken);
             return;
@@ -447,8 +458,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         await MutateListAndPersistAsync(
             () => Items.Move(index, index + 1),
             "Copilot.Sort",
-            "已将选中作业下移。",
-            "排序失败：列表保存失败。",
+            T("Copilot.Status.MoveDownSuccess", "已将选中作业下移。"),
+            T("Copilot.Error.SortPersistFail", "排序失败：列表保存失败。"),
             cancellationToken);
     }
 
@@ -456,7 +467,10 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
     {
         if (!CanStart)
         {
-            LastErrorMessage = BuildSessionStateNotAllowedMessage(CurrentSessionState, "启动", "start");
+            LastErrorMessage = BuildSessionStateNotAllowedMessage(
+                CurrentSessionState,
+                T("Copilot.Action.Start", "启动"),
+                "start");
             await RecordFailedResultAsync(
                 "Copilot.Start",
                 UiOperationResult.Fail(UiErrorCode.TaskQueueEditBlocked, LastErrorMessage),
@@ -467,8 +481,10 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         if (!Runtime.SessionService.TryBeginRun(CopilotRunOwner, out var currentOwner))
         {
             var owner = string.IsNullOrWhiteSpace(currentOwner) ? "Unknown" : currentOwner;
-            StatusMessage = "启动失败。";
-            LastErrorMessage = $"Copilot 启动被拦截：当前运行所有者为 `{owner}`。";
+            StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+            LastErrorMessage = string.Format(
+                T("Copilot.Error.StartRunOwnerBlocked", "Copilot 启动被拦截：当前运行所有者为 `{0}`。"),
+                owner);
             await RecordFailedResultAsync(
                 "Copilot.Start.RunOwner",
                 UiOperationResult.Fail(UiErrorCode.TaskQueueEditBlocked, LastErrorMessage),
@@ -525,7 +541,10 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
     {
         if (!CanStop)
         {
-            LastErrorMessage = BuildSessionStateNotAllowedMessage(CurrentSessionState, "停止", "stop");
+            LastErrorMessage = BuildSessionStateNotAllowedMessage(
+                CurrentSessionState,
+                T("Copilot.Action.Stop", "停止"),
+                "stop");
             await RecordFailedResultAsync(
                 "Copilot.Stop",
                 UiOperationResult.Fail(UiErrorCode.TaskQueueEditBlocked, LastErrorMessage),
@@ -536,8 +555,10 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         if (!Runtime.SessionService.IsRunOwner(CopilotRunOwner))
         {
             var owner = Runtime.SessionService.CurrentRunOwner ?? "Unknown";
-            StatusMessage = "停止失败。";
-            LastErrorMessage = $"Copilot 停止被拦截：当前运行所有者为 `{owner}`。";
+            StatusMessage = T("Copilot.Status.StopFailed", "停止失败。");
+            LastErrorMessage = string.Format(
+                T("Copilot.Error.StopRunOwnerBlocked", "Copilot 停止被拦截：当前运行所有者为 `{0}`。"),
+                owner);
             await RecordFailedResultAsync(
                 "Copilot.Stop.RunOwner",
                 UiOperationResult.Fail(UiErrorCode.TaskQueueEditBlocked, LastErrorMessage),
@@ -568,8 +589,11 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         var appendResult = await Runtime.CoreBridge.AppendTaskAsync(request, cancellationToken);
         if (!appendResult.Success)
         {
-            StatusMessage = "启动失败。";
-            LastErrorMessage = $"追加 Copilot 任务失败：{appendResult.Error?.Code} {appendResult.Error?.Message}";
+            StatusMessage = T("Copilot.Status.StartFailed", "启动失败。");
+            LastErrorMessage = string.Format(
+                T("Copilot.Error.AppendTaskFailed", "追加 Copilot 任务失败：{0} {1}"),
+                appendResult.Error?.Code,
+                appendResult.Error?.Message);
             await RecordFailedResultAsync(
                 "Copilot.Append",
                 UiOperationResult.Fail(
@@ -655,22 +679,24 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         return ResolveCopilotTaskType(type);
     }
 
-    private static string BuildSessionStateNotAllowedMessage(
+    private string BuildSessionStateNotAllowedMessage(
         SessionState state,
         string actionZh,
         string actionEn)
     {
-        var zh = $"会话状态 `{state}` 不允许{actionZh}。";
-        var en = $"Session state `{state}` does not allow {actionEn}.";
-        return $"{zh}{Environment.NewLine}{en}";
+        return string.Format(
+            T("Copilot.Error.SessionStateNotAllowed", "会话状态 `{0}` 不允许{1}。\nSession state `{0}` does not allow {2}."),
+            state,
+            actionZh,
+            actionEn);
     }
 
     public async Task SendLikeAsync(bool like, CancellationToken cancellationToken = default)
     {
         if (SelectedItem is null)
         {
-            StatusMessage = "反馈失败。";
-            LastErrorMessage = "请选择要反馈的作业。";
+            StatusMessage = T("Copilot.Status.FeedbackFailed", "反馈失败。");
+            LastErrorMessage = T("Copilot.Error.SelectTaskForFeedback", "请选择要反馈的作业。");
             await RecordFailedResultAsync(
                 "Copilot.Feedback",
                 UiOperationResult.Fail(UiErrorCode.CopilotSelectionMissing, LastErrorMessage),
@@ -683,13 +709,17 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         var result = await Runtime.CopilotFeatureService.SubmitFeedbackAsync(feedbackTarget, like, cancellationToken);
         if (!result.Success)
         {
-            StatusMessage = "反馈失败。";
+            StatusMessage = T("Copilot.Status.FeedbackFailed", "反馈失败。");
             LastErrorMessage = result.Message;
             await RecordFailedResultAsync("Copilot.Feedback", result, cancellationToken);
             return;
         }
 
-        StatusMessage = $"已对作业 `{itemName}` 提交{(like ? "点赞" : "点踩")}。";
+        StatusMessage = string.Format(
+            like
+                ? T("Copilot.Status.FeedbackSubmittedLike", "已对作业 `{0}` 提交点赞。")
+                : T("Copilot.Status.FeedbackSubmittedDislike", "已对作业 `{0}` 提交点踩。"),
+            itemName);
         LastErrorMessage = string.Empty;
         if (like)
         {
@@ -1067,6 +1097,11 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         return _rootTexts.GetOrDefault(key, fallback);
     }
 
+    private string T(string key, string fallback)
+    {
+        return _texts.GetOrDefault(key, fallback);
+    }
+
     private void AddLog(string? content, string level = "INFO", bool showTime = true, DateTimeOffset? timestamp = null)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -1110,7 +1145,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
 
     private string ResolveLanguage()
     {
-        if (Runtime.ConfigurationService.CurrentConfig.GlobalValues.TryGetValue("GUI.Localization", out var value)
+        if (Runtime.ConfigurationService.CurrentConfig.GlobalValues.TryGetValue(LegacyConfigurationKeys.Localization, out var value)
             && value is JsonValue jsonValue
             && jsonValue.TryGetValue(out string? language)
             && !string.IsNullOrWhiteSpace(language))
@@ -1118,7 +1153,32 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
             return UiLanguageCatalog.Normalize(language);
         }
 
-        return UiLanguageCatalog.DefaultLanguage;
+        return UiLanguageCatalog.Normalize(_uiLanguageCoordinator.CurrentLanguage);
+    }
+
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_rootTexts.Language, normalized, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _rootTexts.Language = normalized;
+        _texts.Language = normalized;
+        RefreshLocalizedUiState();
+    }
+
+    private void OnUnifiedLanguageChanged(object? sender, UiLanguageChangedEventArgs e)
+    {
+        if (Dispatcher.UIThread.CheckAccess() || Avalonia.Application.Current is null)
+        {
+            SetLanguage(e.CurrentLanguage);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => SetLanguage(e.CurrentLanguage));
     }
 
     private static string? GetStringValue(JsonObject? obj, string key)
@@ -1224,13 +1284,15 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
 
         if (value is null)
         {
-            StatusMessage = "未选中作业。";
+            StatusMessage = T("Copilot.Status.NoSelection", "未选中作业。");
             LastErrorMessage = string.Empty;
             _ = RecordEventAsync("Copilot.Select", "Cleared selected copilot item.");
             return;
         }
 
-        StatusMessage = $"已选中作业：{value.Name}";
+        StatusMessage = string.Format(
+            T("Copilot.Status.SelectedItem", "已选中作业：{0}"),
+            value.Name);
         LastErrorMessage = string.Empty;
         _ = RecordEventAsync("Copilot.Select", $"Selected copilot item `{value.Name}`.");
     }
@@ -1374,7 +1436,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
 
         if (!TryDeserializePersistedItems(payload, out var loadedItems, out var warning))
         {
-            StatusMessage = "已忽略损坏的 Copilot 列表配置。";
+            StatusMessage = T("Copilot.Status.CorruptedListIgnored", "已忽略损坏的 Copilot 列表配置。");
             LastErrorMessage = warning;
             _ = RecordFailedResultAsync(
                 "Copilot.List.Load",
@@ -1441,13 +1503,15 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            warning = $"读取作业列表失败：配置不是合法 JSON。{ex.Message}";
+            warning = string.Format(
+                T("Copilot.Error.ReadListInvalidJson", "读取作业列表失败：配置不是合法 JSON。{0}"),
+                ex.Message);
             return false;
         }
 
         if (root is not JsonArray array)
         {
-            warning = "读取作业列表失败：配置必须是 JSON 数组。";
+            warning = T("Copilot.Error.ReadListNotArray", "读取作业列表失败：配置必须是 JSON 数组。");
             return false;
         }
 
@@ -1496,7 +1560,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
 
         if (array.Count > 0 && items.Count == 0)
         {
-            warning = "读取作业列表失败：列表项缺少可识别字段（例如 name）。";
+            warning = T("Copilot.Error.ReadListMissingName", "读取作业列表失败：列表项缺少可识别字段（例如 name）。");
             return false;
         }
 

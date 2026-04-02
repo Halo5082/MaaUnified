@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Nodes;
 using System.Threading.Channels;
 using Avalonia.Threading;
 using MAAUnified.App.Features.Dialogs;
@@ -12,6 +13,7 @@ using MAAUnified.Application.Orchestration;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.Features;
 using MAAUnified.Application.Services.Localization;
+using MAAUnified.Compat.Constants;
 using MAAUnified.CoreBridge;
 using MAAUnified.Platform;
 
@@ -64,7 +66,9 @@ public sealed class MainShellViewModelTests
             () =>
                 fixture.ViewModel.CopilotRootPage.IsLoaded
                 && fixture.ViewModel.ToolboxRootPage.IsLoaded
-                && fixture.ViewModel.SettingsRootPage.IsLoaded));
+                && fixture.ViewModel.SettingsRootPage.IsLoaded,
+            retry: 160,
+            delayMs: 25));
         Assert.False(fixture.ViewModel.IsCoreReady);
         Assert.Equal(0, bridge.InitializeCallCount);
 
@@ -283,6 +287,7 @@ public sealed class MainShellViewModelTests
 
         await fixture.ViewModel.ExecuteSwitchLanguageAsync("ja-jp");
 
+        Assert.True(await WaitUntilAsync(() => string.Equals(fixture.ViewModel.SettingsPage.Language, "ja-jp", StringComparison.OrdinalIgnoreCase)));
         Assert.Equal(1, shellSpy.SwitchLanguageCallCount);
         Assert.Equal("zh-cn", shellSpy.LastCurrentLanguage);
         Assert.Equal("ja-jp", shellSpy.LastTargetLanguage);
@@ -295,9 +300,21 @@ public sealed class MainShellViewModelTests
     {
         var shellSpy = new SpyShellFeatureService("pallas");
         await using var fixture = await TestFixture.CreateAsync(shellSpy);
+        var changedProperties = new List<string>();
+        fixture.ViewModel.PropertyChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.PropertyName))
+            {
+                changedProperties.Add(e.PropertyName);
+            }
+        };
+        var tabTitleBefore = fixture.ViewModel.RootTexts["Main.Tab.TaskQueue"];
 
         await fixture.ViewModel.SwitchLanguageToAsync("pallas");
 
+        Assert.True(await WaitUntilAsync(() =>
+            string.Equals(fixture.ViewModel.SettingsPage.Language, "pallas", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(fixture.ViewModel.TaskQueuePage.Texts.Language, "pallas", StringComparison.OrdinalIgnoreCase)));
         Assert.Equal(1, shellSpy.SwitchLanguageCallCount);
         Assert.Equal("zh-cn", shellSpy.LastCurrentLanguage);
         Assert.Equal("pallas", shellSpy.LastTargetLanguage);
@@ -305,6 +322,8 @@ public sealed class MainShellViewModelTests
         Assert.Equal("pallas", fixture.ViewModel.TaskQueuePage.Texts.Language);
         Assert.NotNull(fixture.TrayService.LastMenuText);
         Assert.False(string.IsNullOrWhiteSpace(fixture.TrayService.LastMenuText!.SwitchLanguage));
+        Assert.Contains(nameof(MainShellViewModel.RootTexts), changedProperties);
+        Assert.NotEqual(tabTitleBefore, fixture.ViewModel.RootTexts["Main.Tab.TaskQueue"]);
     }
 
     [Fact]
@@ -315,6 +334,9 @@ public sealed class MainShellViewModelTests
 
         await fixture.ViewModel.SwitchLanguageCycleAsync();
 
+        Assert.True(await WaitUntilAsync(() =>
+            string.Equals(fixture.ViewModel.SettingsPage.Language, "en-us", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(fixture.ViewModel.TaskQueuePage.Texts.Language, "en-us", StringComparison.OrdinalIgnoreCase)));
         Assert.Equal(1, shellSpy.SwitchLanguageCallCount);
         Assert.Equal("zh-cn", shellSpy.LastCurrentLanguage);
         Assert.Null(shellSpy.LastTargetLanguage);
@@ -347,6 +369,7 @@ public sealed class MainShellViewModelTests
 
         await fixture.ViewModel.ExecuteTrayLanguageSwitchAsync("ja-jp", "window-shell-menu");
 
+        Assert.True(await WaitUntilAsync(() => string.Equals(fixture.ViewModel.SettingsPage.Language, "ja-jp", StringComparison.OrdinalIgnoreCase)));
         Assert.Equal(1, shellSpy.SwitchLanguageCallCount);
         Assert.Equal("ja-jp", shellSpy.LastTargetLanguage);
         Assert.Equal("ja-jp", fixture.ViewModel.SettingsPage.Language);
@@ -354,6 +377,47 @@ public sealed class MainShellViewModelTests
         Assert.True(await WaitForLogContainsAsync(
             fixture.Runtime.DiagnosticsService.EventLogPath,
             "App.Shell.Tray.SwitchLanguage"));
+    }
+
+    [Fact]
+    public async Task ApplyGuiSettingsAsync_ShouldNotChangeCurrentLanguage()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        await fixture.ViewModel.InitializeAsync();
+
+        var applyMethod = typeof(MainShellViewModel).GetMethod(
+            "ApplyGuiSettingsAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(applyMethod);
+
+        var snapshot = fixture.ViewModel.SettingsPage.CurrentGuiSnapshot with
+        {
+            Theme = "Dark",
+            Language = "ja-jp",
+        };
+
+        var applyTask = applyMethod!.Invoke(fixture.ViewModel, [snapshot, CancellationToken.None]) as Task;
+        Assert.NotNull(applyTask);
+        await applyTask!;
+
+        Assert.Equal("zh-cn", fixture.ViewModel.CurrentShellLanguage);
+        Assert.Equal("zh-cn", fixture.ViewModel.SettingsPage.Language);
+    }
+
+    [Fact]
+    public async Task SwitchLanguageToAsync_WhenCoordinatorFails_ShouldKeepRuntimeLanguage()
+    {
+        var shellSpy = new SpyShellFeatureService("ja-jp");
+        var coordinator = new FailingUiLanguageCoordinator("zh-cn");
+        await using var fixture = await TestFixture.CreateAsync(shellSpy, uiLanguageCoordinator: coordinator);
+
+        await fixture.ViewModel.SwitchLanguageToAsync("ja-jp");
+
+        Assert.Equal(1, shellSpy.SwitchLanguageCallCount);
+        Assert.Equal("zh-cn", fixture.ViewModel.CurrentShellLanguage);
+        Assert.Equal("zh-cn", fixture.ViewModel.SettingsPage.Language);
+        Assert.Equal("zh-cn", fixture.ViewModel.TaskQueuePage.Texts.Language);
+        Assert.True(string.IsNullOrWhiteSpace(ReadGlobalString(fixture.Runtime.ConfigurationService, ConfigurationKeys.Localization)));
     }
 
     [Fact]
@@ -1074,6 +1138,21 @@ public sealed class MainShellViewModelTests
         }
     }
 
+    private static string ReadGlobalString(UnifiedConfigurationService config, string key)
+    {
+        if (!config.CurrentConfig.GlobalValues.TryGetValue(key, out var node) || node is null)
+        {
+            return string.Empty;
+        }
+
+        if (node is JsonValue value && value.TryGetValue<string>(out var text) && text is not null)
+        {
+            return text;
+        }
+
+        return node.ToString();
+    }
+
     private static void InvokeRefreshConfigValidationState(MainShellViewModel vm, IReadOnlyList<ConfigValidationIssue> issues)
     {
         var method = typeof(MainShellViewModel).GetMethod(
@@ -1204,6 +1283,7 @@ public sealed class MainShellViewModelTests
 
         public static async Task<TestFixture> CreateAsync(
             IShellFeatureService? shellService = null,
+            IUiLanguageCoordinator? uiLanguageCoordinator = null,
             IAppLifecycleService? appLifecycleService = null,
             IGlobalHotkeyService? hotkeyService = null,
             IOverlayFeatureService? overlayFeatureService = null,
@@ -1271,6 +1351,7 @@ public sealed class MainShellViewModelTests
                 OverlayFeatureService = overlayFeatureService ?? new OverlayFeatureService(capability),
                 NotificationProviderFeatureService = new NotificationProviderFeatureService(),
                 SettingsFeatureService = new SettingsFeatureService(config, capability, diagnostics),
+                UiLanguageCoordinator = uiLanguageCoordinator ?? new UiLanguageCoordinator(config),
                 ConfigurationProfileFeatureService = new ConfigurationProfileFeatureService(config),
                 DialogFeatureService = new DialogFeatureService(diagnostics),
                 PostActionFeatureService = new PostActionFeatureService(
@@ -1771,6 +1852,26 @@ public sealed class MainShellViewModelTests
         public ValueTask DisposeAsync()
         {
             return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class FailingUiLanguageCoordinator : IUiLanguageCoordinator
+    {
+        public FailingUiLanguageCoordinator(string currentLanguage)
+        {
+            CurrentLanguage = currentLanguage;
+        }
+
+        public string CurrentLanguage { get; }
+
+        public event EventHandler<UiLanguageChangedEventArgs>? LanguageChanged;
+
+        public Task<UiOperationResult<string>> ChangeLanguageAsync(string targetLanguage, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                UiOperationResult<string>.Fail(
+                    UiErrorCode.LanguageSwitchFailed,
+                    $"Failed to switch language to {targetLanguage}."));
         }
     }
 

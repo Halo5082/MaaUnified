@@ -1,3 +1,9 @@
+using Avalonia.Controls;
+using Avalonia.Interactivity;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using MAAUnified.App.Features.Dialogs;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Models;
@@ -200,6 +206,56 @@ public sealed class DialogModuleP1FeatureTests
             warningConfirm.Summary);
     }
 
+    [Fact]
+    public async Task ProcessPickerDialogView_Refresh_ShouldCallProviderAndReplaceItems()
+    {
+        var view = CreateProcessPickerDialogViewForRefreshTest();
+        ProcessPickerItem[] initialItems =
+        [
+            new ProcessPickerItem("first", "First", IsPrimary: true),
+            new ProcessPickerItem("keep", "Keep", IsPrimary: false),
+        ];
+        ProcessPickerItem[] refreshedItems =
+        [
+            new ProcessPickerItem("keep", "Keep Updated", IsPrimary: true),
+            new ProcessPickerItem("third", "Third", IsPrimary: false),
+        ];
+        var refreshTriggered = false;
+        var refreshCompleted = new TaskCompletionSource<bool>();
+
+        var request = new ProcessPickerDialogRequest(
+            Title: "ProcessPicker",
+            Items: initialItems,
+            SelectedId: "keep",
+            RefreshItemsAsync: async _ =>
+            {
+                refreshTriggered = true;
+                refreshCompleted.SetResult(true);
+                await Task.Delay(1);
+                return refreshedItems;
+            });
+
+        SetProcessPickerDialogField(view, "_request", request);
+        InvokeProcessPickerDialogMethod(view, "ApplyItems", initialItems, request.SelectedId);
+        InvokeProcessPickerDialogMethod(
+            view,
+            "OnRefreshClick",
+            view.RefreshButton,
+            new RoutedEventArgs(Button.ClickEvent, view.RefreshButton));
+        await refreshCompleted.Task;
+        await Task.Delay(20);
+
+        var selected = view.ProcessList.SelectedItem as ProcessPickerItem;
+        Assert.True(refreshTriggered);
+        Assert.NotNull(selected);
+        Assert.Equal("keep", selected!.Id);
+        Assert.Equal("Keep Updated", selected.DisplayName);
+        Assert.Equal(2, view.ProcessList.Items.Cast<object>().Count());
+        Assert.Equal(
+            ["keep", "third"],
+            view.ProcessList.Items.Cast<ProcessPickerItem>().Select(static item => item.Id).ToArray());
+    }
+
     private static void AssertAllCloseSemantics<TPayload>(
         DialogReturnSemantic semantic,
         TPayload? payload,
@@ -208,6 +264,37 @@ public sealed class DialogModuleP1FeatureTests
         Assert.Equal(DialogReturnSemantic.Close, semantic);
         Assert.Null(payload);
         Assert.Equal("dialog-service-unavailable", summary);
+    }
+
+    private static ProcessPickerDialogView CreateProcessPickerDialogViewForRefreshTest()
+    {
+        var view = (ProcessPickerDialogView)RuntimeHelpers.GetUninitializedObject(typeof(ProcessPickerDialogView));
+        var items = new System.Collections.ObjectModel.ObservableCollection<ProcessPickerItem>();
+        var processList = new ListBox
+        {
+            ItemsSource = items,
+        };
+
+        SetProcessPickerDialogField(view, "_items", items);
+        SetProcessPickerDialogField(view, "ProcessList", processList);
+        SetProcessPickerDialogField(view, "RefreshButton", new Button());
+        SetProcessPickerDialogField(view, "CancelButton", new Button());
+        SetProcessPickerDialogField(view, "ConfirmButton", new Button());
+        return view;
+    }
+
+    private static void SetProcessPickerDialogField(ProcessPickerDialogView view, string fieldName, object? value)
+    {
+        var field = typeof(ProcessPickerDialogView).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(field);
+        field!.SetValue(view, value);
+    }
+
+    private static void InvokeProcessPickerDialogMethod(ProcessPickerDialogView view, string methodName, params object?[] args)
+    {
+        var method = typeof(ProcessPickerDialogView).GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(method);
+        method!.Invoke(view, args);
     }
 
     private sealed class DialogFeatureFixture : IAsyncDisposable

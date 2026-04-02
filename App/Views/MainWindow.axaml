@@ -106,16 +106,16 @@
 
     <TabControl Classes="root-nav"
                 SelectedIndex="{Binding SelectedRootTabIndex}">
-      <TabItem Header="{Binding RootTexts[Main.Tab.TaskQueue]}">
+      <TabItem Header="{Binding TaskQueueTabTitle}">
         <ContentControl Content="{Binding TaskQueueRootPage.PageContent}" />
       </TabItem>
-      <TabItem Header="{Binding RootTexts[Main.Tab.Copilot]}">
+      <TabItem Header="{Binding CopilotTabTitle}">
         <ContentControl Content="{Binding CopilotRootPage.PageContent}" />
       </TabItem>
-      <TabItem Header="{Binding RootTexts[Main.Tab.Toolbox]}">
+      <TabItem Header="{Binding ToolboxTabTitle}">
         <ContentControl Content="{Binding ToolboxRootPage.PageContent}" />
       </TabItem>
-      <TabItem Header="{Binding RootTexts[Main.Tab.Settings]}">
+      <TabItem Header="{Binding SettingsTabTitle}">
         <ContentControl Content="{Binding SettingsRootPage.PageContent}" />
       </TabItem>
     </TabControl>

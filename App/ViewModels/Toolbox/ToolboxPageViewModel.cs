@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using MAAUnified.App.ViewModels.Advanced;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.App.ViewModels.Settings;
 using MAAUnified.Application.Models;
@@ -29,7 +31,6 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     private const string DepotTaskChain = "Depot";
     private const string OperBoxTaskChain = "OperBox";
     private static readonly Random GachaTipRandom = new();
-    private const string GachaWarningMessageTextEn = "This feature is risky and may cause unintended pulls.\nPressing Confirm means you understand and accept the possible risks.";
     private static readonly JsonSerializerOptions PersistedPayloadJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -66,47 +67,36 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         "5001",
     ];
 
-    private static readonly string[] GachaTips =
-    [
-        "抽卡运行中，已自动开启窥屏。",
-        "抽卡过程中可在当前页直接停止。",
-        "窥屏帧率过高时可适当调低 FPS。",
-        "若模拟器卡顿，优先检查截图方式与连接质量。",
-        "抽卡使用自定义任务链，结束时会自动收尾。",
-    ];
-
-    private const string RecruitRecognitionTipText = "小提示: 和主界面的自动公招是两个独立的功能，请手动打开游戏公招 Tags 界面后使用~";
-    private const string RecruitPotentialTipText = "请先使用「干员识别」获取干员信息。";
-    private const string OperBoxRecognitionTipText = "特别关注会影响干员识别准确率，如有特别关注干员识别错误请自行判断。";
-    private const string DepotRecognitionTipText = "该功能尚处于测试阶段，请检查结果是否准确再行使用。若有误，欢迎打包 debug/depot 文件夹后向我们提交 issue ~";
-    private const string GachaInitTipText = "在罗德岛竟然有这么多志同道合的志士。是的，诗歌！战争！自由！能在历史的洪流中汇集众人的力量，为这片大地的改变而奋斗。真是令人振奋！这些悲壮又非凡的故事，是应当被传颂下去的。";
-    private const string GachaWarningMessageText = "该功能属于危险功能，可能会造成误抽\n按下「确认」键即视为你了解并愿意承担可能出现的风险";
-    private const string CopiedToClipboardText = "已复制到剪切板";
-    private const string PeepTipText = "看看牛牛眼中的世界？";
-    private const string MiniGameNameEmptyTipText = "在上方选择小游戏以开始运行。";
     private const double OperBoxPanelItemWidth = 148d;
     private const double DepotPanelItemWidth = 166d;
 
     private readonly ConnectionGameSharedStateViewModel? _connectionState;
     private readonly DispatcherTimer _gachaTipTimer;
     private readonly DispatcherTimer _peepTimer;
+    private readonly ToolboxLocalizationTextMap _texts;
+    private readonly RootLocalizationTextMap _rootTexts;
     private readonly Dictionary<string, int> _operBoxPotential = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ToolboxOwnedOperatorState> _operBoxOwnedById = new(StringComparer.Ordinal);
+    private readonly SemaphoreSlim _advancedSuiteInitGate = new(1, 1);
+    private bool _advancedSuiteInitialized;
     private ToolboxToolKind? _activeTool;
     private string _lastDispatchedParameterSummary = string.Empty;
+    private string _currentLanguage = UiLanguageCatalog.DefaultLanguage;
+    private JsonArray? _lastRecruitResult;
+    private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
     private bool _peepRefreshInFlight;
     private bool _peepWasAutoStarted;
     private DateTimeOffset _lastPeepFpsWindowStartedAt = DateTimeOffset.MinValue;
     private int _peepFramesInWindow;
     private int _selectedTabIndex;
-    private string _resultText = "等待执行工具。";
+    private string _resultText = string.Empty;
     private bool _disclaimerAccepted;
     private string _currentToolParameters = string.Empty;
     private ToolboxExecutionState _executionState;
     private string _lastExecutionErrorCode = string.Empty;
     private DateTimeOffset? _lastExecutionAt;
 
-    private string _recruitInfo = RecruitRecognitionTipText;
+    private string _recruitInfo = string.Empty;
     private bool _chooseLevel3 = true;
     private bool _chooseLevel4 = true;
     private bool _chooseLevel5 = true;
@@ -117,16 +107,16 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     private bool _recruitAutoSetTime = true;
     private bool _recruitmentShowPotential = true;
 
-    private string _operBoxInfo = OperBoxRecognitionTipText;
+    private string _operBoxInfo = string.Empty;
     private int _operBoxSelectedIndex;
     private string _operBoxMode = "owned";
 
-    private string _depotInfo = DepotRecognitionTipText;
+    private string _depotInfo = string.Empty;
     private DateTimeOffset? _lastDepotSyncTime;
     private string _depotFormat = "summary";
     private string _depotTopNInput = "50";
 
-    private string _gachaInfo = GachaInitTipText;
+    private string _gachaInfo = string.Empty;
     private bool _gachaShowDisclaimer = true;
     private bool _gachaShowDisclaimerNoMore;
     private bool _isGachaInProgress;
@@ -141,35 +131,62 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     private string _miniGameTaskName = "SS@Store@Begin";
     private string _miniGameSecretFrontEnding = "A";
     private string _miniGameSecretFrontEvent = string.Empty;
-    private string _miniGameTip = MiniGameNameEmptyTipText;
+    private string _miniGameTip = string.Empty;
+    private readonly List<ToolboxNamedOption> _miniGameSecretFrontEventOptions = [];
 
     public ToolboxPageViewModel(MAAUnifiedRuntime runtime, ConnectionGameSharedStateViewModel? connectionState = null)
         : base(runtime)
     {
         _connectionState = connectionState;
+        if (_connectionState is not null)
+        {
+            _connectionState.PropertyChanged += OnConnectionStatePropertyChanged;
+        }
+        _uiLanguageCoordinator = runtime.UiLanguageCoordinator;
+        _uiLanguageCoordinator.LanguageChanged += OnUnifiedLanguageChanged;
+        _currentLanguage = ResolveCurrentLanguage();
+        _texts = new ToolboxLocalizationTextMap
+        {
+            Language = _currentLanguage,
+        };
+        _rootTexts = new RootLocalizationTextMap("Root.Localization.Toolbox")
+        {
+            Language = _currentLanguage,
+        };
+
         Tabs =
         [
-            "招募识别",
-            "干员识别",
-            "仓库识别",
-            "抽卡",
-            "窥屏",
-            "小游戏",
+            "recruit",
+            "operbox",
+            "depot",
+            "gacha",
+            "peep",
+            "minigame",
+            "advanced",
         ];
 
+        _resultText = T("Toolbox.Status.WaitingForExecution", "Waiting to execute tool.");
+        _recruitInfo = T("Toolbox.Tip.RecruitRecognition", "Tip: this feature is independent from the main-page auto recruit flow.");
+        _operBoxInfo = T("Toolbox.Tip.OperBoxRecognition", "Special markers may affect recognition accuracy.");
+        _depotInfo = T("Toolbox.Tip.DepotRecognition", "This feature is experimental. Please verify recognition results.");
+        _gachaInfo = T("Toolbox.Tip.GachaInit", "Gacha hint.");
+        _miniGameTip = T("Toolbox.Tip.MiniGameNameEmpty", "Select a mini-game above to start.");
+
+        StageManagerPage = new StageManagerPageViewModel(runtime);
+        ExternalNotificationProvidersPage = new ExternalNotificationProvidersPageViewModel(runtime);
+        RemoteControlCenterPage = new RemoteControlCenterPageViewModel(runtime);
+        TrayIntegrationPage = new TrayIntegrationPageViewModel(runtime);
+        OverlayPage = new OverlayAdvancedPageViewModel(runtime);
+        WebApiPage = new WebApiPageViewModel(runtime);
+
         ExecutionHistory = new ObservableCollection<ToolExecutionRecord>();
+        ExecutionHistory.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasExecutionHistory));
         RecruitResultLines = new ObservableCollection<RecruitResultLineViewModel>();
         OperBoxHaveList = new ObservableCollection<OperBoxOperatorItemViewModel>();
         OperBoxNotHaveList = new ObservableCollection<OperBoxOperatorItemViewModel>();
         DepotResult = new ObservableCollection<DepotItemViewModel>();
         MiniGameTaskList = new ObservableCollection<ToolboxMiniGameEntry>();
-        MiniGameSecretFrontEventOptions =
-        [
-            new ToolboxNamedOption("不选择", string.Empty),
-            new ToolboxNamedOption("支援作战平台", "支援作战平台"),
-            new ToolboxNamedOption("游侠", "游侠"),
-            new ToolboxNamedOption("诡影迷踪", "诡影迷踪"),
-        ];
+        RebuildMiniGameSecretFrontEventOptions();
         MiniGameSecretFrontEndingOptions =
         [
             "A",
@@ -210,6 +227,10 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public ObservableCollection<ToolExecutionRecord> ExecutionHistory { get; }
 
+    public ToolboxLocalizationTextMap Texts => _texts;
+
+    public RootLocalizationTextMap RootTexts => _rootTexts;
+
     public ObservableCollection<RecruitResultLineViewModel> RecruitResultLines { get; }
 
     public ObservableCollection<OperBoxOperatorItemViewModel> OperBoxHaveList { get; }
@@ -220,9 +241,21 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public ObservableCollection<ToolboxMiniGameEntry> MiniGameTaskList { get; }
 
-    public IReadOnlyList<ToolboxNamedOption> MiniGameSecretFrontEventOptions { get; }
+    public IReadOnlyList<ToolboxNamedOption> MiniGameSecretFrontEventOptions => _miniGameSecretFrontEventOptions;
 
     public IReadOnlyList<string> MiniGameSecretFrontEndingOptions { get; }
+
+    public StageManagerPageViewModel StageManagerPage { get; }
+
+    public ExternalNotificationProvidersPageViewModel ExternalNotificationProvidersPage { get; }
+
+    public RemoteControlCenterPageViewModel RemoteControlCenterPage { get; }
+
+    public TrayIntegrationPageViewModel TrayIntegrationPage { get; }
+
+    public OverlayAdvancedPageViewModel OverlayPage { get; }
+
+    public WebApiPageViewModel WebApiPage { get; }
 
     public int SelectedTabIndex
     {
@@ -270,6 +303,8 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public bool IsExecuting => ExecutionState == ToolboxExecutionState.Executing;
 
+    public bool HasExecutionHistory => ExecutionHistory.Count > 0;
+
     public bool IsToolboxBusy => _activeTool is not null || Peeping || IsPeepTransitioning || IsGachaInProgress;
 
     public string LastExecutionErrorCode
@@ -288,7 +323,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public bool ShowRecruitAutoSetTimeControls => RecruitAutoSetTime;
 
-    public string RecruitPotentialTip => RecruitPotentialTipText;
+    public string RecruitPotentialTip => T("Toolbox.Tip.RecruitPotential", "Use Operator Recognition first to load operator data.");
 
     public string RecruitInfo
     {
@@ -467,9 +502,15 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         set => SetProperty(ref _operBoxSelectedIndex, Math.Clamp(value, 0, 1));
     }
 
-    public string OperBoxNotHaveHeader => $"未持有 ({OperBoxNotHaveList.Count})";
+    public string OperBoxNotHaveHeader => string.Format(
+        CultureInfo.InvariantCulture,
+        T("Toolbox.OperBox.Header.NotOwned", "Not owned ({0})"),
+        OperBoxNotHaveList.Count);
 
-    public string OperBoxHaveHeader => $"已持有 ({OperBoxHaveList.Count})";
+    public string OperBoxHaveHeader => string.Format(
+        CultureInfo.InvariantCulture,
+        T("Toolbox.OperBox.Header.Owned", "Owned ({0})"),
+        OperBoxHaveList.Count);
 
     public double OperBoxNotHavePanelWidth => ResolvePanelWidth(OperBoxNotHaveList.Count, OperBoxPanelItemWidth);
 
@@ -507,7 +548,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             if (LastDepotSyncTime is null)
             {
-                return "尚未同步";
+                return T("Toolbox.Depot.NeverSynced", "Not synced yet");
             }
 
             return LastDepotSyncTime.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
@@ -519,7 +560,10 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     public bool HasDepotResult => DepotResult.Count > 0;
 
     public string LastDepotSyncDisplayText => HasLastDepotSyncTime
-        ? $"上次同步时间: {LastDepotSyncTimeText}"
+        ? string.Format(
+            CultureInfo.InvariantCulture,
+            T("Toolbox.Depot.LastSync", "Last sync: {0}"),
+            LastDepotSyncTimeText)
         : string.Empty;
 
     public double DepotPanelWidth => ResolvePanelWidth(DepotResult.Count, DepotPanelItemWidth);
@@ -575,16 +619,16 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             OnPropertyChanged(nameof(ShowGachaPreview));
             if (!value)
             {
-                GachaInfo = GachaInitTipText;
+                GachaInfo = T("Toolbox.Tip.GachaInit", "Gacha hint.");
             }
         }
     }
 
     public bool ShowGachaControls => !GachaShowDisclaimer;
 
-    public string GachaWarningText => DialogTextCatalog.Select(ResolveCurrentLanguage(), GachaWarningMessageText, GachaWarningMessageTextEn);
+    public string GachaWarningText => T("Toolbox.Warning.GachaMessage", "This feature is risky and may cause unintended pulls.");
 
-    public string DialogLanguage => ResolveCurrentLanguage();
+    public string DialogLanguage => _currentLanguage;
 
     public bool ShowGachaPreview => ShowGachaControls && Peeping && PeepImage is not null;
 
@@ -679,7 +723,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         }
     }
 
-    public string PeepTip => PeepTipText;
+    public string PeepTip => T("Toolbox.Tip.Peep", "Peek through MAA's eyes?");
 
     public bool ShowPeepTip => !Peeping;
 
@@ -687,7 +731,11 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public bool CanTogglePeep => !IsPeepTransitioning;
 
-    public string PeepCommandText => !Peeping ? "Peep!" : (IsGachaInProgress ? "Stop!!!!!" : "Stop!");
+    public string PeepCommandText => !Peeping
+        ? T("Toolbox.Action.PeepStart", "Peep!")
+        : IsGachaInProgress
+            ? T("Toolbox.Action.PeepStopStrong", "Stop!!!!!")
+            : T("Toolbox.Action.PeepStop", "Stop!");
 
     public string MiniGameTaskName
     {
@@ -773,7 +821,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public bool IsMiniGameRunning => _activeTool == ToolboxToolKind.MiniGame;
 
-    public string MiniGameCommandText => IsMiniGameRunning ? "Stop!" : "Link Start!";
+    public string MiniGameCommandText => IsMiniGameRunning
+        ? T("Toolbox.Action.PeepStop", "Stop!")
+        : T("Toolbox.Action.LinkStart", "Link Start!");
 
     public string OperBoxExportText => BuildOperBoxExportText();
 
@@ -789,6 +839,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         LoadOperBoxDetails();
         LoadDepotDetails();
         await LoadExecutionHistoryAsync(cancellationToken);
+        await InitializeAdvancedSuiteAsync(cancellationToken);
         RefreshCurrentToolParametersPreview();
         await Runtime.DiagnosticsService.RecordEventAsync("Toolbox", "Toolbox page initialized.", cancellationToken);
     }
@@ -938,7 +989,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             await ApplyFailureAsync(
                 ToolboxToolKind.Gacha,
-                UiOperationResult.Fail(UiErrorCode.ToolboxDisclaimerNotAccepted, "请先确认抽卡风险提示。"),
+                UiOperationResult.Fail(
+                    UiErrorCode.ToolboxDisclaimerNotAccepted,
+                    T("Toolbox.Error.GachaDisclaimerRequired", "Please accept the gacha risk disclaimer first.")),
                 "gacha-disclaimer",
                 cancellationToken);
             return;
@@ -974,11 +1027,14 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             if (Peeping && _activeTool is null)
             {
                 StopPeepPolling(clearImage: false, releaseRunOwner: true);
-                ResultText = "已停止窥屏。";
+                ResultText = T("Toolbox.Status.PeepStopped", "Peep stopped.");
                 ExecutionState = ToolboxExecutionState.Succeeded;
                 LastExecutionErrorCode = string.Empty;
                 LastExecutionAt = DateTimeOffset.Now;
-                ExecutionHistory.Insert(0, ToolExecutionRecord.Succeeded("Peep", BuildCurrentParameterText(ToolboxToolKind.VideoRecognition), "已停止窥屏。"));
+                ExecutionHistory.Insert(0, ToolExecutionRecord.Succeeded(
+                    T("Toolbox.ToolName.VideoRecognition", "Peep"),
+                    BuildCurrentParameterText(ToolboxToolKind.VideoRecognition),
+                    T("Toolbox.Status.PeepStopped", "Peep stopped.")));
                 TrimExecutionHistory();
                 await PersistExecutionHistoryAsync(cancellationToken);
                 return;
@@ -988,7 +1044,12 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             {
                 await ApplyFailureAsync(
                     ToolboxToolKind.VideoRecognition,
-                    UiOperationResult.Fail(UiErrorCode.ToolboxExecutionFailed, $"当前正在执行 `{_activeTool}`，请先停止后再开启窥屏。"),
+                    UiOperationResult.Fail(
+                        UiErrorCode.ToolboxExecutionFailed,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            T("Toolbox.Error.BusyWithTool", "`{0}` is running. Stop it first before peep."),
+                            _activeTool)),
                     "peep-busy",
                     cancellationToken);
                 return;
@@ -998,7 +1059,12 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             {
                 await ApplyFailureAsync(
                     ToolboxToolKind.VideoRecognition,
-                    UiOperationResult.Fail(UiErrorCode.ToolboxExecutionFailed, $"当前已有 `{currentOwner}` 正在运行。"),
+                    UiOperationResult.Fail(
+                        UiErrorCode.ToolboxExecutionFailed,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            T("Toolbox.Error.OwnerRunning", "`{0}` is already running."),
+                            currentOwner)),
                     "peep-owner",
                     cancellationToken);
                 return;
@@ -1016,7 +1082,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             _peepWasAutoStarted = false;
             _ = Runtime.AchievementTrackerService.Unlock("PeekScreen");
             StartPeepPolling();
-            ResultText = "已开启窥屏。";
+            ResultText = T("Toolbox.Status.PeepStarted", "Peep started.");
             ExecutionState = ToolboxExecutionState.Succeeded;
             LastExecutionErrorCode = string.Empty;
             LastExecutionAt = DateTimeOffset.Now;
@@ -1034,7 +1100,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             if (Peeping)
             {
                 StopPeepPolling(clearImage: false, releaseRunOwner: true);
-                ResultText = "已停止窥屏。";
+                ResultText = T("Toolbox.Status.PeepStopped", "Peep stopped.");
                 ExecutionState = ToolboxExecutionState.Succeeded;
                 LastExecutionErrorCode = string.Empty;
                 LastExecutionAt = DateTimeOffset.Now;
@@ -1051,7 +1117,11 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             return;
         }
 
-        CompleteActiveToolRun(activeTool, success: false, "已停止当前工具。", UiErrorCode.ToolboxExecutionCancelled);
+        CompleteActiveToolRun(
+            activeTool,
+            success: false,
+            T("Toolbox.Status.CurrentToolStopped", "Current tool stopped."),
+            UiErrorCode.ToolboxExecutionCancelled);
     }
 
     public void AgreeGachaDisclaimer()
@@ -1063,17 +1133,17 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             _ = PersistBridgeSettingsForToolAsync(ToolboxToolKind.Gacha, CancellationToken.None);
         }
 
-        GachaInfo = GachaInitTipText;
+        GachaInfo = T("Toolbox.Tip.GachaInit", "Gacha hint.");
     }
 
     public void NotifyOperBoxExportCopied()
     {
-        OperBoxInfo = CopiedToClipboardText;
+        OperBoxInfo = T("Toolbox.Status.CopiedToClipboard", "Copied to clipboard");
     }
 
     public void NotifyDepotExportCopied(string target)
     {
-        DepotInfo = CopiedToClipboardText;
+        DepotInfo = T("Toolbox.Status.CopiedToClipboard", "Copied to clipboard");
     }
 
     public string GetMiniGameTask()
@@ -1115,18 +1185,31 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             case "TaskChainCompleted":
             case "AllTasksCompleted":
-                CompleteActiveToolRun(_activeTool.Value, success: true, "工具执行完成。");
+                CompleteActiveToolRun(
+                    _activeTool.Value,
+                    success: true,
+                    T("Toolbox.Status.ToolCompleted", "Tool execution completed."));
                 break;
             case "TaskChainStopped":
-                CompleteActiveToolRun(_activeTool.Value, success: false, "工具已停止。", UiErrorCode.ToolboxExecutionCancelled);
+                CompleteActiveToolRun(
+                    _activeTool.Value,
+                    success: false,
+                    T("Toolbox.Status.ToolStopped", "Tool stopped."),
+                    UiErrorCode.ToolboxExecutionCancelled);
                 break;
             case "TaskChainError":
                 if (_activeTool == ToolboxToolKind.Recruit)
                 {
-                    RecruitInfo = "招募识别失败，请检查当前画面与连接状态。";
+                    RecruitInfo = T(
+                        "Toolbox.Error.RecruitFailed",
+                        "Recruit recognition failed. Check current screen and connection status.");
                 }
 
-                CompleteActiveToolRun(_activeTool.Value, success: false, "工具执行失败。", UiErrorCode.ToolboxExecutionFailed);
+                CompleteActiveToolRun(
+                    _activeTool.Value,
+                    success: false,
+                    T("Toolbox.Error.ExecutionFailedDefault", "Tool execution failed."),
+                    UiErrorCode.ToolboxExecutionFailed);
                 break;
         }
     }
@@ -1155,7 +1238,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             await ApplyFailureAsync(
                 tool,
-                UiOperationResult.Fail(UiErrorCode.ToolboxExecutionFailed, "Toolbox 当前已有任务在运行，请先停止。"),
+                UiOperationResult.Fail(
+                    UiErrorCode.ToolboxExecutionFailed,
+                    T("Toolbox.Error.ToolboxBusy", "Toolbox already has a running task. Stop it first.")),
                 "busy",
                 cancellationToken);
             return;
@@ -1165,7 +1250,12 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             await ApplyFailureAsync(
                 tool,
-                UiOperationResult.Fail(UiErrorCode.ToolboxExecutionFailed, $"当前已有 `{currentOwner}` 正在运行。"),
+                UiOperationResult.Fail(
+                    UiErrorCode.ToolboxExecutionFailed,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        T("Toolbox.Error.OwnerRunning", "`{0}` is already running."),
+                        currentOwner)),
                 "owner",
                 cancellationToken);
             return;
@@ -1194,7 +1284,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             Runtime.SessionService.EndRun(ToolboxRunOwner);
             await ApplyFailureAsync(
                 tool,
-                UiOperationResult.Fail(UiErrorCode.ToolboxExecutionCancelled, "工具执行已取消。"),
+                UiOperationResult.Fail(
+                    UiErrorCode.ToolboxExecutionCancelled,
+                    T("Toolbox.Error.ToolExecutionCancelled", "Tool execution cancelled.")),
                 "dispatch-cancelled",
                 CancellationToken.None);
             return;
@@ -1218,7 +1310,10 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         }
 
         LastExecutionAt = dispatchResult.Value.StartedAt;
-        ResultText = $"{GetToolDisplayName(tool)}已启动。";
+        ResultText = string.Format(
+            CultureInfo.InvariantCulture,
+            T("Toolbox.Status.ToolStarted", "{0} started."),
+            GetToolDisplayName(tool));
         StatusMessage = dispatchResult.Message;
 
         if (startPeepAfterDispatch)
@@ -1233,13 +1328,14 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     private void PrepareRecruitForStart()
     {
-        RecruitInfo = "识别中...";
+        RecruitInfo = T("Toolbox.Status.Recognizing", "Recognizing...");
         RecruitResultLines.Clear();
+        _lastRecruitResult = null;
     }
 
     private void PrepareOperBoxForStart()
     {
-        OperBoxInfo = "识别中...";
+        OperBoxInfo = T("Toolbox.Status.Recognizing", "Recognizing...");
         _operBoxOwnedById.Clear();
         _operBoxPotential.Clear();
         OperBoxHaveList.Clear();
@@ -1249,18 +1345,18 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     private void PrepareDepotForStart()
     {
-        DepotInfo = "识别中...";
+        DepotInfo = T("Toolbox.Status.Recognizing", "Recognizing...");
         DepotResult.Clear();
     }
 
     private void PrepareGachaForStart()
     {
-        GachaInfo = "正在连接模拟器...";
+        GachaInfo = T("Toolbox.Status.ConnectingEmulator", "Connecting to emulator...");
     }
 
     private void PrepareMiniGameForStart()
     {
-        ResultText = "小游戏任务启动中...";
+        ResultText = T("Toolbox.Status.MiniGameStarting", "Starting mini-game task...");
     }
 
     private ToolboxDispatchRequest BuildRecruitRequest()
@@ -1337,7 +1433,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             lastFailure = result;
         }
 
-        return lastFailure ?? UiOperationResult.Fail(UiErrorCode.UiOperationFailed, "连接失败。");
+        return lastFailure ?? UiOperationResult.Fail(
+            UiErrorCode.UiOperationFailed,
+            T("Toolbox.Error.ConnectionFailed", "Connection failed."));
     }
 
     private IReadOnlyList<string> BuildConnectAddressCandidates()
@@ -1412,7 +1510,105 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             return UiLanguageCatalog.Normalize(language);
         }
 
-        return UiLanguageCatalog.DefaultLanguage;
+        return UiLanguageCatalog.Normalize(_uiLanguageCoordinator.CurrentLanguage);
+    }
+
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_currentLanguage, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _currentLanguage = normalized;
+        _texts.Language = normalized;
+        _rootTexts.Language = normalized;
+        OnPropertyChanged(nameof(RecruitPotentialTip));
+        OnPropertyChanged(nameof(OperBoxNotHaveHeader));
+        OnPropertyChanged(nameof(OperBoxHaveHeader));
+        OnPropertyChanged(nameof(LastDepotSyncTimeText));
+        OnPropertyChanged(nameof(LastDepotSyncDisplayText));
+        OnPropertyChanged(nameof(PeepTip));
+        OnPropertyChanged(nameof(PeepCommandText));
+        OnPropertyChanged(nameof(MiniGameCommandText));
+        OnPropertyChanged(nameof(ShowPeepTip));
+        OnPropertyChanged(nameof(GachaWarningText));
+        OnPropertyChanged(nameof(DialogLanguage));
+        OnPropertyChanged(nameof(OperBoxExportText));
+        OnPropertyChanged(nameof(ArkPlannerResult));
+        OnPropertyChanged(nameof(LoliconResult));
+
+        if (ExecutionState == ToolboxExecutionState.Idle && !IsToolboxBusy)
+        {
+            ResultText = T("Toolbox.Status.WaitingForExecution", "Waiting to execute tool.");
+        }
+
+        if (_lastRecruitResult is null && _activeTool != ToolboxToolKind.Recruit)
+        {
+            RecruitInfo = T("Toolbox.Tip.RecruitRecognition", "Tip: this feature is independent from the main-page auto recruit flow.");
+        }
+
+        if (_activeTool != ToolboxToolKind.OperBox)
+        {
+            OperBoxInfo = T("Toolbox.Tip.OperBoxRecognition", "Special markers may affect recognition accuracy.");
+        }
+
+        if (!HasDepotResult && _activeTool != ToolboxToolKind.Depot)
+        {
+            DepotInfo = T("Toolbox.Tip.DepotRecognition", "This feature is experimental. Please verify recognition results.");
+        }
+
+        if (!IsGachaInProgress)
+        {
+            GachaInfo = T("Toolbox.Tip.GachaInit", "Gacha hint.");
+        }
+
+        RebuildMiniGameSecretFrontEventOptions();
+        RebuildOperBoxLists();
+        RelocalizeDepotItems();
+        LoadMiniGameEntries();
+        OnPropertyChanged(nameof(SelectedMiniGameEntry));
+        OnPropertyChanged(nameof(SelectedMiniGameSecretFrontEventOption));
+        MiniGameTip = ResolveMiniGameTip(MiniGameTaskName);
+        if (_lastRecruitResult is not null)
+        {
+            ApplyRecruitResult(_lastRecruitResult, cacheResult: false);
+        }
+    }
+
+    private void RelocalizeDepotItems()
+    {
+        if (DepotResult.Count == 0)
+        {
+            return;
+        }
+
+        var snapshot = DepotResult
+            .Select(item => new KeyValuePair<string, int>(item.Id, item.Count))
+            .ToArray();
+        var itemNames = ToolboxAssetCatalog.GetItemNames(_currentLanguage);
+        DepotResult.Clear();
+
+        foreach (var pair in snapshot.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
+            DepotResult.Add(new DepotItemViewModel(
+                pair.Key,
+                itemNames.TryGetValue(pair.Key, out var name) ? name : pair.Key,
+                pair.Value,
+                ToolboxAssetCatalog.ResolveItemImagePath(pair.Key)));
+        }
+    }
+
+    private void OnUnifiedLanguageChanged(object? sender, UiLanguageChangedEventArgs e)
+    {
+        if (Dispatcher.UIThread.CheckAccess() || Avalonia.Application.Current is null)
+        {
+            SetLanguage(e.CurrentLanguage);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => SetLanguage(e.CurrentLanguage));
     }
 
     private static IReadOnlyList<string> GetDefaultAddresses(string connectConfig)
@@ -1499,7 +1695,12 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             case "RecruitTagsDetected":
             {
                 var tags = ReadStringArray(details["tags"]);
-                RecruitInfo = tags.Count == 0 ? "已识别招募标签。" : $"已识别标签：{string.Join(" / ", tags)}";
+                RecruitInfo = tags.Count == 0
+                    ? T("Toolbox.Recruit.TagsDetected", "Recruit tags detected.")
+                    : string.Format(
+                        CultureInfo.InvariantCulture,
+                        T("Toolbox.Recruit.TagsDetectedWithList", "Tags detected: {0}"),
+                        string.Join(" / ", tags));
                 break;
             }
             case "RecruitResult":
@@ -1508,10 +1709,15 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         }
     }
 
-    private void ApplyRecruitResult(JsonArray? resultArray)
+    private void ApplyRecruitResult(JsonArray? resultArray, bool cacheResult = true)
     {
+        if (cacheResult)
+        {
+            _lastRecruitResult = resultArray?.DeepClone() as JsonArray;
+        }
+
         RecruitResultLines.Clear();
-        var language = ResolveCurrentLanguage();
+        var language = _currentLanguage;
 
         foreach (var comboNode in resultArray ?? [])
         {
@@ -1525,7 +1731,11 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             RecruitResultLines.Add(new RecruitResultLineViewModel(
                 [
                     new RecruitResultSegmentViewModel(
-                        $"{tagLevel}★ Tags: {string.Join("    ", tags)}",
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            T("Toolbox.Recruit.ResultLine", "{0}★ Tags: {1}"),
+                            tagLevel,
+                            string.Join("    ", tags)),
                         null),
                 ]));
 
@@ -1572,11 +1782,13 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 {
                     if (_operBoxPotential.TryGetValue(operId, out var potential))
                     {
-                        suffix = potential >= 6 ? " (MAX)" : $" ({potential})";
+                        suffix = potential >= 6
+                            ? T("Toolbox.Recruit.Suffix.Max", " (MAX)")
+                            : $" ({potential})";
                     }
                     else
                     {
-                        suffix = " (NEW)";
+                        suffix = T("Toolbox.Recruit.Suffix.New", " (NEW)");
                     }
                 }
 
@@ -1602,7 +1814,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         }
 
         var operators = ToolboxAssetCatalog.GetOperators();
-        var language = ResolveCurrentLanguage();
+        var language = _currentLanguage;
 
         foreach (var node in ownOpers)
         {
@@ -1645,7 +1857,8 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         }
 
         RebuildOperBoxLists();
-        OperBoxInfo = $"识别完成。\n{OperBoxRecognitionTipText}";
+        OperBoxInfo = $"{T("Toolbox.Status.RecognitionCompleted", "Recognition completed.")}{Environment.NewLine}" +
+            T("Toolbox.Tip.OperBoxRecognition", "Special markers may affect recognition accuracy.");
         _ = PersistOperBoxAsync(CancellationToken.None);
     }
 
@@ -1655,7 +1868,13 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         OperBoxNotHaveList.Clear();
         var operators = ToolboxAssetCatalog.GetOperators();
         var clientType = ResolveClientType();
-        var language = ResolveCurrentLanguage();
+        var language = _currentLanguage;
+        var ownedSubtitleTemplate = T(
+            "Toolbox.OperBox.Subtitle.Owned",
+            "{0}★ / Elite {1} / Level {2} / Potential {3}");
+        var notOwnedSubtitleTemplate = T(
+            "Toolbox.OperBox.Subtitle.NotOwned",
+            "{0}★ / Not owned");
 
         foreach (var owned in _operBoxOwnedById.Values
                      .OrderByDescending(item => item.Rarity)
@@ -1664,14 +1883,24 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                      .ThenByDescending(item => item.Potential)
                      .ThenBy(item => item.Id, StringComparer.Ordinal))
         {
+            var displayName = owned.Name;
+            var rarity = owned.Rarity;
+            if (operators.TryGetValue(owned.Id, out var asset))
+            {
+                displayName = ToolboxAssetCatalog.GetLocalizedOperatorName(asset, language);
+                rarity = asset.Rarity;
+            }
+
             OperBoxHaveList.Add(new OperBoxOperatorItemViewModel(
                 owned.Id,
-                owned.Name,
-                owned.Rarity,
+                displayName,
+                rarity,
                 owned.Elite,
                 owned.Level,
                 owned.Potential,
-                own: true));
+                own: true,
+                ownedSubtitleTemplate,
+                notOwnedSubtitleTemplate));
         }
 
         foreach (var asset in operators.Values
@@ -1686,7 +1915,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 elite: 0,
                 level: 0,
                 potential: 0,
-                own: false));
+                own: false,
+                ownedSubtitleTemplate,
+                notOwnedSubtitleTemplate));
         }
 
         OperBoxSelectedIndex = OperBoxNotHaveList.Count > 0 ? 0 : 1;
@@ -1696,7 +1927,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     {
         var counts = ParseDepotCounts(details);
         DepotResult.Clear();
-        var itemNames = ToolboxAssetCatalog.GetItemNames(ResolveCurrentLanguage());
+        var itemNames = ToolboxAssetCatalog.GetItemNames(_currentLanguage);
 
         foreach (var pair in counts.OrderBy(pair => pair.Key, StringComparer.Ordinal))
         {
@@ -1731,7 +1962,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             }
         }
 
-        DepotInfo = "识别完成。";
+        DepotInfo = T("Toolbox.Status.RecognitionCompleted", "Recognition completed.");
         _ = PersistDepotAsync(CancellationToken.None);
     }
 
@@ -1783,7 +2014,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             return;
         }
 
-        var itemNames = ToolboxAssetCatalog.GetItemNames(ResolveCurrentLanguage());
+        var itemNames = ToolboxAssetCatalog.GetItemNames(_currentLanguage);
         var byId = DepotResult.ToDictionary(item => item.Id, StringComparer.Ordinal);
         var changed = false;
 
@@ -1999,7 +2230,13 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     private void RefreshGachaTip()
     {
-        GachaInfo = GachaTips[GachaTipRandom.Next(GachaTips.Length)];
+        var tips = GetGachaTips();
+        if (tips.Count == 0)
+        {
+            return;
+        }
+
+        GachaInfo = tips[GachaTipRandom.Next(tips.Count)];
     }
 
     private UiOperationResult ValidateCurrentToolParameters(ToolboxToolKind tool)
@@ -2009,14 +2246,18 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             case ToolboxToolKind.Recruit:
                 if (!ChooseLevel3 && !ChooseLevel4 && !ChooseLevel5 && !ChooseLevel6)
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "至少需要选择一个星级用于公招计算。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.RecruitSelectAtLeastOne", "Select at least one star level for recruit calculation."));
                 }
 
                 if (!TryParseRecruitMinutes(RecruitLevel3TimeInput, out _)
                     || !TryParseRecruitMinutes(RecruitLevel4TimeInput, out _)
                     || !TryParseRecruitMinutes(RecruitLevel5TimeInput, out _))
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "招募时间必须是 60 到 540 之间的 10 分钟整数倍。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.RecruitTimeInvalid", "Recruit times must be 10-minute multiples between 60 and 540."));
                 }
 
                 return UiOperationResult.Ok("Recruit parameters validated.");
@@ -2024,41 +2265,53 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 if (!string.Equals(OperBoxMode, "owned", StringComparison.OrdinalIgnoreCase)
                     && !string.Equals(OperBoxMode, "all", StringComparison.OrdinalIgnoreCase))
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "干员识别模式仅支持 owned 或 all。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.OperBoxModeInvalid", "OperBox mode only supports `owned` or `all`."));
                 }
 
                 return UiOperationResult.Ok("OperBox parameters validated.");
             case ToolboxToolKind.Depot:
                 if (!TryParseInt(DepotTopNInput, 1, 500, out _))
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "仓库 TopN 必须在 1 到 500 之间。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.DepotTopNInvalid", "Depot TopN must be between 1 and 500."));
                 }
 
                 return UiOperationResult.Ok("Depot parameters validated.");
             case ToolboxToolKind.Gacha:
                 if (!TryParseInt(GachaDrawCountInput, 1, 10, out var drawCount) || (drawCount != 1 && drawCount != 10))
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "抽卡次数仅支持 1 或 10。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.GachaDrawCountInvalid", "Gacha draw count only supports 1 or 10."));
                 }
 
                 return UiOperationResult.Ok("Gacha parameters validated.");
             case ToolboxToolKind.VideoRecognition:
                 if (!TryParseInt(VideoRecognitionTargetFpsInput, 1, 60, out _))
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "窥屏目标帧率必须在 1 到 60 之间。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.PeepFpsInvalid", "Target peep FPS must be between 1 and 60."));
                 }
 
                 return UiOperationResult.Ok("Peep parameters validated.");
             case ToolboxToolKind.MiniGame:
                 if (string.IsNullOrWhiteSpace(MiniGameTaskName))
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "小游戏任务名不能为空。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.MiniGameTaskNameEmpty", "Mini-game task name cannot be empty."));
                 }
 
                 if (string.Equals(MiniGameTaskName, MiniGameSecretFrontTaskName, StringComparison.Ordinal)
                     && !MiniGameSecretFrontEndings.Contains(NormalizeToken(MiniGameSecretFrontEnding)))
                 {
-                    return UiOperationResult.Fail(UiErrorCode.ToolboxInvalidParameters, "当小游戏任务为 MiniGame@SecretFront 时，结局必须为 A~E 之一。");
+                    return UiOperationResult.Fail(
+                        UiErrorCode.ToolboxInvalidParameters,
+                        T("Toolbox.Validation.MiniGameSecretFrontEndingInvalid", "When task is `MiniGame@SecretFront`, ending must be one of A~E."));
                 }
 
                 return UiOperationResult.Ok("MiniGame parameters validated.");
@@ -2157,7 +2410,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         return !string.IsNullOrWhiteSpace(payload);
     }
 
-    private static bool TryDeserializeExecutionHistory(
+    private bool TryDeserializeExecutionHistory(
         string payload,
         out List<ToolExecutionRecord> history,
         out string warning)
@@ -2169,7 +2422,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             var entries = JsonSerializer.Deserialize<List<PersistedToolExecutionRecord>>(payload, PersistedPayloadJsonOptions);
             if (entries is null)
             {
-                warning = "读取执行历史失败：配置为空。";
+                warning = T("Toolbox.History.ReadFailedEmpty", "Failed to load execution history: empty payload.");
                 return false;
             }
 
@@ -2186,7 +2439,10 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            warning = $"读取执行历史失败：{ex.Message}";
+            warning = string.Format(
+                CultureInfo.InvariantCulture,
+                T("Toolbox.History.ReadFailedWithReason", "Failed to load execution history: {0}"),
+                ex.Message);
             return false;
         }
 
@@ -2330,8 +2586,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     private void LoadMiniGameEntries()
     {
+        var clientType = ResolveClientType();
         MiniGameTaskList.Clear();
-        foreach (var entry in ToolboxAssetCatalog.GetMiniGameEntries())
+        foreach (var entry in ToolboxAssetCatalog.GetMiniGameEntries(clientType, _currentLanguage))
         {
             MiniGameTaskList.Add(entry);
         }
@@ -2361,12 +2618,53 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         var entry = MiniGameTaskList.FirstOrDefault(item => string.Equals(item.Value, taskName, StringComparison.Ordinal));
         if (entry is null)
         {
-            return MiniGameNameEmptyTipText;
+            return T("Toolbox.Tip.MiniGameNameEmpty", "Select a mini-game above to start.");
         }
 
         return string.IsNullOrWhiteSpace(entry.Tip)
-            ? $"当前任务：{entry.Display}"
+            ? string.Format(
+                CultureInfo.InvariantCulture,
+                T("Toolbox.MiniGame.CurrentTask", "Current task: {0}"),
+                entry.Display)
             : entry.Tip;
+    }
+
+    private void OnConnectionStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.Equals(e.PropertyName, nameof(ConnectionGameSharedStateViewModel.ClientType), StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        LoadMiniGameEntries();
+        OnPropertyChanged(nameof(SelectedMiniGameEntry));
+    }
+
+    private string T(string key, string fallback)
+    {
+        return _texts.GetOrDefault(key, fallback);
+    }
+
+    private IReadOnlyList<string> GetGachaTips()
+    {
+        return
+        [
+            T("Toolbox.Gacha.Tip.1", "Gacha running: peep mode has started automatically."),
+            T("Toolbox.Gacha.Tip.2", "You can stop gacha directly on this page."),
+            T("Toolbox.Gacha.Tip.3", "If FPS is too high, reduce the peep FPS target."),
+            T("Toolbox.Gacha.Tip.4", "If emulator stutters, check screencap mode and connection quality first."),
+            T("Toolbox.Gacha.Tip.5", "Gacha uses a custom task chain and will clean up automatically."),
+        ];
+    }
+
+    private void RebuildMiniGameSecretFrontEventOptions()
+    {
+        _miniGameSecretFrontEventOptions.Clear();
+        _miniGameSecretFrontEventOptions.Add(new ToolboxNamedOption(T("Toolbox.MiniGame.Event.None", "No preference"), string.Empty));
+        _miniGameSecretFrontEventOptions.Add(new ToolboxNamedOption(T("Toolbox.MiniGame.Event.SupportPlatform", "Support platform"), "支援作战平台"));
+        _miniGameSecretFrontEventOptions.Add(new ToolboxNamedOption(T("Toolbox.MiniGame.Event.Ranger", "Ranger"), "游侠"));
+        _miniGameSecretFrontEventOptions.Add(new ToolboxNamedOption(T("Toolbox.MiniGame.Event.Phantom", "Phantom Trails"), "诡影迷踪"));
+        OnPropertyChanged(nameof(MiniGameSecretFrontEventOptions));
     }
 
     private void LoadBridgeSettings()
@@ -2388,6 +2686,35 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         MiniGameTaskName = ReadStringSetting(LegacyConfigurationKeys.MiniGameTaskName, "SS@Store@Begin");
         MiniGameSecretFrontEnding = ReadStringSetting(LegacyConfigurationKeys.MiniGameSecretFrontEnding, "A");
         MiniGameSecretFrontEvent = ReadStringSetting(LegacyConfigurationKeys.MiniGameSecretFrontEvent, string.Empty);
+    }
+
+    private async Task InitializeAdvancedSuiteAsync(CancellationToken cancellationToken)
+    {
+        if (_advancedSuiteInitialized)
+        {
+            return;
+        }
+
+        await _advancedSuiteInitGate.WaitAsync(cancellationToken);
+        try
+        {
+            if (_advancedSuiteInitialized)
+            {
+                return;
+            }
+
+            await StageManagerPage.InitializeAsync(cancellationToken);
+            await ExternalNotificationProvidersPage.InitializeAsync(cancellationToken);
+            await RemoteControlCenterPage.InitializeAsync(cancellationToken);
+            await TrayIntegrationPage.InitializeAsync(cancellationToken);
+            await OverlayPage.InitializeAsync(cancellationToken);
+            await WebApiPage.InitializeAsync(cancellationToken);
+            _advancedSuiteInitialized = true;
+        }
+        finally
+        {
+            _advancedSuiteInitGate.Release();
+        }
     }
 
     private int ReadIntSetting(string key, int fallback)
@@ -2662,7 +2989,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     {
         var operators = ToolboxAssetCatalog.GetOperators();
         var clientType = ResolveClientType();
-        var language = ResolveCurrentLanguage();
+        var language = _currentLanguage;
         var exportItems = new List<PersistedOperBoxOperator>();
 
         foreach (var asset in operators.Values
@@ -2797,16 +3124,16 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         return TryReadBoolNode(node[property], out var value) && value;
     }
 
-    private static string GetToolDisplayName(ToolboxToolKind tool)
+    private string GetToolDisplayName(ToolboxToolKind tool)
     {
         return tool switch
         {
-            ToolboxToolKind.Recruit => "招募识别",
-            ToolboxToolKind.OperBox => "干员识别",
-            ToolboxToolKind.Depot => "仓库识别",
-            ToolboxToolKind.Gacha => "抽卡",
-            ToolboxToolKind.VideoRecognition => "窥屏",
-            ToolboxToolKind.MiniGame => "小游戏",
+            ToolboxToolKind.Recruit => T("Toolbox.ToolName.Recruit", "Recruit Recognition"),
+            ToolboxToolKind.OperBox => T("Toolbox.ToolName.OperBox", "Operator Recognition"),
+            ToolboxToolKind.Depot => T("Toolbox.ToolName.Depot", "Depot Recognition"),
+            ToolboxToolKind.Gacha => T("Toolbox.ToolName.Gacha", "Gacha"),
+            ToolboxToolKind.VideoRecognition => T("Toolbox.ToolName.VideoRecognition", "Peep"),
+            ToolboxToolKind.MiniGame => T("Toolbox.ToolName.MiniGame", "Mini-Game"),
             _ => tool.ToString(),
         };
     }
@@ -2868,16 +3195,37 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         return $"{context} | {details}";
     }
 
-    private static string FormatFailureMessage(string code, string message)
+    private string FormatFailureMessage(string code, string message)
     {
-        var fallback = string.IsNullOrWhiteSpace(message) ? "工具执行失败。" : message.Trim();
+        var fallback = string.IsNullOrWhiteSpace(message)
+            ? T("Toolbox.Error.ExecutionFailedDefault", "Tool execution failed.")
+            : message.Trim();
         return code switch
         {
-            UiErrorCode.ToolboxInvalidParameters => $"工具参数错误：{fallback} ({UiErrorCode.ToolboxInvalidParameters})",
-            UiErrorCode.ToolboxExecutionCancelled => $"工具执行已取消：{fallback} ({UiErrorCode.ToolboxExecutionCancelled})",
-            UiErrorCode.ToolNotSupported => $"当前工具不受支持：{fallback} ({UiErrorCode.ToolNotSupported})",
-            _ when string.IsNullOrWhiteSpace(code) => $"工具执行失败：{fallback}",
-            _ => $"工具执行失败：{fallback} ({code})",
+            UiErrorCode.ToolboxInvalidParameters => string.Format(
+                CultureInfo.InvariantCulture,
+                T("Toolbox.Error.InvalidParameters", "Invalid parameters: {0} ({1})"),
+                fallback,
+                UiErrorCode.ToolboxInvalidParameters),
+            UiErrorCode.ToolboxExecutionCancelled => string.Format(
+                CultureInfo.InvariantCulture,
+                T("Toolbox.Error.ExecutionCancelled", "Execution cancelled: {0} ({1})"),
+                fallback,
+                UiErrorCode.ToolboxExecutionCancelled),
+            UiErrorCode.ToolNotSupported => string.Format(
+                CultureInfo.InvariantCulture,
+                T("Toolbox.Error.ToolNotSupported", "Tool not supported: {0} ({1})"),
+                fallback,
+                UiErrorCode.ToolNotSupported),
+            _ when string.IsNullOrWhiteSpace(code) => string.Format(
+                CultureInfo.InvariantCulture,
+                T("Toolbox.Error.ExecutionFailed", "Tool execution failed: {0}"),
+                fallback),
+            _ => string.Format(
+                CultureInfo.InvariantCulture,
+                T("Toolbox.Error.ExecutionFailedWithCode", "Tool execution failed: {0} ({1})"),
+                fallback,
+                code),
         };
     }
 
@@ -2913,6 +3261,8 @@ public sealed record ToolExecutionRecord(
 
     public static ToolExecutionRecord Failed(string toolName, string parameterSummary, string resultSummary, string errorCode)
         => new(DateTimeOffset.Now, toolName, parameterSummary, false, resultSummary, errorCode);
+
+    public bool HasErrorCode => !string.IsNullOrWhiteSpace(ErrorCode);
 }
 
 public sealed record PersistedToolExecutionRecord(
@@ -2984,8 +3334,19 @@ public sealed class OperBoxOperatorItemViewModel : ObservableObject
     private int _elite;
     private int _level;
     private int _potential;
+    private readonly string _ownedSubtitleTemplate;
+    private readonly string _notOwnedSubtitleTemplate;
 
-    public OperBoxOperatorItemViewModel(string id, string name, int rarity, int elite, int level, int potential, bool own)
+    public OperBoxOperatorItemViewModel(
+        string id,
+        string name,
+        int rarity,
+        int elite,
+        int level,
+        int potential,
+        bool own,
+        string ownedSubtitleTemplate,
+        string notOwnedSubtitleTemplate)
     {
         Id = id;
         Name = name;
@@ -2995,6 +3356,12 @@ public sealed class OperBoxOperatorItemViewModel : ObservableObject
         _level = level;
         _potential = potential;
         Own = own;
+        _ownedSubtitleTemplate = string.IsNullOrWhiteSpace(ownedSubtitleTemplate)
+            ? "{0}★ / Elite {1} / Level {2} / Potential {3}"
+            : ownedSubtitleTemplate;
+        _notOwnedSubtitleTemplate = string.IsNullOrWhiteSpace(notOwnedSubtitleTemplate)
+            ? "{0}★ / Not owned"
+            : notOwnedSubtitleTemplate;
     }
 
     public string Id { get; }
@@ -3015,6 +3382,7 @@ public sealed class OperBoxOperatorItemViewModel : ObservableObject
             if (SetProperty(ref _elite, value))
             {
                 OnPropertyChanged(nameof(EliteIconImage));
+                OnPropertyChanged(nameof(Subtitle));
             }
         }
     }
@@ -3027,6 +3395,7 @@ public sealed class OperBoxOperatorItemViewModel : ObservableObject
             if (SetProperty(ref _level, value))
             {
                 OnPropertyChanged(nameof(LevelDisplay));
+                OnPropertyChanged(nameof(Subtitle));
             }
         }
     }
@@ -3039,6 +3408,7 @@ public sealed class OperBoxOperatorItemViewModel : ObservableObject
             if (SetProperty(ref _potential, value))
             {
                 OnPropertyChanged(nameof(PotentialIconImage));
+                OnPropertyChanged(nameof(Subtitle));
             }
         }
     }
@@ -3052,8 +3422,8 @@ public sealed class OperBoxOperatorItemViewModel : ObservableObject
     public Bitmap? PotentialIconImage => ToolboxAssetCatalog.ResolveOperatorPotentialBitmap(Potential);
 
     public string Subtitle => Own
-        ? $"{Rarity}★ / 精英 {Elite} / 等级 {Level} / 潜能 {Potential}"
-        : $"{Rarity}★ / 未持有";
+        ? string.Format(CultureInfo.InvariantCulture, _ownedSubtitleTemplate, Rarity, Elite, Level, Potential)
+        : string.Format(CultureInfo.InvariantCulture, _notOwnedSubtitleTemplate, Rarity);
 
     private static int NormalizePotential(int potential)
     {

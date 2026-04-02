@@ -1,7 +1,13 @@
+using System.Text.RegularExpressions;
+using MAAUnified.App.ViewModels.Infrastructure;
+
 namespace MAAUnified.Tests;
 
 public sealed class SettingsViewStructureContractTests
 {
+    private static readonly Regex RootTextsQuotedKeyPattern = new("RootTexts\\[\"(Settings\\.[^\"]+)\"\\]", RegexOptions.Compiled);
+    private static readonly Regex RootTextsBindingKeyPattern = new("RootTexts\\[(Settings\\.[^\\]]+)\\]", RegexOptions.Compiled);
+
     [Fact]
     public void PrimarySettingsViews_ShouldUseSharedSettingsFormLayoutClasses()
     {
@@ -55,6 +61,62 @@ public sealed class SettingsViewStructureContractTests
     }
 
     [Fact]
+    public void TargetSettingsViews_ShouldBindVisibleCopyToRootTextsWithoutHardcodedChinese()
+    {
+        var root = GetMaaUnifiedRoot();
+
+        var versionUpdate = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "VersionUpdateSettingsView.axaml"));
+        Assert.Contains("RootTexts[Settings.VersionUpdate.StartupCheck]", versionUpdate, StringComparison.Ordinal);
+        Assert.Contains("RootTexts[Settings.VersionUpdate.ResourceRepository]", versionUpdate, StringComparison.Ordinal);
+        Assert.DoesNotContain("启动时检查更新", versionUpdate, StringComparison.Ordinal);
+        Assert.DoesNotContain("资源仓库", versionUpdate, StringComparison.Ordinal);
+
+        var background = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "BackgroundSettingsView.axaml"));
+        Assert.Contains("RootTexts[Settings.Background.ImagePath]", background, StringComparison.Ordinal);
+        Assert.Contains("RootTexts[Settings.Background.Note]", background, StringComparison.Ordinal);
+        Assert.DoesNotContain("背景图片", background, StringComparison.Ordinal);
+
+        var about = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "AboutSettingsView.axaml"));
+        Assert.Contains("RootTexts[Settings.Action.OpenCommunity]", about, StringComparison.Ordinal);
+        Assert.Contains("RootTexts[Settings.Action.OpenDownload]", about, StringComparison.Ordinal);
+        Assert.DoesNotContain("Content=\"社区\"", about, StringComparison.Ordinal);
+        Assert.DoesNotContain("Content=\"下载页\"", about, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SettingsLocalizationMap_ShouldProvideEnUsForCurrentSettingsBindingsWithoutZhCnFallback()
+    {
+        var root = GetMaaUnifiedRoot();
+        var rootTexts = new RootLocalizationTextMap("Root.Localization.Settings")
+        {
+            Language = "en-us",
+        };
+        var fallbackKeys = new List<string>();
+        rootTexts.FallbackReported += info =>
+        {
+            if (string.Equals(info.Language, "en-us", StringComparison.OrdinalIgnoreCase)
+                && info.Key.StartsWith("Settings.", StringComparison.Ordinal))
+            {
+                fallbackKeys.Add(info.Key);
+            }
+        };
+
+        var settingsKeys = EnumerateCurrentSettingsLocalizationKeys(root);
+        foreach (var key in settingsKeys)
+        {
+            var value = rootTexts[key];
+            Assert.False(string.IsNullOrWhiteSpace(value), $"Expected a non-empty en-us value for {key}.");
+            Assert.NotEqual(key, value);
+        }
+
+        var dynamicSectionValue = rootTexts["Settings.Section.{key}"];
+        Assert.Equal("Settings Section: {key}", dynamicSectionValue);
+
+        Assert.DoesNotContain(fallbackKeys, key => settingsKeys.Contains(key, StringComparer.OrdinalIgnoreCase));
+        Assert.DoesNotContain("Settings.Section.{key}", fallbackKeys, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void TimerSettingsView_ShouldRenderValidationMessageAfterTimerSlots()
     {
         var root = GetMaaUnifiedRoot();
@@ -99,5 +161,39 @@ public sealed class SettingsViewStructureContractTests
         }
 
         throw new DirectoryNotFoundException("Cannot locate src/MAAUnified root from test runtime path.");
+    }
+
+    private static HashSet<string> EnumerateCurrentSettingsLocalizationKeys(string root)
+    {
+        var files =
+            new[]
+            {
+                "App/Features/Root/SettingsView.axaml",
+                "App/ViewModels/Settings/SettingsPageViewModel.cs",
+            }
+            .Concat(Directory.GetFiles(Path.Combine(root, "App", "Features", "Settings"), "*.axaml").Select(Path.GetFileName)!)
+            .Select(relative => relative!.Replace('/', Path.DirectorySeparatorChar))
+            .ToArray();
+
+        var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var relative in files)
+        {
+            var fullPath = relative.Contains(Path.DirectorySeparatorChar)
+                ? Path.Combine(root, relative)
+                : Path.Combine(root, "App", "Features", "Settings", relative);
+            var text = File.ReadAllText(fullPath);
+
+            foreach (Match match in RootTextsQuotedKeyPattern.Matches(text))
+            {
+                keys.Add(match.Groups[1].Value);
+            }
+
+            foreach (Match match in RootTextsBindingKeyPattern.Matches(text))
+            {
+                keys.Add(match.Groups[1].Value);
+            }
+        }
+
+        return keys;
     }
 }

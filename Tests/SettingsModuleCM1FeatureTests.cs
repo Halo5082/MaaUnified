@@ -60,13 +60,50 @@ public sealed class SettingsModuleCM1FeatureTests
         var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
         await vm.InitializeAsync();
 
-        vm.VersionUpdateVersionType = "Nightly";
-        vm.VersionUpdateResourceSource = "MirrorChyan";
+        var feedPath = Path.Combine(Path.GetTempPath(), $"maa-unified-settings-feed-{Guid.NewGuid():N}.json");
+        try
+        {
+            await File.WriteAllTextAsync(feedPath, """
+                [
+                  {
+                    "tag_name": "v2.0.0",
+                    "name": "Release v2.0.0",
+                    "body": "Line one.\nLine two.",
+                    "prerelease": false,
+                    "assets": [
+                      {
+                        "name": "MAAUnified-v2.0.0.zip",
+                        "browser_download_url": "https://example.com/MAAUnified-v2.0.0.zip",
+                        "size": 1234
+                      }
+                    ]
+                  }
+                ]
+                """);
 
-        await vm.CheckVersionUpdateAsync();
+            vm.VersionUpdateVersionType = "Stable";
+            vm.VersionUpdateResourceApi = feedPath;
 
-        Assert.Contains("Checked updates on channel `Nightly` via `MirrorChyan`.", vm.VersionUpdateStatusMessage, StringComparison.Ordinal);
-        Assert.False(vm.HasVersionUpdateErrorMessage);
+            await vm.CheckVersionUpdateAsync();
+
+            Assert.Contains("发现新版本", vm.VersionUpdateStatusMessage, StringComparison.Ordinal);
+            Assert.False(vm.HasVersionUpdateErrorMessage);
+            Assert.Equal("Release v2.0.0", vm.VersionUpdateName);
+        }
+        finally
+        {
+            try
+            {
+                if (File.Exists(feedPath))
+                {
+                    File.Delete(feedPath);
+                }
+            }
+            catch
+            {
+                // Best-effort cleanup.
+            }
+        }
     }
 
     [Fact]

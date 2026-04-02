@@ -2,6 +2,7 @@ using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.TaskParams;
 using MAAUnified.CoreBridge;
+using System.Collections.Generic;
 using System.Text.Json;
 
 namespace MAAUnified.Application.Orchestration;
@@ -220,6 +221,30 @@ public sealed class UnifiedSessionService
         }
 
         return CoreResult<int>.Ok(appended);
+    }
+
+    public async Task<CoreResult<int>> AppendCoreTasksAsync(
+        IEnumerable<CoreTaskRequest> coreTasks,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ClearTaskIdMappings();
+
+        var index = 0;
+        foreach (var task in coreTasks)
+        {
+            var appendResult = await _bridge.AppendTaskAsync(task, cancellationToken);
+            if (!appendResult.Success)
+            {
+                ClearTaskIdMappings();
+                return CoreResult<int>.Fail(appendResult.Error!);
+            }
+
+            SetTaskIdMapping(appendResult.Value, index);
+            index += 1;
+        }
+
+        return CoreResult<int>.Ok(index);
     }
 
     public async Task<CoreResult<bool>> StartAsync(CancellationToken cancellationToken = default)

@@ -9,7 +9,7 @@
     <StackPanel Grid.Row="1"
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.SectionTopMargin}">
-      <TextBlock Classes="settings-field-caption" Text="客户端类型" />
+      <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Game.ClientType]}" />
       <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                 ItemsSource="{Binding ConnectionGameSharedState.ClientTypeOptions}"
                 SelectedItem="{Binding ConnectionGameSharedState.SelectedClientTypeOption}">
@@ -24,7 +24,7 @@
     <StackPanel Grid.Row="2"
                 Classes="settings-centered-column"
                 Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}">
-      <CheckBox Content="划火柴模式（自动战斗相关）（不稳定，暂不推荐开启）"
+      <CheckBox Content="{Binding RootTexts[Settings.Game.DeploymentWithPause]}"
                 HorizontalAlignment="Center"
                 IsChecked="{Binding DeploymentWithPause}" />
     </StackPanel>
@@ -37,8 +37,8 @@
         <TextBlock Grid.Column="0"
                    Classes="settings-field-caption"
                    Margin="0"
-                   Text="开始前脚本" />
-        <controls:TooltipHint Grid.Column="1" Tip="示例：&quot;C:\1.cmd&quot; -minimized" />
+                   Text="{Binding RootTexts[Settings.Game.StartsWithScript]}" />
+        <controls:TooltipHint Grid.Column="1" Tip="{Binding RootTexts[Settings.Game.StartsWithScriptTip]}" />
       </Grid>
       <TextBox Width="{DynamicResource MAA.Size.Settings.FieldInputWidth}"
                Text="{Binding StartsWithScript, UpdateSourceTrigger=LostFocus}" />
@@ -52,8 +52,8 @@
         <TextBlock Grid.Column="0"
                    Classes="settings-field-caption"
                    Margin="0"
-                   Text="结束后脚本" />
-        <controls:TooltipHint Grid.Column="1" Tip="示例：&quot;C:\1.cmd&quot; -noWindow" />
+                   Text="{Binding RootTexts[Settings.Game.EndsWithScript]}" />
+        <controls:TooltipHint Grid.Column="1" Tip="{Binding RootTexts[Settings.Game.EndsWithScriptTip]}" />
       </Grid>
       <TextBox Width="{DynamicResource MAA.Size.Settings.FieldInputWidth}"
                Text="{Binding EndsWithScript, UpdateSourceTrigger=LostFocus}" />
@@ -65,8 +65,8 @@
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   Spacing="{DynamicResource MAA.Spacing.Large}">
-        <CheckBox Content="自动战斗时启用上述脚本" IsChecked="{Binding CopilotWithScript}" />
-        <CheckBox Content="手动暂停时启用上述脚本" IsChecked="{Binding ManualStopWithScript}" />
+        <CheckBox Content="{Binding RootTexts[Settings.Game.UseScriptOnCopilot]}" IsChecked="{Binding CopilotWithScript}" />
+        <CheckBox Content="{Binding RootTexts[Settings.Game.UseScriptOnManualStop]}" IsChecked="{Binding ManualStopWithScript}" />
       </StackPanel>
     </StackPanel>
 
@@ -76,8 +76,8 @@
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   Spacing="{DynamicResource MAA.Spacing.Large}">
-        <CheckBox Content="运行任务时阻止休眠" IsChecked="{Binding BlockSleep}" />
-        <CheckBox Content="阻止休眠时保持屏幕常亮"
+        <CheckBox Content="{Binding RootTexts[Settings.Game.BlockSleep]}" IsChecked="{Binding BlockSleep}" />
+        <CheckBox Content="{Binding RootTexts[Settings.Game.BlockSleepWithScreenOn]}"
                   IsChecked="{Binding BlockSleepWithScreenOn}"
                   IsVisible="{Binding ShowBlockSleepWithScreenOnOption}" />
       </StackPanel>
@@ -89,13 +89,13 @@
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
                   Spacing="{DynamicResource MAA.Spacing.Large}">
-        <CheckBox Content="上报企鹅物流" IsChecked="{Binding EnablePenguin}" />
-        <CheckBox Content="上报一图流" IsChecked="{Binding EnableYituliu}" />
+        <CheckBox Content="{Binding RootTexts[Settings.Game.EnablePenguin]}" IsChecked="{Binding EnablePenguin}" />
+        <CheckBox Content="{Binding RootTexts[Settings.Game.EnableYituliu]}" IsChecked="{Binding EnableYituliu}" />
       </StackPanel>
       <StackPanel Classes="settings-centered-column"
                   Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}"
                   IsVisible="{Binding ShowPenguinIdField}">
-        <TextBlock Classes="settings-field-caption" Text="企鹅物流汇报 ID（仅数字部分）" />
+        <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Game.PenguinId]}" />
         <TextBox Width="{DynamicResource MAA.Size.Settings.FieldInputWidth}"
                  Text="{Binding PenguinId, UpdateSourceTrigger=LostFocus}" />
       </StackPanel>
@@ -106,7 +106,7 @@
           Margin="{DynamicResource MAA.Thickness.Settings.RowMargin}"
           ColumnDefinitions="250,250">
       <StackPanel Grid.Column="0" Classes="settings-centered-column">
-        <TextBlock Classes="settings-field-caption" Text="任务超时时间（分钟）" />
+        <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Game.TaskTimeoutMinutes]}" />
         <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                                         Minimum="0"
                                         Maximum="1440"
@@ -114,7 +114,7 @@
       </StackPanel>
 
       <StackPanel Grid.Column="1" Classes="settings-centered-column">
-        <TextBlock Classes="settings-field-caption" Text="提醒间隔时间（分钟）" />
+        <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Game.ReminderIntervalMinutes]}" />
         <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                                         Minimum="1"
                                         Maximum="1440"

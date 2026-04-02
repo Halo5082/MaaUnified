@@ -280,7 +280,7 @@ Single-directory implementation root for the new Avalonia frontend replacement.
 
 ### P2 高级模块页联调（4人天）
 具体要求：
-1. `Advanced/*View.axaml`（RemoteControlCenter/Overlay/TrayIntegration/StageManager/WebApi/ExternalNotificationProviders）从占位文本升级为真实能力入口。
+1. 高级能力按 WPF 产品口径收敛：`RemoteControl/ExternalNotification/GUI Tray` 进入 `Settings`，`Overlay` 依赖 `TaskQueue/Copilot` 正式入口，`StageManager` 只作为底层能力保留，`WebApi` 保留源码但退出用户可见入口。
 2. 与 `IPlatformCapabilityService`、`IRemoteControlFeatureService`、`INotificationProviderFeatureService` 打通，至少提供查询、执行、结果回显三类能力。
 3. 所有高级入口失败必须可见并可定位到 `debug/avalonia-ui-errors.log` 或 `debug/avalonia-platform-events.log`。
 

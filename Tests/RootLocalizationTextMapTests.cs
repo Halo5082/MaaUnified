@@ -75,6 +75,20 @@ public sealed class RootLocalizationTextMapTests
     }
 
     [Fact]
+    public void ObservedTaskQueueRootKeys_ShouldResolveWithoutFallingBackToRawKey()
+    {
+        var map = new RootLocalizationTextMap("Root.Localization.TaskQueue");
+
+        map.Language = "en-us";
+        Assert.Equal("Select a task from the left list to edit its settings.", map["TaskQueue.SelectionHint"]);
+        Assert.Equal("Task Queue", map["TaskQueue.Module.TaskQueue"]);
+
+        map.Language = "zh-cn";
+        Assert.Equal("从左侧任务列表选择一个任务以编辑其设置。", map["TaskQueue.SelectionHint"]);
+        Assert.Equal("任务队列", map["TaskQueue.Module.TaskQueue"]);
+    }
+
+    [Fact]
     public void SettingsActionKeys_ShouldMatchWpfBaselineForZhAndEn()
     {
         var map = new RootLocalizationTextMap("Root.Localization.Settings");
@@ -92,5 +106,31 @@ public sealed class RootLocalizationTextMapTests
         Assert.Equal("Generate Support Payload", map["Settings.Action.BuildIssueReport"]);
         Assert.Equal("Open Debug Folder", map["Settings.Action.OpenDebugDirectory"]);
         Assert.Equal("View Announcement", map["Settings.Action.CheckAnnouncement"]);
+    }
+
+    [Fact]
+    public void HotkeyCaptureKeys_ShouldResolveForAllSupportedSettingsLocales()
+    {
+        var map = new RootLocalizationTextMap("Root.Localization.Settings");
+
+        map.Language = "zh-cn";
+        Assert.Equal("请按下快捷键...", map["Settings.Hotkey.Capture.Prompt"]);
+        Assert.Equal("暂不支持该按键：{0}", map["Settings.Hotkey.Capture.Error.UnsupportedKey"]);
+
+        map.Language = "zh-tw";
+        Assert.Equal("請按下快捷鍵...", map["Settings.Hotkey.Capture.Prompt"]);
+        Assert.Equal("暫不支援該按鍵：{0}", map["Settings.Hotkey.Capture.Error.UnsupportedKey"]);
+
+        map.Language = "en-us";
+        Assert.Equal("Press shortcut...", map["Settings.Hotkey.Capture.Prompt"]);
+        Assert.Equal("Unsupported key {0}", map["Settings.Hotkey.Capture.Error.UnsupportedKey"]);
+
+        map.Language = "ja-jp";
+        Assert.Equal("ショートカットを入力...", map["Settings.Hotkey.Capture.Prompt"]);
+        Assert.Equal("このキーはまだサポートされていません: {0}", map["Settings.Hotkey.Capture.Error.UnsupportedKey"]);
+
+        map.Language = "ko-kr";
+        Assert.Equal("단축키를 눌러 주세요...", map["Settings.Hotkey.Capture.Prompt"]);
+        Assert.Equal("아직 지원하지 않는 키입니다: {0}", map["Settings.Hotkey.Capture.Error.UnsupportedKey"]);
     }
 }

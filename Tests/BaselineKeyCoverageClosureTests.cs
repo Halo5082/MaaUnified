@@ -11,8 +11,10 @@ public sealed class BaselineKeyCoverageClosureTests
         Assert.Contains("RemoteControl.RemoteControlDeviceIdentity", keySet);
 
         var root = BaselineTestSupport.GetMaaUnifiedRoot();
-        var vmPath = Path.Combine(root, "App", "ViewModels", "Settings", "SettingsPageViewModel.cs");
-        var vmSource = File.ReadAllText(vmPath);
+        var vmSource = string.Join(
+            "\n",
+            File.ReadAllText(Path.Combine(root, "App", "ViewModels", "Settings", "SettingsPageViewModel.cs")),
+            File.ReadAllText(Path.Combine(root, "App", "ViewModels", "Settings", "SettingsPageViewModel.RemoteNotification.cs")));
 
         Assert.Contains("[ConfigurationKeys.RemoteControlUserIdentity] = normalizedUserIdentity", vmSource, StringComparison.Ordinal);
         Assert.Contains("[ConfigurationKeys.RemoteControlDeviceIdentity] = normalizedDeviceIdentity", vmSource, StringComparison.Ordinal);
@@ -35,8 +37,10 @@ public sealed class BaselineKeyCoverageClosureTests
         Assert.Contains("[\"accessToken\"] = ConfigurationKeys.ExternalNotificationDingTalkAccessToken", vmSource, StringComparison.Ordinal);
         Assert.Contains("[\"secret\"] = ConfigurationKeys.ExternalNotificationDingTalkSecret", vmSource, StringComparison.Ordinal);
 
-        var servicePath = Path.Combine(root, "Application", "Services", "Features", "FeatureServices.cs");
-        var serviceSource = File.ReadAllText(servicePath);
+        var serviceSource = string.Join(
+            "\n",
+            File.ReadAllText(Path.Combine(root, "Application", "Services", "Features", "FeatureServices.cs")),
+            File.ReadAllText(Path.Combine(root, "Application", "Services", "Features", "NotificationProviderFeatureService.cs")));
         Assert.Contains("if (provider == \"DingTalk\")", serviceSource, StringComparison.Ordinal);
         Assert.Contains("DingTalk requires `accessToken`.", serviceSource, StringComparison.Ordinal);
         Assert.Contains("return await SendDingTalkAsync(parameters, title, message, cancellationToken);", serviceSource, StringComparison.Ordinal);

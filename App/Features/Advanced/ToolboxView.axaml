@@ -1,187 +1,183 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:advanced="clr-namespace:MAAUnified.App.Features.Advanced"
              xmlns:controls="clr-namespace:MAAUnified.App.Controls"
              x:Class="MAAUnified.App.Features.Advanced.ToolboxView">
-  <TabControl Classes="toolbox-nav"
-              Margin="{DynamicResource MAA.Thickness.MarginSectionVertical}">
-    <TabItem Header="招募识别">
-      <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
-            RowDefinitions="*,Auto">
-        <ScrollViewer Grid.Row="0"
-                      Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Disabled">
-          <StackPanel>
-            <TextBlock Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
-                       Classes="long-wrap"
-                       FontWeight="SemiBold"
-                       Text="{Binding RecruitInfo}" />
-            <StackPanel Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
-                        IsVisible="{Binding HasRecruitResults}"
-                        MinHeight="{DynamicResource MAA.Size.Toolbox.RecruitResultMinHeight}">
-              <ItemsControl ItemsSource="{Binding RecruitResultLines}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <StackPanel>
-                      <ItemsControl ItemsSource="{Binding Segments}"
-                                    IsVisible="{Binding HasSegments}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <WrapPanel />
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate>
-                            <TextBlock Margin="0,0,12,0"
-                                       Text="{Binding Text}"
-                                       Foreground="{Binding Foreground}"
-                                       TextWrapping="NoWrap" />
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                      <Border Height="{Binding SpacerHeight}"
-                              Background="Transparent"
-                              IsVisible="{Binding HasSpacer}" />
-                    </StackPanel>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+  <Grid RowDefinitions="*,Auto">
+    <TabControl Grid.Row="0"
+                Classes="toolbox-nav"
+                SelectedIndex="{Binding SelectedTabIndex}"
+                Margin="{DynamicResource MAA.Thickness.MarginSectionVertical}">
+      <TabItem Header="{Binding Texts[Toolbox.Tab.Recruit]}">
+        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
+              RowDefinitions="*,Auto">
+          <ScrollViewer Grid.Row="0"
+                        Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
+                        VerticalScrollBarVisibility="Auto"
+                        HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+              <TextBlock Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
+                         Classes="long-wrap"
+                         FontWeight="SemiBold"
+                         Text="{Binding RecruitInfo}" />
+              <StackPanel Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
+                          IsVisible="{Binding HasRecruitResults}"
+                          MinHeight="{DynamicResource MAA.Size.Toolbox.RecruitResultMinHeight}">
+                <ItemsControl ItemsSource="{Binding RecruitResultLines}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel>
+                        <ItemsControl ItemsSource="{Binding Segments}"
+                                      IsVisible="{Binding HasSegments}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <WrapPanel />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <TextBlock Margin="0,0,12,0"
+                                         Text="{Binding Text}"
+                                         Foreground="{Binding Foreground}"
+                                         TextWrapping="NoWrap" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Border Height="{Binding SpacerHeight}"
+                                Background="Transparent"
+                                IsVisible="{Binding HasSpacer}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
             </StackPanel>
-          </StackPanel>
-        </ScrollViewer>
+          </ScrollViewer>
 
-        <Grid Grid.Row="1"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              ColumnDefinitions="Auto,Auto,Auto">
-          <StackPanel Grid.Column="0"
-                      Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
-                      VerticalAlignment="Center">
-            <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
-                      Content="自动设置时间"
-                      IsChecked="{Binding RecruitAutoSetTime}" />
-            <StackPanel Orientation="Horizontal">
-              <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxWrapMargin}"
-                        IsChecked="{Binding RecruitmentShowPotential}">
-                <TextBlock MaxWidth="{DynamicResource MAA.Size.Toolbox.RecruitPotentialTextMaxWidth}"
-                           Text="显示干员潜能（4/5/6★ Tags）"
-                           TextWrapping="Wrap" />
-              </CheckBox>
-              <controls:TooltipHint Tip="{Binding RecruitPotentialTip}" />
-            </StackPanel>
-          </StackPanel>
-
-          <StackPanel Grid.Column="1"
-                      Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
-                      HorizontalAlignment="Center"
-                      VerticalAlignment="Center">
-            <StackPanel Orientation="Horizontal"
-                        Spacing="{DynamicResource MAA.Spacing.Small}">
+          <Grid Grid.Row="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                ColumnDefinitions="Auto,Auto,Auto">
+            <StackPanel Grid.Column="0"
+                        Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
+                        VerticalAlignment="Center">
               <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
-                        VerticalAlignment="Bottom"
-                        Content="自动选择 3 星 Tags"
-                        IsChecked="{Binding ChooseLevel3}" />
-              <StackPanel Orientation="Horizontal"
-                          Spacing="{DynamicResource MAA.Spacing.Small}"
-                          IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="1"
-                                                Maximum="9"
-                                                Value="{Binding RecruitLevel3Hour}" />
-                <TextBlock VerticalAlignment="Center"
-                           Text=":" />
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="0"
-                                                Maximum="50"
-                                                Increment="10"
-                                                Value="{Binding RecruitLevel3Minute}" />
+                        Content="{Binding Texts[Toolbox.Recruit.AutoSetTime]}"
+                        IsChecked="{Binding RecruitAutoSetTime}" />
+              <StackPanel Orientation="Horizontal">
+                <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxWrapMargin}"
+                          IsChecked="{Binding RecruitmentShowPotential}">
+                  <TextBlock MaxWidth="{DynamicResource MAA.Size.Toolbox.RecruitPotentialTextMaxWidth}"
+                             Text="{Binding Texts[Toolbox.Recruit.ShowPotential]}"
+                             TextWrapping="Wrap" />
+                </CheckBox>
+                <controls:TooltipHint Tip="{Binding RecruitPotentialTip}" />
               </StackPanel>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal"
-                        Spacing="{DynamicResource MAA.Spacing.Small}">
-              <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
-                        VerticalAlignment="Bottom"
-                        Content="自动选择 4 星 Tags"
-                        IsChecked="{Binding ChooseLevel4}" />
+            <StackPanel Grid.Column="1"
+                        Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
               <StackPanel Orientation="Horizontal"
-                          Spacing="{DynamicResource MAA.Spacing.Small}"
-                          IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="1"
-                                                Maximum="9"
-                                                Value="{Binding RecruitLevel4Hour}" />
-                <TextBlock VerticalAlignment="Center"
-                           Text=":" />
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="0"
-                                                Maximum="50"
-                                                Increment="10"
-                                                Value="{Binding RecruitLevel4Minute}" />
+                          Spacing="{DynamicResource MAA.Spacing.Small}">
+                <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
+                          VerticalAlignment="Bottom"
+                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect3]}"
+                          IsChecked="{Binding ChooseLevel3}" />
+                <StackPanel Orientation="Horizontal"
+                            Spacing="{DynamicResource MAA.Spacing.Small}"
+                            IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
+                  <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
+                                                  Minimum="1"
+                                                  Maximum="9"
+                                                  Value="{Binding RecruitLevel3Hour}" />
+                  <TextBlock VerticalAlignment="Center"
+                             Text=":" />
+                  <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
+                                                  Minimum="0"
+                                                  Maximum="50"
+                                                  Increment="10"
+                                                  Value="{Binding RecruitLevel3Minute}" />
+                </StackPanel>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal"
+                          Spacing="{DynamicResource MAA.Spacing.Small}">
+                <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
+                          VerticalAlignment="Bottom"
+                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect4]}"
+                          IsChecked="{Binding ChooseLevel4}" />
+                <StackPanel Orientation="Horizontal"
+                            Spacing="{DynamicResource MAA.Spacing.Small}"
+                            IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
+                  <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
+                                                  Minimum="1"
+                                                  Maximum="9"
+                                                  Value="{Binding RecruitLevel4Hour}" />
+                  <TextBlock VerticalAlignment="Center"
+                             Text=":" />
+                  <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
+                                                  Minimum="0"
+                                                  Maximum="50"
+                                                  Increment="10"
+                                                  Value="{Binding RecruitLevel4Minute}" />
+                </StackPanel>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal"
+                          Spacing="{DynamicResource MAA.Spacing.Small}">
+                <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
+                          VerticalAlignment="Bottom"
+                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect5]}"
+                          IsChecked="{Binding ChooseLevel5}" />
+                <StackPanel Orientation="Horizontal"
+                            Spacing="{DynamicResource MAA.Spacing.Small}"
+                            IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
+                  <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
+                                                  Minimum="1"
+                                                  Maximum="9"
+                                                  Value="{Binding RecruitLevel5Hour}" />
+                  <TextBlock VerticalAlignment="Center"
+                             Text=":" />
+                  <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
+                                                  Minimum="0"
+                                                  Maximum="50"
+                                                  Increment="10"
+                                                  Value="{Binding RecruitLevel5Minute}" />
+                </StackPanel>
+              </StackPanel>
+
+              <StackPanel Orientation="Horizontal"
+                          Spacing="{DynamicResource MAA.Spacing.Small}">
+                <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
+                          VerticalAlignment="Bottom"
+                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect6]}"
+                          IsChecked="{Binding ChooseLevel6}" />
+                <StackPanel Orientation="Horizontal"
+                            Spacing="{DynamicResource MAA.Spacing.Small}"
+                            IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
+                  <TextBlock VerticalAlignment="Center"
+                             Classes="subtle"
+                             Text="{Binding Texts[Toolbox.Recruit.FixedSixStar]}" />
+                </StackPanel>
               </StackPanel>
             </StackPanel>
 
-            <StackPanel Orientation="Horizontal"
-                        Spacing="{DynamicResource MAA.Spacing.Small}">
-              <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
-                        VerticalAlignment="Bottom"
-                        Content="自动选择 5 星 Tags"
-                        IsChecked="{Binding ChooseLevel5}" />
-              <StackPanel Orientation="Horizontal"
-                          Spacing="{DynamicResource MAA.Spacing.Small}"
-                          IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="1"
-                                                Maximum="9"
-                                                Value="{Binding RecruitLevel5Hour}" />
-                <TextBlock VerticalAlignment="Center"
-                           Text=":" />
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="0"
-                                                Maximum="50"
-                                                Increment="10"
-                                                Value="{Binding RecruitLevel5Minute}" />
-              </StackPanel>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal"
-                        Spacing="{DynamicResource MAA.Spacing.Small}">
-              <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
-                        VerticalAlignment="Bottom"
-                        Content="自动选择 6 星 Tags"
-                        IsChecked="{Binding ChooseLevel6}" />
-              <StackPanel Orientation="Horizontal"
-                          Spacing="{DynamicResource MAA.Spacing.Small}"
-                          IsVisible="{Binding ShowRecruitAutoSetTimeControls}"
-                          IsEnabled="False">
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="9"
-                                                Maximum="9"
-                                                Value="9" />
-                <TextBlock VerticalAlignment="Center"
-                           Text=":" />
-                <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.RecruitTimePickerWidth}"
-                                                Minimum="0"
-                                                Maximum="0"
-                                                Value="0" />
-              </StackPanel>
-            </StackPanel>
-          </StackPanel>
-
-          <Button Grid.Column="2"
-                  Width="{DynamicResource MAA.Size.Toolbox.ActionButtonWidth}"
-                  Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
-                  Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
-                  Classes="wpf-button"
-                  Content="开始识别"
-                  Click="OnRecruitStartClick" />
+            <Button Grid.Column="2"
+                    Width="{DynamicResource MAA.Size.Toolbox.ActionButtonWidth}"
+                    Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
+                    Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
+                    Classes="wpf-button"
+                    Content="{Binding Texts[Toolbox.Action.StartRecognition]}"
+                    Click="OnRecruitStartClick" />
+          </Grid>
         </Grid>
-      </Grid>
-    </TabItem>
+      </TabItem>
 
-    <TabItem Header="干员识别">
-      <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
-            RowDefinitions="Auto,*,Auto">
+      <TabItem Header="{Binding Texts[Toolbox.Tab.OperBox]}">
+        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
+              RowDefinitions="Auto,*,Auto">
         <TextBlock Grid.Row="0"
                    Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
                    HorizontalAlignment="Center"
@@ -307,7 +303,7 @@
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
                   Click="OnOperBoxExportClick">
-            <TextBlock Text="复制到剪切板"
+            <TextBlock Text="{Binding Texts[Toolbox.OperBox.CopyToClipboard]}"
                        TextAlignment="Center"
                        TextWrapping="Wrap" />
           </Button>
@@ -315,15 +311,15 @@
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
-                  Content="开始识别"
+                  Content="{Binding Texts[Toolbox.Action.StartRecognition]}"
                   Click="OnOperBoxStartClick" />
         </StackPanel>
       </Grid>
-    </TabItem>
+      </TabItem>
 
-    <TabItem Header="仓库识别">
-      <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
-            RowDefinitions="Auto,*,Auto">
+      <TabItem Header="{Binding Texts[Toolbox.Tab.Depot]}">
+        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
+              RowDefinitions="Auto,*,Auto">
         <StackPanel Grid.Row="0">
           <TextBlock HorizontalAlignment="Center"
                      Text="{Binding LastDepotSyncDisplayText}"
@@ -382,7 +378,7 @@
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
                   Click="OnDepotExportArkPlannerClick">
-            <TextBlock Text="导出至企鹅物流刷图规划"
+            <TextBlock Text="{Binding Texts[Toolbox.Depot.ExportArkPlanner]}"
                        TextAlignment="Center"
                        TextWrapping="Wrap" />
           </Button>
@@ -391,7 +387,7 @@
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
                   Click="OnDepotExportLoliconClick">
-            <TextBlock Text="导出至明日方舟工具箱"
+            <TextBlock Text="{Binding Texts[Toolbox.Depot.ExportLolicon]}"
                        TextAlignment="Center"
                        TextWrapping="Wrap" />
           </Button>
@@ -399,15 +395,15 @@
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
-                  Content="开始识别"
+                  Content="{Binding Texts[Toolbox.Action.StartRecognition]}"
                   Click="OnDepotStartClick" />
         </StackPanel>
       </Grid>
-    </TabItem>
+      </TabItem>
 
-    <TabItem Header="抽卡">
-      <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
-            RowDefinitions="Auto,*,Auto">
+      <TabItem Header="{Binding Texts[Toolbox.Tab.Gacha]}">
+        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
+              RowDefinitions="Auto,*,Auto">
         <TextBlock Grid.Row="0"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
@@ -454,7 +450,7 @@
                          TextAlignment="Center"
                          FontSize="{DynamicResource MAA.FontSize.Toolbox.WarningLead}"
                          FontWeight="Bold"
-                         Text="请注意，这是"
+                         Text="{Binding Texts[Toolbox.Gacha.Disclaimer.Lead]}"
                          TextWrapping="Wrap" />
               <TextBlock x:Name="GachaDisclaimerEmphasisText"
                          Margin="{DynamicResource MAA.Thickness.Toolbox.WarningEmphasisMargin}"
@@ -462,7 +458,7 @@
                          TextAlignment="Center"
                          FontSize="{DynamicResource MAA.FontSize.Toolbox.WarningEmphasis}"
                          FontWeight="Bold"
-                         Text="真正的抽卡"
+                         Text="{Binding Texts[Toolbox.Gacha.Disclaimer.Emphasis]}"
                          TextWrapping="Wrap">
                   <TextBlock.Foreground>
                     <LinearGradientBrush StartPoint="0%,50%"
@@ -489,20 +485,20 @@
                          HorizontalAlignment="Center"
                          TextAlignment="Center"
                          Classes="long-wrap"
-                         Text="抽卡工具会直接操作当前客户端。请确认这不是你的主号，并确保模拟器已进入对应抽卡界面。" />
+                         Text="{Binding Texts[Toolbox.Gacha.Disclaimer.Body]}" />
 
               <Button Width="{DynamicResource MAA.Size.Toolbox.WarningButtonWidth}"
                       Height="{DynamicResource MAA.Size.Toolbox.WarningButtonHeight}"
                       Margin="{DynamicResource MAA.Thickness.Toolbox.WarningButtonMargin}"
                       HorizontalAlignment="Center"
                       Classes="wpf-button"
-                      Content="知道了"
+                      Content="{Binding Texts[Toolbox.Gacha.Disclaimer.Acknowledge]}"
                       Click="OnGachaAgreeDisclaimerClick" />
 
               <CheckBox Margin="{DynamicResource MAA.Thickness.ItemPadding}"
                         HorizontalAlignment="Center"
                         VerticalContentAlignment="Center"
-                        Content="下次不再提示"
+                        Content="{Binding Texts[Toolbox.Gacha.Disclaimer.NoMore]}"
                         IsChecked="{Binding GachaShowDisclaimerNoMore}" />
             </StackPanel>
           </Border>
@@ -517,13 +513,13 @@
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonMediumMargin}"
                   Classes="wpf-button"
-                  Content="寻访一次"
+                  Content="{Binding Texts[Toolbox.Gacha.DrawOnce]}"
                   Click="OnGachaOnceClick" />
           <Button Width="{DynamicResource MAA.Size.Toolbox.ActionButtonWidth}"
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonMediumMargin}"
                   Classes="wpf-button"
-                  Content="寻访十次"
+                  Content="{Binding Texts[Toolbox.Gacha.DrawTen]}"
                   Click="OnGachaTenTimesClick" />
           <Button Width="{DynamicResource MAA.Size.Toolbox.ActionButtonWidth}"
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
@@ -533,11 +529,11 @@
                   Click="OnGachaPeepClick" />
         </StackPanel>
       </Grid>
-    </TabItem>
+      </TabItem>
 
-    <TabItem Header="窥屏">
-      <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
-            RowDefinitions="*,Auto">
+      <TabItem Header="{Binding Texts[Toolbox.Tab.Peep]}">
+        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
+              RowDefinitions="*,Auto">
         <TextBlock Grid.Row="0"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
@@ -581,7 +577,7 @@
                   Click="OnPeepCommandClick" />
           <StackPanel VerticalAlignment="Center">
             <TextBlock HorizontalAlignment="Center"
-                       Text="目标帧率" />
+                       Text="{Binding Texts[Toolbox.Peep.TargetFps]}" />
             <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.PeepFpsWidth}"
                                             Minimum="1"
                                             Maximum="60"
@@ -589,16 +585,16 @@
           </StackPanel>
         </StackPanel>
       </Grid>
-    </TabItem>
+      </TabItem>
 
-    <TabItem Header="小游戏">
-      <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
-            RowDefinitions="Auto,Auto,*,Auto">
+      <TabItem Header="{Binding Texts[Toolbox.Tab.MiniGame]}">
+        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
+              RowDefinitions="Auto,Auto,*,Auto">
         <Grid Width="{DynamicResource MAA.Size.Toolbox.FormPanelWidth}"
               HorizontalAlignment="Center"
               ColumnDefinitions="Auto,*">
           <TextBlock VerticalAlignment="Center"
-                     Text="小游戏名称" />
+                     Text="{Binding Texts[Toolbox.MiniGame.Name]}" />
           <ComboBox Grid.Column="1"
                     Margin="{DynamicResource MAA.Thickness.Toolbox.FieldMargin}"
                     ItemsSource="{Binding MiniGameTaskList}"
@@ -619,7 +615,7 @@
               RowDefinitions="Auto,Auto">
           <Grid ColumnDefinitions="Auto,*">
             <TextBlock VerticalAlignment="Center"
-                       Text="结局" />
+                       Text="{Binding Texts[Toolbox.MiniGame.Ending]}" />
             <ComboBox Grid.Column="1"
                       Margin="{DynamicResource MAA.Thickness.Toolbox.FieldMargin}"
                       ItemsSource="{Binding MiniGameSecretFrontEndingOptions}"
@@ -630,7 +626,7 @@
                 Margin="{DynamicResource MAA.Thickness.Toolbox.ActionTopMargin}"
                 ColumnDefinitions="Auto,*">
             <TextBlock VerticalAlignment="Center"
-                       Text="优先系列事件" />
+                       Text="{Binding Texts[Toolbox.MiniGame.EventPriority]}" />
             <ComboBox Grid.Column="1"
                       Margin="{DynamicResource MAA.Thickness.Toolbox.FieldMargin}"
                       ItemsSource="{Binding MiniGameSecretFrontEventOptions}"
@@ -660,6 +656,108 @@
                 Content="{Binding MiniGameCommandText}"
                 Click="OnMiniGameCommandClick" />
       </Grid>
-    </TabItem>
-  </TabControl>
+      </TabItem>
+
+      <TabItem Header="{Binding Texts[Toolbox.Tab.Advanced]}">
+        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
+              RowDefinitions="Auto,*">
+          <TextBlock Classes="subtle long-wrap"
+                     Text="{Binding Texts[Toolbox.Advanced.EntryDescription]}" />
+
+          <TabControl Grid.Row="1"
+                      Margin="{DynamicResource MAA.Thickness.Toolbox.ActionTopMargin}">
+            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.StageManager]}">
+              <advanced:StageManagerView DataContext="{Binding StageManagerPage}" />
+            </TabItem>
+            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.Overlay]}">
+              <advanced:OverlayView DataContext="{Binding OverlayPage}" />
+            </TabItem>
+            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.Tray]}">
+              <advanced:TrayIntegrationView DataContext="{Binding TrayIntegrationPage}" />
+            </TabItem>
+            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.RemoteControl]}">
+              <advanced:RemoteControlCenterView DataContext="{Binding RemoteControlCenterPage}" />
+            </TabItem>
+            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.ExternalNotification]}">
+              <advanced:ExternalNotificationProvidersView DataContext="{Binding ExternalNotificationProvidersPage}" />
+            </TabItem>
+            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.WebApi]}">
+              <advanced:WebApiView DataContext="{Binding WebApiPage}" />
+            </TabItem>
+          </TabControl>
+        </Grid>
+      </TabItem>
+    </TabControl>
+
+    <Border Grid.Row="1"
+            Margin="{DynamicResource MAA.Thickness.MarginSectionVertical}"
+            Padding="{DynamicResource MAA.Thickness.SectionPadding}"
+            Classes="wpf-panel wpf-panel-strong">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
+        <TextBlock Classes="section-title"
+                   Text="{Binding Texts[Toolbox.Section.ExecutionReview]}" />
+
+        <StackPanel Grid.Row="1"
+                    Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
+                    Spacing="{DynamicResource MAA.Spacing.Small}">
+          <TextBlock Classes="subtle"
+                     Text="{Binding Texts[Toolbox.ExecutionReview.ResultLabel]}" />
+          <TextBlock Classes="long-wrap"
+                     Text="{Binding ResultText}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2"
+                    Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
+                    Spacing="{DynamicResource MAA.Spacing.Small}">
+          <TextBlock Classes="subtle"
+                     Text="{Binding Texts[Toolbox.ExecutionReview.ParametersLabel]}" />
+          <TextBlock Classes="long-wrap"
+                     Text="{Binding CurrentToolParameters}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="3"
+                    Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
+                    Spacing="{DynamicResource MAA.Spacing.Small}">
+          <TextBlock Classes="subtle"
+                     Text="{Binding Texts[Toolbox.ExecutionReview.HistoryLabel]}" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="4"
+                      Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+          <ItemsControl ItemsSource="{Binding ExecutionHistory}"
+                        IsVisible="{Binding HasExecutionHistory}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Classes="wpf-card"
+                        Classes.status-success="{Binding Success}"
+                        Classes.status-error="{Binding HasErrorCode}"
+                        Margin="{DynamicResource MAA.Thickness.Toolbox.CardMargin}">
+                  <StackPanel Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
+                              Spacing="{DynamicResource MAA.Spacing.Small}">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                      <TextBlock Classes="subtle"
+                                 Text="{Binding ExecutedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" />
+                      <TextBlock Grid.Column="1"
+                                 FontWeight="SemiBold"
+                                 Text="{Binding ToolName}" />
+                      <TextBlock Grid.Column="2"
+                                 Classes="subtle"
+                                 IsVisible="{Binding HasErrorCode}"
+                                 Text="{Binding ErrorCode}" />
+                    </Grid>
+                    <TextBlock Classes="long-wrap"
+                               Text="{Binding ParameterSummary}" />
+                    <TextBlock Classes="long-wrap"
+                               Text="{Binding ResultSummary}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+  </Grid>
 </UserControl>

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
+using System.Text.Json.Nodes;
 using MAAUnified.App.ViewModels.Advanced;
 using MAAUnified.Application.Configuration;
 using MAAUnified.Application.Models;
@@ -90,6 +91,72 @@ public sealed class AdvancedModuleP2FeatureTests
         Assert.True(await WaitForLogContainsAsync(
             fixture.Runtime.DiagnosticsService.ErrorLogPath,
             $"code={UiErrorCode.StageManagerInvalidStageCode}"));
+    }
+
+    [Fact]
+    public async Task StageManager_RefreshLocalAndWeb_ShouldLoadDistinctSnapshots_AndPreferWebCodes()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        WriteStageResource(
+            fixture.Root,
+            relativeDirectory: Path.Combine("resource"),
+            codes: ["LOCAL-1", "LOCAL-2"],
+            taskKeys: ["Annihilation"]);
+        WriteStageResource(
+            fixture.Root,
+            relativeDirectory: Path.Combine("publish", "resource"),
+            codes: ["WEB-1", "WEB-2"],
+            taskKeys: ["WEB-ONLY-3"]);
+
+        var localResult = await fixture.Runtime.StageManagerFeatureService.RefreshLocalAsync("Official");
+        Assert.True(localResult.Success);
+        Assert.NotNull(localResult.Value);
+        Assert.Contains("LOCAL-1", localResult.Value!.LocalStageCodes, StringComparer.Ordinal);
+        Assert.DoesNotContain("WEB-1", localResult.Value.WebStageCodes, StringComparer.Ordinal);
+        Assert.NotNull(localResult.Value.LocalRefreshedAt);
+
+        var webResult = await fixture.Runtime.StageManagerFeatureService.RefreshWebAsync("Official");
+        Assert.True(webResult.Success);
+        Assert.NotNull(webResult.Value);
+        Assert.Contains("LOCAL-1", webResult.Value!.LocalStageCodes, StringComparer.Ordinal);
+        Assert.Contains("WEB-1", webResult.Value.WebStageCodes, StringComparer.Ordinal);
+        Assert.Contains("WEB-ONLY-3", webResult.Value.WebStageCodes, StringComparer.Ordinal);
+        Assert.NotNull(webResult.Value.WebRefreshedAt);
+        Assert.Contains("/publish/resource/stages.json", webResult.Value.WebSourceUrl, StringComparison.Ordinal);
+
+        var preferredCodes = fixture.Runtime.StageManagerFeatureService.GetStageCodes("Official");
+        Assert.Contains("WEB-1", preferredCodes, StringComparer.Ordinal);
+        Assert.DoesNotContain("LOCAL-2", preferredCodes, StringComparer.Ordinal);
+    }
+
+    [Fact]
+    public async Task StageManager_GetStageCodes_ForceReload_ShouldHonorClientSpecificResourceOverride()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        WriteStageResource(
+            fixture.Root,
+            relativeDirectory: Path.Combine("resource"),
+            codes: ["LOCAL-COMMON-1"],
+            taskKeys: ["Annihilation"]);
+        WriteStageResource(
+            fixture.Root,
+            relativeDirectory: Path.Combine("publish", "resource"),
+            codes: ["WEB-COMMON-1"],
+            taskKeys: ["Annihilation"]);
+        WriteStageResource(
+            fixture.Root,
+            relativeDirectory: Path.Combine("publish", "resource", "global", "YoStarEN", "resource"),
+            codes: ["WEB-EN-1"],
+            taskKeys: ["EN-ONLY-2"]);
+
+        var officialCodes = fixture.Runtime.StageManagerFeatureService.GetStageCodes("Official", forceReload: true);
+        Assert.Contains("WEB-COMMON-1", officialCodes, StringComparer.Ordinal);
+        Assert.DoesNotContain("WEB-EN-1", officialCodes, StringComparer.Ordinal);
+
+        var enCodes = fixture.Runtime.StageManagerFeatureService.GetStageCodes("YoStarEN", forceReload: true);
+        Assert.Contains("WEB-EN-1", enCodes, StringComparer.Ordinal);
+        Assert.Contains("EN-ONLY-2", enCodes, StringComparer.Ordinal);
+        Assert.DoesNotContain("WEB-COMMON-1", enCodes, StringComparer.Ordinal);
     }
 
     [Fact]
@@ -230,6 +297,36 @@ public sealed class AdvancedModuleP2FeatureTests
             "\"Success\":false"));
     }
 
+    [Fact]
+    public async Task AdvancedViewModels_InitializeForToolboxAggregation_ShouldExposeUsableState()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        var stageManager = new StageManagerPageViewModel(fixture.Runtime);
+        var providers = new ExternalNotificationProvidersPageViewModel(fixture.Runtime);
+        var remoteControl = new RemoteControlCenterPageViewModel(fixture.Runtime);
+        var tray = new TrayIntegrationPageViewModel(fixture.Runtime);
+        var overlay = new OverlayAdvancedPageViewModel(fixture.Runtime);
+        var webApi = new WebApiPageViewModel(fixture.Runtime);
+
+        await stageManager.InitializeAsync();
+        await providers.InitializeAsync();
+        await remoteControl.InitializeAsync();
+        await tray.InitializeAsync();
+        await overlay.InitializeAsync();
+        await webApi.InitializeAsync();
+
+        Assert.Contains("Official", stageManager.ClientTypeOptions, StringComparer.Ordinal);
+        Assert.False(string.IsNullOrWhiteSpace(stageManager.ClientType));
+        Assert.NotEmpty(providers.Providers);
+        Assert.False(string.IsNullOrWhiteSpace(providers.SelectedProvider));
+        Assert.Equal(5000, remoteControl.PollIntervalMs);
+        Assert.False(string.IsNullOrWhiteSpace(tray.CapabilitySummary));
+        Assert.NotEmpty(overlay.Targets);
+        Assert.NotNull(overlay.SelectedTarget);
+        Assert.False(string.IsNullOrWhiteSpace(webApi.Host));
+        Assert.InRange(webApi.Port, 1, 65535);
+    }
+
     private static async Task<bool> WaitForLogContainsAsync(string path, string expected, int retry = 30, int delayMs = 25)
     {
         for (var i = 0; i < retry; i++)
@@ -247,6 +344,37 @@ public sealed class AdvancedModuleP2FeatureTests
         }
 
         return false;
+    }
+
+    private static void WriteStageResource(
+        string root,
+        string relativeDirectory,
+        IReadOnlyList<string> codes,
+        IReadOnlyList<string> taskKeys)
+    {
+        var directory = Path.Combine(root, relativeDirectory);
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(
+            Path.Combine(directory, "stages.json"),
+            System.Text.Json.JsonSerializer.Serialize(codes.Select(code => new JsonObject
+            {
+                ["code"] = code,
+            })));
+
+        var tasksDirectory = Path.Combine(directory, "tasks");
+        Directory.CreateDirectory(tasksDirectory);
+        var tasks = new JsonObject();
+        foreach (var taskKey in taskKeys)
+        {
+            tasks[taskKey] = new JsonObject
+            {
+                ["action"] = "Click",
+            };
+        }
+
+        File.WriteAllText(
+            Path.Combine(tasksDirectory, "tasks.json"),
+            tasks.ToJsonString());
     }
 
     private sealed class RuntimeFixture : IAsyncDisposable

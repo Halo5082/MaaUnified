@@ -22,6 +22,8 @@ public sealed class RecruitTaskParamsDto
 
     public bool ChooseLevel5 { get; set; }
 
+    public bool ChooseLevel6 { get; set; }
+
     public int Level3Time { get; set; } = 540;
 
     public int Level4Time { get; set; } = 540;

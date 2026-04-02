@@ -135,6 +135,20 @@ public sealed class CopilotListManagementTests
         Assert.Equal("Legacy-SSS", vm.SelectedItem?.Name);
     }
 
+    [Fact]
+    public async Task SetLanguage_ShouldUpdateRootLocalizationLanguage()
+    {
+        await using var fixture = await CopilotFixture.CreateAsync();
+        var vm = fixture.ViewModel;
+
+        vm.SetLanguage("en-us");
+
+        Assert.Equal("en-us", vm.RootTexts.Language);
+        Assert.Equal("en-us", vm.Texts.Language);
+        Assert.Equal("Fill gap", vm.SupportUnitUsageOptions[0].DisplayName);
+        Assert.Contains("Tips:", vm.HelpText, StringComparison.Ordinal);
+    }
+
     private static string? GetPersistedTaskListPayload(UnifiedConfigurationService config)
     {
         if (!config.CurrentConfig.GlobalValues.TryGetValue(LegacyConfigurationKeys.CopilotTaskList, out var node)
