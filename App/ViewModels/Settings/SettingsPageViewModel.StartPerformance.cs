@@ -25,7 +25,9 @@ public sealed partial class SettingsPageViewModel
     {
         if (!Runtime.ConfigurationService.TryGetCurrentProfile(out var profile))
         {
-            LastErrorMessage = "Current profile is missing.";
+            LastErrorMessage = string.Format(
+                RootTexts.GetOrDefault("Settings.SaveScoped.Error.ProfileMissing", "Current profile `{0}` not found."),
+                Runtime.ConfigurationService.CurrentConfig.CurrentProfile);
             await RecordFailedResultAsync(
                 "Settings.ConnectionGame.Save",
                 UiOperationResult.Fail(UiErrorCode.ProfileMissing, LastErrorMessage),
@@ -152,7 +154,12 @@ public sealed partial class SettingsPageViewModel
             await Runtime.ConfigurationService.SaveAsync(cancellationToken);
             await RecordEventAsync(
                 successScope,
-                $"Saved settings batch: global={globalUpdates.Count}, profile={profileUpdates.Count}",
+                string.Format(
+                    RootTexts.GetOrDefault(
+                        "Settings.SaveScoped.Status.BatchSavedSummary",
+                        "Saved settings batch: global={0}, profile={1}"),
+                    globalUpdates.Count,
+                    profileUpdates.Count),
                 cancellationToken);
             return UiOperationResult.Ok(
                 string.Format(
@@ -168,16 +175,17 @@ public sealed partial class SettingsPageViewModel
             }
 
             Runtime.ConfigurationService.RevalidateCurrentConfig(logIssues: false);
+            var saveFailedMessage = string.Format(
+                RootTexts.GetOrDefault("Settings.SaveScoped.Error.SaveFailed", "Failed to save settings: {0}"),
+                ex.Message);
             await RecordUnhandledExceptionAsync(
                 $"{successScope}.Persist",
                 ex,
                 UiErrorCode.SettingsSaveFailed,
-                $"Failed to save settings: {ex.Message}");
+                saveFailedMessage);
             return UiOperationResult.Fail(
                 UiErrorCode.SettingsSaveFailed,
-                string.Format(
-                    RootTexts.GetOrDefault("Settings.SaveScoped.Error.SaveFailed", "Failed to save settings: {0}"),
-                    ex.Message));
+                saveFailedMessage);
         }
     }
 
@@ -249,19 +257,31 @@ public sealed partial class SettingsPageViewModel
         Runtime.LogService.Warn($"{scope}: {result.Error?.Code} {result.Error?.Message}");
         await RecordEventAsync(
             scope,
-            $"Failed to sync core instance options: {result.Error?.Code} {result.Error?.Message}",
+            string.Format(
+                RootTexts.GetOrDefault(
+                    "Settings.StartPerformance.Status.SyncCoreInstanceOptionsFailed",
+                    "Failed to sync core instance options: {0} {1}"),
+                result.Error?.Code,
+                result.Error?.Message),
             cancellationToken);
     }
 
     public async Task SelectEmulatorPathWithDialogAsync(CancellationToken cancellationToken = default)
     {
         var candidates = BuildEmulatorPathDialogCandidates();
+        var chrome = CreateSettingsDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: texts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathTitle", "Select Emulator Path"),
+                confirmText: texts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathConfirm", "Confirm"),
+                cancelText: texts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathCancel", "Cancel")));
+        var chromeSnapshot = chrome.GetSnapshot();
         var request = new EmulatorPathDialogRequest(
-            Title: RootTexts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathTitle", "Select Emulator Path"),
+            Title: chromeSnapshot.Title,
             CandidatePaths: candidates,
             SelectedPath: EmulatorPath,
-            ConfirmText: RootTexts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathConfirm", "Confirm"),
-            CancelText: RootTexts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathCancel", "Cancel"));
+            ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathConfirm", "Confirm"),
+            CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("Settings.Start.Dialog.SelectEmulatorPathCancel", "Cancel"),
+            Chrome: chrome);
         var dialogResult = await _dialogService.ShowEmulatorPathAsync(request, "Settings.Start.SelectEmulatorPath.Dialog", cancellationToken);
         if (dialogResult.Return == DialogReturnSemantic.Confirm && dialogResult.Payload is not null)
         {
@@ -411,7 +431,16 @@ public sealed partial class SettingsPageViewModel
 
         if (normalized)
         {
-            warnings.Add("Unsupported GPU settings were removed for this platform. CPU OCR fallback will be used.");
+            var fallbackMessage = "Unsupported GPU settings were removed on this platform. CPU OCR fallback will be used.";
+            var message = RootTexts.GetOrDefault(
+                "Settings.StartPerformance.Validation.GpuFallbackApplied",
+                fallbackMessage);
+            if (!message.Contains("CPU OCR fallback", StringComparison.OrdinalIgnoreCase))
+            {
+                message = $"{message} CPU OCR fallback will be used.";
+            }
+
+            warnings.Add(message);
         }
     }
 

@@ -2,21 +2,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MAAUnified.App.Features.Advanced.OverlayView">
   <Grid RowDefinitions="Auto,Auto,Auto,*">
-    <TextBlock Classes="section-title" Text="Overlay" />
+    <TextBlock Classes="section-title" Text="{Binding Texts[Toolbox.Advanced.Overlay.Title]}" />
     <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto,Auto">
-      <TextBlock VerticalAlignment="Center" Text="目标窗口" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.Overlay.TargetWindow]}" />
       <ComboBox ItemsSource="{Binding Targets}"
                 SelectedItem="{Binding SelectedTarget}"
                 DisplayMemberBinding="{Binding DisplayName}" />
       <Button Grid.Column="2"
               Classes="wpf-button"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="刷新目标"
+              Content="{Binding Texts[Toolbox.Advanced.Overlay.ReloadTargets]}"
               Click="OnReloadTargetsClick" />
       <Button Grid.Column="3"
               Classes="wpf-button"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="切换显示"
+              Content="{Binding Texts[Toolbox.Advanced.Overlay.ToggleVisibility]}"
               Click="OnToggleOverlayClick" />
     </Grid>
     <TextBlock Grid.Row="2" Classes="long-wrap" Text="{Binding CapabilitySummary}" />

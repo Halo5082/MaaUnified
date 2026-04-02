@@ -1,11 +1,14 @@
 using MAAUnified.App.ViewModels.Infrastructure;
+using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.Localization;
 
 namespace MAAUnified.App.ViewModels.Advanced;
 
 public sealed class WebApiPageViewModel : PageViewModelBase
 {
+    private readonly ToolboxLocalizationTextMap _texts = new();
     private bool _enabled;
     private string _host = "127.0.0.1";
     private int _port = 51888;
@@ -16,6 +19,8 @@ public sealed class WebApiPageViewModel : PageViewModelBase
         : base(runtime)
     {
     }
+
+    public ToolboxLocalizationTextMap Texts => _texts;
 
     public bool Enabled
     {
@@ -44,8 +49,20 @@ public sealed class WebApiPageViewModel : PageViewModelBase
     public bool IsRunning
     {
         get => _isRunning;
-        private set => SetProperty(ref _isRunning, value);
+        private set
+        {
+            if (!SetProperty(ref _isRunning, value))
+            {
+                return;
+            }
+
+            OnPropertyChanged(nameof(RunningStatusText));
+        }
     }
+
+    public string RunningStatusText => T(
+        IsRunning ? "Toolbox.Advanced.WebApi.Status.Running" : "Toolbox.Advanced.WebApi.Status.Stopped",
+        IsRunning ? "Running" : "Stopped");
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -112,5 +129,28 @@ public sealed class WebApiPageViewModel : PageViewModelBase
         }
 
         IsRunning = status;
+    }
+
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _texts.Language = normalized;
+        RefreshLocalizedUiState();
+    }
+
+    private void RefreshLocalizedUiState()
+    {
+        OnPropertyChanged(nameof(Texts));
+        OnPropertyChanged(nameof(RunningStatusText));
+    }
+
+    private string T(string key, string fallback)
+    {
+        return _texts.GetOrDefault(key, fallback);
     }
 }

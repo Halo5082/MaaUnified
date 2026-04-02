@@ -38,6 +38,7 @@ public sealed class MainShellViewModel : ObservableObject
     private readonly SemaphoreSlim _guiApplySemaphore = new(1, 1);
     private readonly HashSet<string> _reportedLocalizationFallbacks = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _localizationFallbackGate = new();
+    private readonly object _secondaryPageGate = new();
     private readonly object _startupGate = new();
     private readonly object _coreWarmupGate = new();
     private readonly object _deferredCoreWarmupGate = new();
@@ -54,10 +55,10 @@ public sealed class MainShellViewModel : ObservableObject
     private Task? _startupTask;
     private Task<UiOperationResult>? _coreWarmupTask;
     private Task? _deferredCoreWarmupTask;
-    private readonly CopilotPageViewModel _copilotPage;
-    private readonly OverlayPresentationViewModel _overlayPresentation;
-    private readonly ToolboxPageViewModel _toolboxPage;
-    private readonly SettingsPageViewModel _settingsPage;
+    private CopilotPageViewModel? _copilotPage;
+    private OverlayPresentationViewModel? _overlayPresentation;
+    private ToolboxPageViewModel? _toolboxPage;
+    private SettingsPageViewModel? _settingsPage;
     private bool _syncingConnectionState;
     private bool _sessionCallbackPumpStarted;
     private int _timerScheduleProcessing;
@@ -124,16 +125,15 @@ public sealed class MainShellViewModel : ObservableObject
             NavigateToSettingsSection,
             EnsureCoreReadyForExecutionAsync);
         Program.RecordStartupStage("FrameworkInit.ViewModel.MainShell.TaskQueue.End", "TaskQueuePageViewModel created.");
-        Program.RecordStartupStage("FrameworkInit.ViewModel.MainShell.Pages.Begin", "Creating secondary page view models.");
-        _copilotPage = new CopilotPageViewModel(runtime);
-        _toolboxPage = new ToolboxPageViewModel(runtime, _connectionGameSharedState);
-        _settingsPage = CreateSettingsPage();
-        _overlayPresentation = new OverlayPresentationViewModel(runtime, TaskQueuePage, _copilotPage);
-        Program.RecordStartupStage("FrameworkInit.ViewModel.MainShell.Pages.End", "Secondary page view models created.");
-        TaskQueueRootPage = new RootPageHostViewModel("正在初始化首屏", "TaskQueue 页面正在加载。");
-        CopilotRootPage = new RootPageHostViewModel("页面正在后台初始化", "Copilot 页面将在首屏完成后继续加载。");
-        ToolboxRootPage = new RootPageHostViewModel("页面正在后台初始化", "Toolbox 页面将在首屏完成后继续加载。");
-        SettingsRootPage = new RootPageHostViewModel("页面正在后台初始化", "Settings 页面将在首屏完成后继续加载。");
+        Program.RecordStartupStage("FrameworkInit.ViewModel.MainShell.Pages.Deferred", "Secondary page view models deferred for lazy creation.");
+        var (taskQueuePendingTitle, taskQueuePendingMessage) = GetRootPagePendingText(RootPageStatusKind.TaskQueue);
+        var (copilotPendingTitle, copilotPendingMessage) = GetRootPagePendingText(RootPageStatusKind.Copilot);
+        var (toolboxPendingTitle, toolboxPendingMessage) = GetRootPagePendingText(RootPageStatusKind.Toolbox);
+        var (settingsPendingTitle, settingsPendingMessage) = GetRootPagePendingText(RootPageStatusKind.Settings);
+        TaskQueueRootPage = new RootPageHostViewModel(taskQueuePendingTitle, taskQueuePendingMessage);
+        CopilotRootPage = new RootPageHostViewModel(copilotPendingTitle, copilotPendingMessage);
+        ToolboxRootPage = new RootPageHostViewModel(toolboxPendingTitle, toolboxPendingMessage);
+        SettingsRootPage = new RootPageHostViewModel(settingsPendingTitle, settingsPendingMessage);
         RefreshRootPageHostStatusText();
         TaskQueuePage.Texts.FallbackReported += OnTaskQueueLocalizationFallbackReported;
         _currentSessionState = runtime.SessionService.CurrentState;
@@ -188,14 +188,14 @@ public sealed class MainShellViewModel : ObservableObject
 
     public TaskQueuePageViewModel TaskQueuePage { get; }
 
-    public CopilotPageViewModel CopilotPage => _copilotPage;
+    public CopilotPageViewModel CopilotPage => EnsureCopilotPage();
 
     public OverlayPresentationViewModel OverlayPresentation
-        => _overlayPresentation;
+        => EnsureOverlayPresentation();
 
-    public ToolboxPageViewModel ToolboxPage => _toolboxPage;
+    public ToolboxPageViewModel ToolboxPage => EnsureToolboxPage();
 
-    public SettingsPageViewModel SettingsPage => _settingsPage;
+    public SettingsPageViewModel SettingsPage => EnsureSettingsPage();
 
     public RootPageHostViewModel TaskQueueRootPage { get; }
 
@@ -494,7 +494,9 @@ public sealed class MainShellViewModel : ObservableObject
 
                 RecordStartupPhase("ConfigBootstrap.Begin", "Loading or bootstrapping config/avalonia.json.");
                 UpdateStartupPhase("正在加载配置", "配置引导开始。");
-                var loadResult = await _runtime.ConfigurationService.LoadOrBootstrapAsync(cancellationToken);
+                var loadResult = await _runtime.ConfigurationService.LoadOrBootstrapAsync(
+                    ConfigValidationMode.Minimal,
+                    cancellationToken);
                 if (loadResult.LoadedFromExistingConfig)
                 {
                     ImportStatus = "已加载 config/avalonia.json";
@@ -504,21 +506,10 @@ public sealed class MainShellViewModel : ObservableObject
                     ImportStatus = ImportReportTextFormatter.BuildStatusMessage(loadResult.ImportReport, manualImport: false);
                 }
 
-                if (loadResult.ValidationIssues.Count > 0)
-                {
-                    var blockingCount = loadResult.ValidationIssues.Count(i => i.Blocking);
-                    var warningCount = loadResult.ValidationIssues.Count - blockingCount;
-                    var summary = $"配置校验异常: 阻断 {blockingCount} / 预警 {warningCount}";
-                    LastError = string.Join(
-                        "; ",
-                        loadResult.ValidationIssues
-                            .Take(3)
-                            .Select(i => $"{i.Code}:{i.Field}:{i.Message}"));
-                    await RecordFailedResultAsync(
-                        "Config.LoadValidation",
-                        UiOperationResult.Fail(UiErrorCode.TaskValidationFailed, $"{summary} | {LastError}"),
-                        cancellationToken);
-                }
+                await ReportValidationIssuesIfAnyAsync(
+                    loadResult.ValidationIssues,
+                    "Config.LoadValidation",
+                    cancellationToken);
 
                 ApplyDeveloperModeFromConfig();
                 _runtime.AchievementTrackerService.RecordStartup(
@@ -546,22 +537,9 @@ public sealed class MainShellViewModel : ObservableObject
 
                 SyncConnectionFromProfile();
                 RefreshConfigValidationState(loadResult.ValidationIssues);
-                await ShowSchemaMigrationNoticeIfNeededAsync(loadResult, cancellationToken);
 
                 await InitializeFirstScreenAsync(loadResult.ImportReport, cancellationToken);
-                var settingsLoaded = await InitializeDeferredPagesAsync(cancellationToken);
-                if (settingsLoaded)
-                {
-                    await ApplyGuiSettingsAsync(SettingsPage.CurrentGuiSnapshot, cancellationToken);
-                }
-
-                ScheduleDeferredCoreWarmupAfterStartup();
-
-                await RefreshCapabilitySummaryAsync(cancellationToken);
-                RefreshRootTextState();
-                await SyncTrayMenuStateAsync(cancellationToken);
-                StartTimerScheduler();
-                UpdateStartupPhase("启动完成", "后台页面初始化完成，核心组件将在界面就绪后继续后台预热。");
+                await RunDeferredStartupAfterFirstScreenAsync(loadResult, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -592,6 +570,39 @@ public sealed class MainShellViewModel : ObservableObject
                 _firstScreenReadyTcs.TrySetResult(true);
             }
         }
+    }
+
+    private async Task RunDeferredStartupAfterFirstScreenAsync(
+        ConfigLoadResult loadResult,
+        CancellationToken cancellationToken)
+    {
+        RecordStartupPhase("Deferred.Begin", "Running deferred startup stages after first screen ready.");
+        var strictValidationTask = RunStrictConfigValidationAsync(cancellationToken);
+        var settingsLoaded = await InitializeDeferredPagesAsync(cancellationToken);
+        await strictValidationTask;
+        if (settingsLoaded && TryGetSettingsPage(out var settingsPage))
+        {
+            await ApplyGuiSettingsAsync(settingsPage.CurrentGuiSnapshot, cancellationToken);
+        }
+
+        await ShowSchemaMigrationNoticeIfNeededAsync(loadResult, cancellationToken);
+        ScheduleDeferredCoreWarmupAfterStartup();
+        await RefreshCapabilitySummaryAsync(cancellationToken);
+        RefreshRootTextState();
+        await SyncTrayMenuStateAsync(cancellationToken);
+        StartTimerScheduler();
+        UpdateStartupPhase("启动完成", "后台页面初始化完成，核心组件将在界面就绪后继续后台预热。");
+        RecordStartupPhase("Deferred.End", "Deferred startup stages completed.");
+    }
+
+    private async Task RunStrictConfigValidationAsync(CancellationToken cancellationToken)
+    {
+        RecordStartupPhase("ConfigValidation.Strict.Begin", "Running full config validation in deferred startup.");
+        UpdateStartupPhase("正在后台校验配置", "完整配置校验已后移到后台阶段。");
+        var strictIssues = _runtime.ConfigurationService.RevalidateCurrentConfig(ConfigValidationMode.Full, logIssues: true);
+        RefreshConfigValidationState(strictIssues);
+        await ReportValidationIssuesIfAnyAsync(strictIssues, "Config.Validation.Strict", cancellationToken);
+        RecordStartupPhase("ConfigValidation.Strict.End", $"validationIssues={strictIssues.Count}");
     }
 
     private async Task InitializeFirstScreenAsync(ImportReport? importReport, CancellationToken cancellationToken)
@@ -698,29 +709,32 @@ public sealed class MainShellViewModel : ObservableObject
     private async Task<bool> InitializeDeferredPagesAsync(CancellationToken cancellationToken)
     {
         var taskQueueDeferredTask = InitializeTaskQueueDeferredStartupAsync(cancellationToken);
+        var copilotPage = EnsureCopilotPage();
         await InitializeDeferredRootPageAsync(
             "Copilot",
             "Copilot",
             "Copilot 页面正在后台初始化。",
             CopilotRootPage,
-            ct => CopilotPage.InitializeAsync(ct),
-            CopilotPage,
+            ct => copilotPage.InitializeAsync(ct),
+            copilotPage,
             cancellationToken);
+        var toolboxPage = EnsureToolboxPage();
         await InitializeDeferredRootPageAsync(
             "Toolbox",
             "Toolbox",
             "Toolbox 页面正在后台初始化。",
             ToolboxRootPage,
-            ct => ToolboxPage.InitializeAsync(ct),
-            ToolboxPage,
+            ct => toolboxPage.InitializeAsync(ct),
+            toolboxPage,
             cancellationToken);
+        var settingsPage = EnsureSettingsPage();
         var settingsLoaded = await InitializeDeferredRootPageAsync(
             "Settings",
             "Settings",
             "Settings 页面正在后台初始化。",
             SettingsRootPage,
-            ct => SettingsPage.InitializeAsync(ct),
-            SettingsPage,
+            ct => settingsPage.InitializeAsync(ct),
+            settingsPage,
             cancellationToken);
         await taskQueueDeferredTask;
         return settingsLoaded;
@@ -875,14 +889,131 @@ public sealed class MainShellViewModel : ObservableObject
         }
 
         TaskQueuePage.SetLanguage(language);
-        CopilotPage.SetLanguage(language);
-        ToolboxPage.SetLanguage(language);
+        if (TryGetCopilotPage(out var copilotPage))
+        {
+            copilotPage.SetLanguage(language);
+        }
+
+        if (TryGetToolboxPage(out var toolboxPage))
+        {
+            toolboxPage.SetLanguage(language);
+        }
+
         RefreshRootPageHostStatusText();
         ApplyWindowTitleScrolling(snapshot.WindowTitleScrollable);
         ShellBackgroundOpacity = snapshot.BackgroundOpacity / 100d;
         ShellBackgroundBlur = snapshot.BackgroundBlur;
         ShellBackgroundStretch = ParseStretch(snapshot.BackgroundStretchMode);
         ApplyShellBackgroundImage(snapshot.BackgroundImagePath);
+    }
+
+    private CopilotPageViewModel EnsureCopilotPage()
+    {
+        lock (_secondaryPageGate)
+        {
+            _copilotPage ??= CreateCopilotPage();
+            return _copilotPage;
+        }
+    }
+
+    private ToolboxPageViewModel EnsureToolboxPage()
+    {
+        lock (_secondaryPageGate)
+        {
+            _toolboxPage ??= CreateToolboxPage();
+            return _toolboxPage;
+        }
+    }
+
+    private SettingsPageViewModel EnsureSettingsPage()
+    {
+        lock (_secondaryPageGate)
+        {
+            _settingsPage ??= CreateSettingsPage();
+            return _settingsPage;
+        }
+    }
+
+    private OverlayPresentationViewModel EnsureOverlayPresentation()
+    {
+        lock (_secondaryPageGate)
+        {
+            _copilotPage ??= CreateCopilotPage();
+            _overlayPresentation ??= new OverlayPresentationViewModel(_runtime, TaskQueuePage, _copilotPage);
+            return _overlayPresentation;
+        }
+    }
+
+    private bool TryGetCopilotPage(out CopilotPageViewModel page)
+    {
+        lock (_secondaryPageGate)
+        {
+            if (_copilotPage is null)
+            {
+                page = null!;
+                return false;
+            }
+
+            page = _copilotPage;
+            return true;
+        }
+    }
+
+    private bool TryGetToolboxPage(out ToolboxPageViewModel page)
+    {
+        lock (_secondaryPageGate)
+        {
+            if (_toolboxPage is null)
+            {
+                page = null!;
+                return false;
+            }
+
+            page = _toolboxPage;
+            return true;
+        }
+    }
+
+    private bool TryGetSettingsPage(out SettingsPageViewModel page)
+    {
+        lock (_secondaryPageGate)
+        {
+            if (_settingsPage is null)
+            {
+                page = null!;
+                return false;
+            }
+
+            page = _settingsPage;
+            return true;
+        }
+    }
+
+    private CopilotPageViewModel CreateCopilotPage()
+    {
+        var page = new CopilotPageViewModel(_runtime);
+        page.SetLanguage(CurrentShellLanguage);
+        return page;
+    }
+
+    private ToolboxPageViewModel CreateToolboxPage()
+    {
+        var page = new ToolboxPageViewModel(_runtime, _connectionGameSharedState);
+        page.SetLanguage(CurrentShellLanguage);
+        return page;
+    }
+
+    private StartupShellSnapshot BuildLatestShellSnapshot()
+    {
+        var snapshot = StartupShellSnapshot.FromConfig(_runtime.ConfigurationService.CurrentConfig);
+        var normalizedShellLanguage = UiLanguageCatalog.Normalize(CurrentShellLanguage);
+        if (!string.Equals(snapshot.Language, normalizedShellLanguage, StringComparison.OrdinalIgnoreCase))
+        {
+            snapshot = snapshot with { Language = normalizedShellLanguage };
+        }
+
+        _startupSnapshot = snapshot;
+        return snapshot;
     }
 
     private SettingsPageViewModel CreateSettingsPage()
@@ -896,17 +1027,17 @@ public sealed class MainShellViewModel : ObservableObject
         page.GuiSettingsApplied += OnGuiSettingsApplied;
         page.ResourceVersionUpdated += OnSettingsResourceVersionUpdated;
         page.ConfigurationContextChanged += OnSettingsConfigurationContextChanged;
-        if (_startupSnapshotReadyTcs.Task.IsCompleted)
-        {
-            page.ApplyStartupSnapshot(_startupSnapshot);
-        }
+        page.ApplyStartupSnapshot(BuildLatestShellSnapshot());
 
         return page;
     }
 
     private void ApplyStartupSnapshotToSettingsPageIfCreated()
     {
-        _settingsPage.ApplyStartupSnapshot(_startupSnapshot);
+        if (TryGetSettingsPage(out var settingsPage))
+        {
+            settingsPage.ApplyStartupSnapshot(_startupSnapshot);
+        }
     }
 
     private void UpdateStartupPhase(string status, string logMessage)
@@ -2133,6 +2264,28 @@ public sealed class MainShellViewModel : ObservableObject
         _ = SyncTrayMenuStateAsync();
     }
 
+    private async Task ReportValidationIssuesIfAnyAsync(
+        IReadOnlyList<ConfigValidationIssue> issues,
+        string scope,
+        CancellationToken cancellationToken)
+    {
+        if (issues.Count == 0)
+        {
+            return;
+        }
+
+        var blockingCount = issues.Count(i => i.Blocking);
+        var warningCount = issues.Count - blockingCount;
+        var summary = $"配置校验异常: 阻断 {blockingCount} / 预警 {warningCount}";
+        LastError = string.Join(
+            "; ",
+            issues.Take(3).Select(i => $"{i.Code}:{i.Field}:{i.Message}"));
+        await RecordFailedResultAsync(
+            scope,
+            UiOperationResult.Fail(UiErrorCode.TaskValidationFailed, $"{summary} | {LastError}"),
+            cancellationToken);
+    }
+
     private async Task ShowSchemaMigrationNoticeIfNeededAsync(
         ConfigLoadResult loadResult,
         CancellationToken cancellationToken = default)
@@ -2309,13 +2462,25 @@ public sealed class MainShellViewModel : ObservableObject
         CurrentShellLanguage = nextLanguage;
         _runtime.AchievementTrackerService.SetCurrentLanguage(nextLanguage);
         RootTexts.Language = nextLanguage;
-        SettingsPage.AutostartStatus = PlatformCapabilityTextMap.FormatAutostartStatus(
-            nextLanguage,
-            SettingsPage.StartSelf,
-            ReportLocalizationFallback);
+        if (TryGetSettingsPage(out var settingsPage))
+        {
+            settingsPage.AutostartStatus = PlatformCapabilityTextMap.FormatAutostartStatus(
+                nextLanguage,
+                settingsPage.StartSelf,
+                ReportLocalizationFallback);
+        }
+
         TaskQueuePage.SetLanguage(nextLanguage);
-        CopilotPage.SetLanguage(nextLanguage);
-        ToolboxPage.SetLanguage(nextLanguage);
+        if (TryGetCopilotPage(out var copilotPage))
+        {
+            copilotPage.SetLanguage(nextLanguage);
+        }
+
+        if (TryGetToolboxPage(out var toolboxPage))
+        {
+            toolboxPage.SetLanguage(nextLanguage);
+        }
+
         RefreshRootTextState();
         await RefreshCapabilitySummaryAsync(cancellationToken);
 
@@ -2432,20 +2597,20 @@ public sealed class MainShellViewModel : ObservableObject
         return page switch
         {
             RootPageStatusKind.TaskQueue => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "正在初始化首屏", "Preparing first screen"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "TaskQueue 页面正在加载。", "TaskQueue is preparing its first screen.")),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.FirstScreen.Title", "Preparing first screen"),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.FirstScreen.Message", "TaskQueue is preparing its first screen.")),
 
             RootPageStatusKind.Copilot => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "页面正在后台初始化", "Page is initializing in the background"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 页面将在首屏完成后继续加载。", "Copilot will continue loading after the first screen is ready.")),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.Background.Title", "Page is initializing in the background"),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.Copilot.Message", "Copilot will continue loading after the first screen is ready.")),
 
             RootPageStatusKind.Toolbox => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "页面正在后台初始化", "Page is initializing in the background"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 页面将在首屏完成后继续加载。", "Toolbox will continue loading after the first screen is ready.")),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.Background.Title", "Page is initializing in the background"),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.Toolbox.Message", "Toolbox will continue loading after the first screen is ready.")),
 
             _ => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "页面正在后台初始化", "Page is initializing in the background"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 页面将在首屏完成后继续加载。", "Settings will continue loading after the first screen is ready.")),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.Background.Title", "Page is initializing in the background"),
+                RootTexts.GetOrDefault("Main.RootPage.Pending.Settings.Message", "Settings will continue loading after the first screen is ready.")),
         };
     }
 
@@ -2454,20 +2619,20 @@ public sealed class MainShellViewModel : ObservableObject
         return page switch
         {
             RootPageStatusKind.TaskQueue => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "正在初始化首屏", "Preparing first screen"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "TaskQueue 页面正在加载。", "TaskQueue is loading.")),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.FirstScreen.Title", "Preparing first screen"),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.FirstScreen.Message", "TaskQueue is loading.")),
 
             RootPageStatusKind.Copilot => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "正在后台初始化 Copilot", "Initializing Copilot in the background"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 页面正在后台初始化。", "Copilot is initializing in the background.")),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.Copilot.Title", "Initializing Copilot in the background"),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.Copilot.Message", "Copilot is initializing in the background.")),
 
             RootPageStatusKind.Toolbox => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "正在后台初始化 Toolbox", "Initializing Toolbox in the background"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 页面正在后台初始化。", "Toolbox is initializing in the background.")),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.Toolbox.Title", "Initializing Toolbox in the background"),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.Toolbox.Message", "Toolbox is initializing in the background.")),
 
             _ => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "正在后台初始化 Settings", "Initializing Settings in the background"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 页面正在后台初始化。", "Settings is initializing in the background.")),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.Settings.Title", "Initializing Settings in the background"),
+                RootTexts.GetOrDefault("Main.RootPage.Loading.Settings.Message", "Settings is initializing in the background.")),
         };
     }
 
@@ -2476,20 +2641,20 @@ public sealed class MainShellViewModel : ObservableObject
         return page switch
         {
             RootPageStatusKind.TaskQueue => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "首屏初始化失败", "First screen failed to initialize"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "TaskQueue 首屏初始化失败。", "TaskQueue failed to initialize the first screen.")),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.FirstScreen.Title", "First screen failed to initialize"),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.FirstScreen.Message", "TaskQueue failed to initialize the first screen.")),
 
             RootPageStatusKind.Copilot => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 初始化失败", "Copilot failed to initialize"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Copilot 页面未能完成初始化。", "Copilot failed to finish initialization.")),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.Copilot.Title", "Copilot failed to initialize"),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.Copilot.Message", "Copilot failed to finish initialization.")),
 
             RootPageStatusKind.Toolbox => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 初始化失败", "Toolbox failed to initialize"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Toolbox 页面未能完成初始化。", "Toolbox failed to finish initialization.")),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.Toolbox.Title", "Toolbox failed to initialize"),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.Toolbox.Message", "Toolbox failed to finish initialization.")),
 
             _ => (
-                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 初始化失败", "Settings failed to initialize"),
-                DialogTextCatalog.Select(CurrentShellLanguage, "Settings 页面未能完成初始化。", "Settings failed to finish initialization.")),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.Settings.Title", "Settings failed to initialize"),
+                RootTexts.GetOrDefault("Main.RootPage.Failed.Settings.Message", "Settings failed to finish initialization.")),
         };
     }
 

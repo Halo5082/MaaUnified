@@ -748,14 +748,32 @@ public partial class MainWindow : Window
         App.Runtime.AchievementTrackerService.SetCurrentLanguage(language);
         _ = App.Runtime.AchievementTrackerService.Unlock("CongratulationError");
         var localizedResult = DialogTextCatalog.LocalizeErrorResult(language, dialogError.Result);
+        var chrome = DialogTextCatalog.CreateCatalog(
+            language,
+            nextLanguage => new DialogChromeSnapshot(
+                title: DialogTextCatalog.ErrorDialogTitle(nextLanguage),
+                confirmText: DialogTextCatalog.ErrorDialogCloseButton(nextLanguage),
+                cancelText: DialogTextCatalog.ErrorDialogIgnoreButton(nextLanguage),
+                namedTexts: DialogTextCatalog.CreateNamedTexts(
+                    (DialogTextCatalog.ChromeKeys.SectionTitle, DialogTextCatalog.ErrorDialogSectionTitle(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.CopyButton, DialogTextCatalog.ErrorDialogCopyButton(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.IssueReportButton, DialogTextCatalog.ErrorDialogIssueReportButton(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.TimestampLabel, DialogTextCatalog.ErrorDialogTimestampLabel(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.ContextLabel, DialogTextCatalog.ErrorDialogContextLabel(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.CodeLabel, DialogTextCatalog.ErrorDialogCodeLabel(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.MessageLabel, DialogTextCatalog.ErrorDialogMessageLabel(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.DetailsLabel, DialogTextCatalog.ErrorDialogDetailsLabel(nextLanguage)),
+                    (DialogTextCatalog.ChromeKeys.SuggestionLabel, DialogTextCatalog.ErrorDialogSuggestionLabel(nextLanguage)))));
+        var chromeSnapshot = chrome.GetSnapshot();
         var request = new ErrorDialogRequest(
-            Title: DialogTextCatalog.ErrorDialogTitle(language),
+            Title: chromeSnapshot.Title,
             Context: dialogError.Context,
             Result: localizedResult,
             Suggestion: DialogTextCatalog.BuildErrorSuggestion(language, dialogError.Result),
-            ConfirmText: DialogTextCatalog.ErrorDialogCloseButton(language),
-            CancelText: DialogTextCatalog.ErrorDialogIgnoreButton(language),
-            Language: language);
+            ConfirmText: chromeSnapshot.ConfirmText ?? DialogTextCatalog.ErrorDialogCloseButton(language),
+            CancelText: chromeSnapshot.CancelText ?? DialogTextCatalog.ErrorDialogIgnoreButton(language),
+            Language: language,
+            Chrome: chrome);
         Func<CancellationToken, Task<UiOperationResult>>? openIssueReportAsync = VM is null
             ? null
             : VM.SettingsPage.OpenIssueReportEntryForDialogAsync;

@@ -4,8 +4,142 @@ using MAAUnified.Application.Services.TaskParams;
 using MAAUnified.CoreBridge;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace MAAUnified.Application.Orchestration;
+
+public sealed record SessionCallbackEnvelope(
+    CoreCallbackEvent Callback,
+    JsonObject? Payload,
+    string? What,
+    string? TaskChain,
+    string? SubTask,
+    int? TaskId,
+    string? ParseError)
+{
+    public static SessionCallbackEnvelope FromRaw(CoreCallbackEvent callback)
+    {
+        ArgumentNullException.ThrowIfNull(callback);
+        if (string.IsNullOrWhiteSpace(callback.PayloadJson))
+        {
+            return new SessionCallbackEnvelope(callback, null, null, null, null, null, null);
+        }
+
+        try
+        {
+            if (JsonNode.Parse(callback.PayloadJson) is not JsonObject payload)
+            {
+                return new SessionCallbackEnvelope(
+                    callback,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "payload is not a JSON object");
+            }
+
+            return new SessionCallbackEnvelope(
+                callback,
+                payload,
+                GetWhat(payload, out var whatParseError),
+                GetString(payload, "task_chain") ?? GetString(payload, "taskchain"),
+                GetString(payload, "sub_task") ?? GetString(payload, "subtask"),
+                GetInt(payload, "task_id") ?? GetInt(payload, "taskid"),
+                whatParseError);
+        }
+        catch (JsonException ex)
+        {
+            return new SessionCallbackEnvelope(
+                callback,
+                null,
+                null,
+                null,
+                null,
+                null,
+                $"payload parse failed: {ex.Message}");
+        }
+    }
+
+    private static string? GetString(JsonObject payload, string key)
+    {
+        if (!payload.TryGetPropertyValue(key, out var node) || node is null)
+        {
+            return null;
+        }
+
+        if (node is JsonValue value && value.TryGetValue(out string? text))
+        {
+            return text;
+        }
+
+        return node.ToString();
+    }
+
+    private static string? GetWhat(JsonObject payload, out string? parseError)
+    {
+        foreach (var property in payload)
+        {
+            if (!string.Equals(property.Key, "what", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (property.Value is null)
+            {
+                parseError = "property `what` is empty";
+                return null;
+            }
+
+            if (property.Value.GetValueKind() != JsonValueKind.String)
+            {
+                parseError = "property `what` is not a string";
+                return null;
+            }
+
+            if (property.Value is not JsonValue value || !value.TryGetValue(out string? text))
+            {
+                parseError = "property `what` is not a string";
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                parseError = "property `what` is empty";
+                return null;
+            }
+
+            parseError = null;
+            return text;
+        }
+
+        parseError = null;
+        return null;
+    }
+
+    private static int? GetInt(JsonObject payload, string key)
+    {
+        if (!payload.TryGetPropertyValue(key, out var node) || node is null)
+        {
+            return null;
+        }
+
+        if (node is JsonValue value)
+        {
+            if (value.TryGetValue(out int number))
+            {
+                return number;
+            }
+
+            if (value.TryGetValue(out string? text) && int.TryParse(text, out number))
+            {
+                return number;
+            }
+        }
+
+        return null;
+    }
+}
 
 public sealed class UnifiedSessionService
 {
@@ -36,6 +170,8 @@ public sealed class UnifiedSessionService
     public event Action<SessionState>? SessionStateChanged;
 
     public event Action<CoreCallbackEvent>? CallbackReceived;
+
+    public event Action<SessionCallbackEnvelope>? CallbackProjected;
 
     public string? CurrentRunOwner
     {
@@ -293,9 +429,11 @@ public sealed class UnifiedSessionService
     {
         await foreach (var callback in _bridge.CallbackStreamAsync(cancellationToken))
         {
+            var envelope = SessionCallbackEnvelope.FromRaw(callback);
+
             try
             {
-                ApplyCallbackToState(callback);
+                ApplyCallbackToState(envelope);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -319,6 +457,16 @@ public sealed class UnifiedSessionService
 
             try
             {
+                CallbackProjected?.Invoke(envelope);
+            }
+            catch (Exception ex)
+            {
+                _logService.Warn(
+                    $"Session.Callback projection subscriber failed for {callback.MsgName}({callback.MsgId}): {ex.Message}");
+            }
+
+            try
+            {
                 await onEvent(callback);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -333,8 +481,9 @@ public sealed class UnifiedSessionService
         }
     }
 
-    private void ApplyCallbackToState(CoreCallbackEvent callback)
+    private void ApplyCallbackToState(SessionCallbackEnvelope envelope)
     {
+        var callback = envelope.Callback;
         if (string.Equals(callback.MsgName, "TaskChainStart", StringComparison.OrdinalIgnoreCase))
         {
             MoveToState(SessionState.Running, "Session.Callback", "TaskChainStart");
@@ -354,19 +503,14 @@ public sealed class UnifiedSessionService
             return;
         }
 
-        var parse = ParseCallbackWhat(callback.PayloadJson);
-        if (!parse.Success)
-        {
-            _logService.Warn(
-                $"Session.Callback ignored ConnectionInfo payload: {parse.ParseError}; msgId={callback.MsgId}; msgName={callback.MsgName}");
-            return;
-        }
-
-        var what = parse.What;
+        var what = envelope.What;
         if (string.IsNullOrWhiteSpace(what))
         {
+            var parseError = string.IsNullOrWhiteSpace(envelope.ParseError)
+                ? "property `what` is missing"
+                : envelope.ParseError;
             _logService.Warn(
-                $"Session.Callback ignored ConnectionInfo payload: {parse.ParseError ?? "property `what` is missing"}; msgId={callback.MsgId}; msgName={callback.MsgName}");
+                $"Session.Callback ignored ConnectionInfo payload: {parseError}; msgId={callback.MsgId}; msgName={callback.MsgName}");
             return;
         }
 
@@ -443,46 +587,5 @@ public sealed class UnifiedSessionService
         }
 
         return SessionState.Idle;
-    }
-
-    private static (bool Success, string? What, string? ParseError) ParseCallbackWhat(string payloadJson)
-    {
-        if (string.IsNullOrWhiteSpace(payloadJson))
-        {
-            return (false, null, "payload is empty");
-        }
-
-        try
-        {
-            using var doc = JsonDocument.Parse(payloadJson);
-            if (doc.RootElement.ValueKind != JsonValueKind.Object)
-            {
-                return (false, null, "payload is not a JSON object");
-            }
-
-            foreach (var property in doc.RootElement.EnumerateObject())
-            {
-                if (!string.Equals(property.Name, "what", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (property.Value.ValueKind != JsonValueKind.String)
-                {
-                    return (false, null, "property `what` is not a string");
-                }
-
-                var value = property.Value.GetString();
-                return string.IsNullOrWhiteSpace(value)
-                    ? (false, null, "property `what` is empty")
-                    : (true, value, null);
-            }
-
-            return (false, null, "property `what` is missing");
-        }
-        catch (JsonException ex)
-        {
-            return (false, null, $"payload parse failed: {ex.Message}");
-        }
     }
 }

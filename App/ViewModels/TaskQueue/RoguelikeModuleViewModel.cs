@@ -141,6 +141,7 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
     private string _squad = string.Empty;
     private string _roles = string.Empty;
     private string _coreChar = string.Empty;
+    private string _coreCharDisplayText = string.Empty;
     private bool _useSupport;
     private bool _useNonfriendSupport;
     private bool _refreshTraderWithDice;
@@ -208,6 +209,32 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
     public IReadOnlyList<TaskModuleOption> CoreCharOptions => _coreCharOptions;
 
     public IReadOnlyList<string> CoreCharNameOptions => _coreCharNameOptions;
+
+    public string CoreCharDisplayText
+    {
+        get => _coreCharDisplayText;
+        set
+        {
+            var inputText = value?.Trim() ?? string.Empty;
+            if (!SetTrackedProperty(ref _coreCharDisplayText, inputText))
+            {
+                return;
+            }
+
+            var cache = GetBattleDataCache();
+            var normalizedCoreChar = NormalizeCoreCharValue(inputText, _coreCharOptions, cache);
+            var coreCharChanged = SetTrackedProperty(ref _coreChar, normalizedCoreChar, nameof(CoreChar));
+
+            var clientType = ResolveCurrentClientType();
+            var operNameLanguage = ResolveOperatorDisplayLanguage(clientType);
+            UpdateCoreCharDisplayTextWithoutTracking(clientType, operNameLanguage, cache);
+
+            if (coreCharChanged)
+            {
+                HandleCoreCharValueUpdated(normalizedCoreChar);
+            }
+        }
+    }
 
     public TaskModuleOption? SelectedThemeOption
     {
@@ -514,19 +541,17 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
         get => _coreChar;
         set
         {
-            var normalized = value?.Trim() ?? string.Empty;
+            var cache = GetBattleDataCache();
+            var normalized = NormalizeCoreCharValue(value, _coreCharOptions, cache);
             if (!SetTrackedProperty(ref _coreChar, normalized))
             {
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(normalized) && UseSupport)
-            {
-                UseSupport = false;
-            }
-
-            OnPropertyChanged(nameof(SelectedCoreCharOption));
-            RaiseComputedPropertyChanges();
+            var clientType = ResolveCurrentClientType();
+            var operNameLanguage = ResolveOperatorDisplayLanguage(clientType);
+            UpdateCoreCharDisplayTextWithoutTracking(clientType, operNameLanguage, cache);
+            HandleCoreCharValueUpdated(normalized);
         }
     }
 
@@ -906,6 +931,7 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
             ? ParseDelimitedLines(ExpectedCollapsalParadigmsText)
             : [];
 
+        var normalizedCoreChar = NormalizeCoreCharValue(CoreChar, _coreCharOptions, GetBattleDataCache());
         var effectiveStartWithEliteTwo = StartWithEliteTwo && ShowStartWithEliteTwo;
         var effectiveOnlyStartWithEliteTwo = OnlyStartWithEliteTwo && effectiveStartWithEliteTwo;
         var effectiveSupport = UseSupport && CanUseSupport;
@@ -922,7 +948,7 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
             StopWhenInvestmentFull = StopWhenInvestmentFull,
             Squad = Squad.Trim(),
             Roles = Roles.Trim(),
-            CoreChar = CoreChar.Trim(),
+            CoreChar = normalizedCoreChar,
             UseSupport = effectiveSupport,
             UseNonfriendSupport = effectiveSupport && UseNonfriendSupport,
             RefreshTraderWithDice = RefreshTraderWithDice,
@@ -1048,6 +1074,14 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
             }
 
             _coreCharOptions = BuildCoreCharOptions();
+            var clientType = ResolveCurrentClientType();
+            var operNameLanguage = ResolveOperatorDisplayLanguage(clientType);
+            var battleDataCache = GetBattleDataCache();
+            SetProperty(
+                ref _coreChar,
+                NormalizeCoreCharValue(_coreChar, _coreCharOptions, battleDataCache),
+                nameof(CoreChar));
+            UpdateCoreCharDisplayTextWithoutTracking(clientType, operNameLanguage, battleDataCache);
             _coreCharNameOptions = _coreCharOptions
                 .Select(option => option.DisplayName)
                 .Distinct(StringComparer.Ordinal)
@@ -1169,7 +1203,7 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
 
     private IReadOnlyList<TaskModuleOption> BuildCoreCharOptions()
     {
-        var names = new List<string>();
+        var optionsByType = new Dictionary<string, TaskModuleOption>(StringComparer.Ordinal);
         var clientType = ResolveCurrentClientType();
         var operNameLanguage = ResolveOperatorDisplayLanguage(clientType);
         var battleDataCache = GetBattleDataCache();
@@ -1212,7 +1246,11 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
                                     battleDataCache);
                                 if (!string.IsNullOrWhiteSpace(localizedName))
                                 {
-                                    names.Add(localizedName);
+                                    var normalizedName = NormalizeCoreCharValue(name, [], battleDataCache);
+                                    if (!optionsByType.ContainsKey(normalizedName))
+                                    {
+                                        optionsByType[normalizedName] = new TaskModuleOption(normalizedName, localizedName);
+                                    }
                                 }
                             }
                         }
@@ -1225,15 +1263,120 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(CoreChar))
+        var normalizedCoreChar = NormalizeCoreCharValue(_coreChar, [.. optionsByType.Values], battleDataCache);
+        if (!string.IsNullOrWhiteSpace(normalizedCoreChar) && !optionsByType.ContainsKey(normalizedCoreChar))
         {
-            names.Add(CoreChar);
+            var displayName = ResolveCoreCharDisplayName(normalizedCoreChar, operNameLanguage, battleDataCache);
+            optionsByType[normalizedCoreChar] = new TaskModuleOption(normalizedCoreChar, displayName);
         }
 
-        return names
-            .Distinct(StringComparer.Ordinal)
-            .Select(name => new TaskModuleOption(name, name))
-            .ToArray();
+        return [.. optionsByType.Values];
+    }
+
+    private void HandleCoreCharValueUpdated(string normalizedCoreChar)
+    {
+        if (string.IsNullOrWhiteSpace(normalizedCoreChar) && UseSupport)
+        {
+            UseSupport = false;
+        }
+
+        OnPropertyChanged(nameof(SelectedCoreCharOption));
+        RaiseComputedPropertyChanges();
+    }
+
+    private void UpdateCoreCharDisplayTextWithoutTracking(
+        string clientType,
+        string operNameLanguage,
+        BattleDataCache cache)
+    {
+        var displayText = ResolveCoreCharDisplayText(_coreChar, _coreCharOptions, clientType, operNameLanguage, cache);
+        SetProperty(ref _coreCharDisplayText, displayText, nameof(CoreCharDisplayText));
+    }
+
+    private static string NormalizeCoreCharValue(
+        string? value,
+        IReadOnlyList<TaskModuleOption> options,
+        BattleDataCache cache)
+    {
+        var normalized = value?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return string.Empty;
+        }
+
+        foreach (var option in options)
+        {
+            if (string.Equals(option.Type, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return option.Type;
+            }
+        }
+
+        foreach (var option in options)
+        {
+            if (string.Equals(option.DisplayName, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return option.Type;
+            }
+        }
+
+        if (cache.TryGetCharacterByAlias(normalized, out var character))
+        {
+            return character.Name;
+        }
+
+        return normalized;
+    }
+
+    private static string ResolveCoreCharDisplayText(
+        string? coreChar,
+        IReadOnlyList<TaskModuleOption> options,
+        string clientType,
+        string operNameLanguage,
+        BattleDataCache cache)
+    {
+        var normalized = coreChar?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return string.Empty;
+        }
+
+        foreach (var option in options)
+        {
+            if (string.Equals(option.Type, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return option.DisplayName;
+            }
+        }
+
+        foreach (var option in options)
+        {
+            if (string.Equals(option.DisplayName, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                return option.DisplayName;
+            }
+        }
+
+        if (cache.TryGetCharacterByAlias(normalized, out var character)
+            && IsCharacterAvailableInClient(character, clientType))
+        {
+            return GetLocalizedCharacterName(character, operNameLanguage);
+        }
+
+        return ResolveCoreCharDisplayName(normalized, operNameLanguage, cache);
+    }
+
+    private static string ResolveCoreCharDisplayName(
+        string coreChar,
+        string operNameLanguage,
+        BattleDataCache cache)
+    {
+        if (cache.TryGetCharacterByAlias(coreChar, out var character))
+        {
+            return GetLocalizedCharacterName(character, operNameLanguage);
+        }
+
+        return coreChar;
     }
 
     private string ResolveCurrentClientType()

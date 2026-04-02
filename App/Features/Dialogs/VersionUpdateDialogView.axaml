@@ -7,7 +7,9 @@
         MinHeight="420"
         WindowStartupLocation="CenterOwner">
   <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,*,Auto">
-    <TextBlock Classes="section-title" Text="Version Update" />
+    <TextBlock x:Name="DialogTitleText"
+               Classes="section-title"
+               Text="Version Update" />
     <TextBlock x:Name="VersionLine"
                Grid.Row="1"
                Margin="0,8,0,0"

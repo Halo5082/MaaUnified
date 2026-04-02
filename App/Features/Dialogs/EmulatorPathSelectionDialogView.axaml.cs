@@ -3,10 +3,11 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MAAUnified.App.Infrastructure;
 using MAAUnified.Application.Models;
+using MAAUnified.App.ViewModels.Infrastructure;
 
 namespace MAAUnified.App.Features.Dialogs;
 
-public partial class EmulatorPathSelectionDialogView : Window
+public partial class EmulatorPathSelectionDialogView : Window, IDialogChromeAware
 {
     private readonly ObservableCollection<string> _paths = [];
 
@@ -21,6 +22,7 @@ public partial class EmulatorPathSelectionDialogView : Window
     public void ApplyRequest(EmulatorPathDialogRequest request)
     {
         Title = request.Title;
+        DialogTitleText.Text = request.Title;
         ConfirmButton.Content = request.ConfirmText;
         CancelButton.Content = request.CancelText;
         _paths.Clear();
@@ -68,5 +70,13 @@ public partial class EmulatorPathSelectionDialogView : Window
     private void OnCancelClick(object? sender, RoutedEventArgs e)
     {
         Close(DialogReturnSemantic.Cancel);
+    }
+
+    public void ApplyDialogChrome(DialogChromeSnapshot chrome)
+    {
+        Title = chrome.Title;
+        DialogTitleText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.SectionTitle, chrome.Title);
+        ConfirmButton.Content = chrome.ConfirmText ?? ConfirmButton.Content;
+        CancelButton.Content = chrome.CancelText ?? CancelButton.Content;
     }
 }

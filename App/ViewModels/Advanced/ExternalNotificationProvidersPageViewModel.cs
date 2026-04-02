@@ -1,22 +1,30 @@
 using System.Collections.ObjectModel;
 using MAAUnified.App.ViewModels.Infrastructure;
+using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.Localization;
 
 namespace MAAUnified.App.ViewModels.Advanced;
 
 public sealed class ExternalNotificationProvidersPageViewModel : PageViewModelBase
 {
+    private readonly ToolboxLocalizationTextMap _texts = new();
+    private string _defaultTitle = string.Empty;
+    private string _defaultMessage = string.Empty;
     private string _selectedProvider = string.Empty;
     private string _parametersText = string.Empty;
-    private string _title = "MAA Test";
-    private string _message = "Advanced external notification test";
+    private string _title = string.Empty;
+    private string _message = string.Empty;
 
     public ExternalNotificationProvidersPageViewModel(MAAUnifiedRuntime runtime)
         : base(runtime)
     {
         Providers = new ObservableCollection<string>();
+        RefreshLocalizedUiState();
     }
+
+    public ToolboxLocalizationTextMap Texts => _texts;
 
     public ObservableCollection<string> Providers { get; }
 
@@ -107,5 +115,44 @@ public sealed class ExternalNotificationProvidersPageViewModel : PageViewModelBa
             new NotificationProviderTestRequest(SelectedProvider, ParametersText, Title, Message),
             cancellationToken);
         await ApplyResultAsync(result, "Advanced.ExternalNotificationProviders.SendTest", cancellationToken);
+    }
+
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _texts.Language = normalized;
+        RefreshLocalizedUiState();
+    }
+
+    private void RefreshLocalizedUiState()
+    {
+        OnPropertyChanged(nameof(Texts));
+
+        var previousTitle = _defaultTitle;
+        var previousMessage = _defaultMessage;
+        _defaultTitle = T("Toolbox.Advanced.ExternalNotification.DefaultTitle", "MAA Test");
+        _defaultMessage = T("Toolbox.Advanced.ExternalNotification.DefaultMessage", "Advanced external notification test");
+
+        if (string.IsNullOrWhiteSpace(Title)
+            || string.Equals(Title, previousTitle, StringComparison.Ordinal))
+        {
+            Title = _defaultTitle;
+        }
+
+        if (string.IsNullOrWhiteSpace(Message)
+            || string.Equals(Message, previousMessage, StringComparison.Ordinal))
+        {
+            Message = _defaultMessage;
+        }
+    }
+
+    private string T(string key, string fallback)
+    {
+        return _texts.GetOrDefault(key, fallback);
     }
 }

@@ -1,20 +1,31 @@
 using MAAUnified.App.ViewModels.Infrastructure;
+using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.Localization;
 using MAAUnified.Platform;
 
 namespace MAAUnified.App.ViewModels.Advanced;
 
 public sealed class TrayIntegrationPageViewModel : PageViewModelBase
 {
+    private readonly ToolboxLocalizationTextMap _texts = new();
+    private string _trayMessageTitleTemplate = string.Empty;
+    private string _trayMessageBodyTemplate = string.Empty;
+    private string _capabilityProvider = string.Empty;
+    private bool? _capabilitySupported;
+    private string? _capabilityFallbackMode;
     private bool _trayVisible = true;
-    private string _trayMessageTitle = "MAAUnified";
-    private string _trayMessageBody = "Tray integration test.";
+    private string _trayMessageTitle = string.Empty;
+    private string _trayMessageBody = string.Empty;
     private string _capabilitySummary = string.Empty;
 
     public TrayIntegrationPageViewModel(MAAUnifiedRuntime runtime)
         : base(runtime)
     {
+        RefreshLocalizedUiState();
     }
+
+    public ToolboxLocalizationTextMap Texts => _texts;
 
     public bool TrayVisible
     {
@@ -57,7 +68,7 @@ public sealed class TrayIntegrationPageViewModel : PageViewModelBase
         }
 
         var tray = snapshot.Tray;
-        CapabilitySummary = $"provider={tray.Provider}; supported={tray.Supported}; fallback={tray.FallbackMode ?? "none"}";
+        UpdateCapabilitySummary(tray.Provider, tray.Supported, tray.FallbackMode);
     }
 
     public async Task ApplyTrayVisibilityAsync(CancellationToken cancellationToken = default)
@@ -88,5 +99,67 @@ public sealed class TrayIntegrationPageViewModel : PageViewModelBase
             await Runtime.PlatformCapabilityService.SetTrayMenuStateAsync(state, cancellationToken),
             "Advanced.TrayIntegration.SyncMenu",
             cancellationToken);
+    }
+
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _texts.Language = normalized;
+        RefreshLocalizedUiState();
+    }
+
+    private void RefreshLocalizedUiState()
+    {
+        OnPropertyChanged(nameof(Texts));
+
+        var previousTitleTemplate = _trayMessageTitleTemplate;
+        var previousBodyTemplate = _trayMessageBodyTemplate;
+        _trayMessageTitleTemplate = T("Toolbox.Advanced.Tray.DefaultMessageTitle", "MAAUnified");
+        _trayMessageBodyTemplate = T("Toolbox.Advanced.Tray.DefaultMessageBody", "Tray integration test.");
+
+        if (string.IsNullOrWhiteSpace(TrayMessageTitle)
+            || string.Equals(TrayMessageTitle, previousTitleTemplate, StringComparison.Ordinal))
+        {
+            TrayMessageTitle = _trayMessageTitleTemplate;
+        }
+
+        if (string.IsNullOrWhiteSpace(TrayMessageBody)
+            || string.Equals(TrayMessageBody, previousBodyTemplate, StringComparison.Ordinal))
+        {
+            TrayMessageBody = _trayMessageBodyTemplate;
+        }
+
+        if (_capabilitySupported.HasValue)
+        {
+            CapabilitySummary = string.Format(
+                T("Toolbox.Advanced.Capability.Summary", "Provider: {0}; Supported: {1}; Fallback: {2}"),
+                string.IsNullOrWhiteSpace(_capabilityProvider)
+                    ? T("Toolbox.Advanced.Capability.Provider.Unknown", "unknown")
+                    : _capabilityProvider,
+                _capabilitySupported.Value
+                    ? T("Toolbox.Advanced.Capability.Supported.True", "Yes")
+                    : T("Toolbox.Advanced.Capability.Supported.False", "No"),
+                string.IsNullOrWhiteSpace(_capabilityFallbackMode)
+                    ? T("Toolbox.Advanced.Capability.Fallback.None", "None")
+                    : _capabilityFallbackMode);
+        }
+    }
+
+    private void UpdateCapabilitySummary(string provider, bool supported, string? fallbackMode)
+    {
+        _capabilityProvider = provider ?? string.Empty;
+        _capabilitySupported = supported;
+        _capabilityFallbackMode = fallbackMode;
+        RefreshLocalizedUiState();
+    }
+
+    private string T(string key, string fallback)
+    {
+        return _texts.GetOrDefault(key, fallback);
     }
 }

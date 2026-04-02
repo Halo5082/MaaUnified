@@ -7,7 +7,9 @@
         MinHeight="260"
         WindowStartupLocation="CenterOwner">
   <Grid Margin="10" RowDefinitions="Auto,Auto,*,Auto">
-    <TextBlock Classes="section-title" Text="Text Dialog" />
+    <TextBlock x:Name="DialogTitleText"
+               Classes="section-title"
+               Text="Text Dialog" />
     <TextBlock x:Name="PromptText"
                Grid.Row="1"
                Margin="0,8,0,0"

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using System.Diagnostics;
 using MAAUnified.App.Services;
 using MAAUnified.App.ViewModels;
 using MAAUnified.App.Views;
@@ -15,8 +16,16 @@ public partial class App : Avalonia.Application
 {
     private static readonly object GlobalExceptionGate = new();
     private static readonly HashSet<string> ReportedGlobalExceptions = new(StringComparer.Ordinal);
+    private static readonly TimeSpan UiLagProbeInterval = TimeSpan.FromMilliseconds(250);
+    private static readonly TimeSpan UiLagLogMinInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan RuntimeDisposeTimeout = TimeSpan.FromSeconds(4);
+    private const double UiLagThresholdMs = 120;
     private static bool _globalExceptionHandlersRegistered;
+    private static int _shutdownStarted;
     private static AppCrashCaptureService? _crashCaptureService;
+    private static DispatcherTimer? _uiLagProbeTimer;
+    private static DateTimeOffset _uiLagProbeExpectedAtUtc;
+    private static DateTimeOffset _lastUiLagLoggedAtUtc = DateTimeOffset.MinValue;
 
     public static MAAUnifiedRuntime Runtime { get; private set; } = null!;
 
@@ -81,7 +90,9 @@ public partial class App : Avalonia.Application
             Program.RecordStartupStage("FrameworkInit.MainWindow.Created", "MainWindow created and disabled pending initialization.");
             desktop.MainWindow = mainWindow;
             Program.RecordStartupStage("FrameworkInit.MainWindow.Assigned", "Desktop MainWindow assigned.");
-            desktop.Exit += (_, _) => Runtime.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            StartUiLagProbe();
+            Program.RecordStartupStage("FrameworkInit.UiLagProbe.Started", "UI thread lag probe started.");
+            desktop.Exit += OnDesktopExit;
 
             _ = InitializeShellAsync(vm, mainWindow);
             Program.RecordStartupStage("FrameworkInit.InitializeShell.Scheduled", "Shell initialization scheduled.");
@@ -103,6 +114,7 @@ public partial class App : Avalonia.Application
         Program.RecordStartupStage("InitializeShell.Begin", "Starting shell initialization.");
         try
         {
+            var firstScreenStopwatch = Stopwatch.StartNew();
             Program.RecordStartupStage("InitializeShell.PendingCrashProbe.Begin", "Checking for previous crash reports.");
             await ReportPendingNativeCrashAsync();
             Program.RecordStartupStage("InitializeShell.PendingCrashProbe.End", "Previous crash report probe completed.");
@@ -113,7 +125,13 @@ public partial class App : Avalonia.Application
                 "Main window enabled while shell continues background initialization.");
             Program.RecordStartupStage("InitializeShell.FirstScreen.Wait", "Waiting for first screen to become interactive.");
             await vm.WaitForFirstScreenReadyAsync();
+            firstScreenStopwatch.Stop();
             Program.RecordStartupStage("InitializeShell.FirstScreen.Ready", "First screen is interactive.");
+            _ = Runtime.DiagnosticsService.RecordNavigationTimingAsync(
+                "App.Startup.FirstScreen",
+                "FrameworkInit",
+                "FirstScreenReady",
+                firstScreenStopwatch.Elapsed.TotalMilliseconds);
             await startupTask;
             Program.RecordStartupStage(
                 "InitializeShell.End",
@@ -143,6 +161,98 @@ public partial class App : Avalonia.Application
         Dispatcher.UIThread.UnhandledExceptionFilter += OnDispatcherUnhandledExceptionFilter;
         Dispatcher.UIThread.UnhandledException += OnDispatcherUnhandledException;
         _globalExceptionHandlersRegistered = true;
+    }
+
+    private static void StartUiLagProbe()
+    {
+        if (_uiLagProbeTimer is not null)
+        {
+            return;
+        }
+
+        _uiLagProbeExpectedAtUtc = DateTimeOffset.UtcNow + UiLagProbeInterval;
+        var timer = new DispatcherTimer
+        {
+            Interval = UiLagProbeInterval,
+        };
+        timer.Tick += OnUiLagProbeTick;
+        timer.Start();
+        _uiLagProbeTimer = timer;
+    }
+
+    private static void StopUiLagProbe()
+    {
+        if (_uiLagProbeTimer is null)
+        {
+            return;
+        }
+
+        _uiLagProbeTimer.Stop();
+        _uiLagProbeTimer.Tick -= OnUiLagProbeTick;
+        _uiLagProbeTimer = null;
+    }
+
+    private static void OnUiLagProbeTick(object? sender, EventArgs e)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var lagMs = (now - _uiLagProbeExpectedAtUtc).TotalMilliseconds;
+        _uiLagProbeExpectedAtUtc = now + UiLagProbeInterval;
+
+        if (lagMs < UiLagThresholdMs || now - _lastUiLagLoggedAtUtc < UiLagLogMinInterval)
+        {
+            return;
+        }
+
+        _lastUiLagLoggedAtUtc = now;
+        _ = Runtime.DiagnosticsService.RecordUiLagAsync(
+            "App.UiThreadLagProbe",
+            lagMs,
+            thresholdMs: (int)UiLagThresholdMs,
+            probeIntervalMs: (int)UiLagProbeInterval.TotalMilliseconds,
+            minInterval: UiLagLogMinInterval);
+    }
+
+    private static void OnDesktopExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
+    {
+        StopUiLagProbe();
+        _ = DisposeRuntimeOnExitAsync();
+    }
+
+    private static async Task DisposeRuntimeOnExitAsync()
+    {
+        if (Interlocked.Exchange(ref _shutdownStarted, 1) != 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var disposeTask = Runtime.DisposeAsync().AsTask();
+            var completed = await Task.WhenAny(disposeTask, Task.Delay(RuntimeDisposeTimeout));
+            if (ReferenceEquals(completed, disposeTask))
+            {
+                await disposeTask;
+                return;
+            }
+
+            _ = disposeTask.ContinueWith(
+                static task => _ = task.Exception,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously);
+            Runtime.LogService.Warn(
+                $"Runtime dispose timed out during app exit: timeoutMs={RuntimeDisposeTimeout.TotalMilliseconds:0}");
+            await Runtime.DiagnosticsService.RecordPerformanceEventAsync(
+                "app_exit_dispose_timeout",
+                "App.Exit",
+                RuntimeDisposeTimeout.TotalMilliseconds,
+                new Dictionary<string, object?>
+                {
+                    ["timeoutMs"] = (int)RuntimeDisposeTimeout.TotalMilliseconds,
+                });
+        }
+        catch (Exception ex)
+        {
+            await SafeRecordExceptionAsync("App.Exit.Dispose", "Failed to dispose runtime during app exit.", ex);
+        }
     }
 
     private static void OnDispatcherUnhandledExceptionFilter(object? sender, DispatcherUnhandledExceptionFilterEventArgs e)
@@ -191,7 +301,7 @@ public partial class App : Avalonia.Application
         _ = ReportGlobalExceptionAsync("AppDomain.CurrentDomain.UnhandledException", exception, handled: false, isTerminating: e.IsTerminating);
     }
 
-    private static bool ShouldIgnoreUnhandledException(Exception exception)
+    internal static bool ShouldIgnoreUnhandledException(Exception exception)
     {
         if (exception is OperationCanceledException)
         {
@@ -201,10 +311,38 @@ public partial class App : Avalonia.Application
         if (exception is AggregateException aggregate)
         {
             var inners = aggregate.Flatten().InnerExceptions;
-            return inners.Count > 0 && inners.All(static inner => inner is OperationCanceledException);
+            return inners.Count > 0 && inners.All(ShouldIgnoreUnhandledException);
         }
 
-        return false;
+        return IsBenignLinuxAppMenuRegistrarFailure(exception);
+    }
+
+    private static bool IsBenignLinuxAppMenuRegistrarFailure(Exception exception)
+    {
+        if (!OperatingSystem.IsLinux())
+        {
+            return false;
+        }
+
+        if (HasBenignLinuxAppMenuRegistrarMessage(exception.Message))
+        {
+            return true;
+        }
+
+        if (exception is AggregateException aggregate)
+        {
+            return aggregate.InnerExceptions.Any(IsBenignLinuxAppMenuRegistrarFailure);
+        }
+
+        return exception.InnerException is not null
+            && IsBenignLinuxAppMenuRegistrarFailure(exception.InnerException);
+    }
+
+    private static bool HasBenignLinuxAppMenuRegistrarMessage(string? message)
+    {
+        return !string.IsNullOrWhiteSpace(message)
+            && message.Contains("org.freedesktop.DBus.Error.ServiceUnknown", StringComparison.OrdinalIgnoreCase)
+            && message.Contains("com.canonical.AppMenu.Registrar", StringComparison.Ordinal);
     }
 
     private static async Task ReportPendingNativeCrashAsync()

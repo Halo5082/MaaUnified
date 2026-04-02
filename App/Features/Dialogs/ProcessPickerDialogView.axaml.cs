@@ -2,14 +2,18 @@ using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MAAUnified.App.Infrastructure;
+using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Models;
 
 namespace MAAUnified.App.Features.Dialogs;
 
-public partial class ProcessPickerDialogView : Window
+public partial class ProcessPickerDialogView : Window, IDialogChromeAware
 {
     private readonly ObservableCollection<ProcessPickerItem> _items = [];
     private ProcessPickerDialogRequest? _request;
+    private bool _isRefreshing;
+    private string _refreshButtonText = "Refresh";
+    private string _refreshingButtonText = "Refreshing...";
 
     public ProcessPickerDialogView()
     {
@@ -22,11 +26,16 @@ public partial class ProcessPickerDialogView : Window
     {
         _request = request;
         Title = request.Title;
+        DialogTitleText.Text = request.Title;
         ConfirmButton.Content = request.ConfirmText;
         CancelButton.Content = request.CancelText;
+        _refreshButtonText = RefreshButton.Content?.ToString() ?? "Refresh";
+        _refreshingButtonText = _refreshButtonText;
         ApplyItems(request.Items, request.SelectedId);
         RefreshButton.IsVisible = request.RefreshItemsAsync is not null;
         RefreshButton.IsEnabled = request.RefreshItemsAsync is not null;
+        _isRefreshing = false;
+        RefreshButton.Content = _refreshButtonText;
     }
 
     public ProcessPickerDialogPayload? BuildPayload()
@@ -48,7 +57,8 @@ public partial class ProcessPickerDialogView : Window
 
         var selectedId = (ProcessList.SelectedItem as ProcessPickerItem)?.Id;
         RefreshButton.IsEnabled = false;
-        RefreshButton.Content = "Refreshing...";
+        _isRefreshing = true;
+        RefreshButton.Content = _refreshingButtonText;
         try
         {
             var refreshedItems = await refreshItemsAsync(CancellationToken.None);
@@ -60,7 +70,8 @@ public partial class ProcessPickerDialogView : Window
         }
         finally
         {
-            RefreshButton.Content = "Refresh";
+            _isRefreshing = false;
+            RefreshButton.Content = _refreshButtonText;
             RefreshButton.IsEnabled = true;
         }
     }
@@ -95,5 +106,16 @@ public partial class ProcessPickerDialogView : Window
 
         ProcessList.SelectedItem ??= _items.FirstOrDefault();
         ConfirmButton.IsEnabled = _items.Count > 0;
+    }
+
+    public void ApplyDialogChrome(DialogChromeSnapshot chrome)
+    {
+        Title = chrome.Title;
+        DialogTitleText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.SectionTitle, chrome.Title);
+        ConfirmButton.Content = chrome.ConfirmText ?? ConfirmButton.Content;
+        CancelButton.Content = chrome.CancelText ?? CancelButton.Content;
+        _refreshButtonText = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.RefreshButton, _refreshButtonText);
+        _refreshingButtonText = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.RefreshingButton, _refreshButtonText);
+        RefreshButton.Content = _isRefreshing ? _refreshingButtonText : _refreshButtonText;
     }
 }

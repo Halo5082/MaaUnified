@@ -1,16 +1,21 @@
+using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MAAUnified.App.Infrastructure;
 using MAAUnified.App.ViewModels.Infrastructure;
+using MAAUnified.Application.Models;
 
 namespace MAAUnified.App.Features.Dialogs;
 
-public partial class WarningConfirmDialogView : Window
+public partial class WarningConfirmDialogView : Window, IDialogChromeAware
 {
     private CancellationTokenSource? _countdownCts;
-    private string _confirmText = string.Empty;
-    private string? _language;
+    private string _confirmSnapshot = string.Empty;
+    private string _titleSnapshot = string.Empty;
+    private string _messageSnapshot = string.Empty;
+    private string _cancelSnapshot = string.Empty;
     private int _countdownSeconds;
+    private int _remainingCountdownSeconds;
 
     public WarningConfirmDialogView()
     {
@@ -29,18 +34,22 @@ public partial class WarningConfirmDialogView : Window
         int countdownSeconds = 0)
     {
         StopCountdown();
-        _language = language;
-        Title = string.IsNullOrWhiteSpace(title) ? DialogTextCatalog.WarningDialogTitle(language) : title.Trim();
-        TitleText.Text = Title;
-        PromptText.Text = string.IsNullOrWhiteSpace(message) ? DialogTextCatalog.WarningDialogPrompt(language) : message.Trim();
-        _confirmText = string.IsNullOrWhiteSpace(confirmText)
-            ? DialogTextCatalog.WarningDialogConfirmButton(language)
+        var effectiveLanguage = language ?? "en-us";
+        _titleSnapshot = string.IsNullOrWhiteSpace(title) ? DialogTextCatalog.WarningDialogTitle(effectiveLanguage) : title.Trim();
+        _messageSnapshot = string.IsNullOrWhiteSpace(message) ? DialogTextCatalog.WarningDialogPrompt(effectiveLanguage) : message.Trim();
+        _confirmSnapshot = string.IsNullOrWhiteSpace(confirmText)
+            ? DialogTextCatalog.WarningDialogConfirmButton(effectiveLanguage)
             : confirmText;
-        _countdownSeconds = Math.Max(0, countdownSeconds);
-        UpdateConfirmButtonText(_countdownSeconds);
-        CancelButton.Content = string.IsNullOrWhiteSpace(cancelText)
-            ? DialogTextCatalog.WarningDialogCancelButton(language)
+        _cancelSnapshot = string.IsNullOrWhiteSpace(cancelText)
+            ? DialogTextCatalog.WarningDialogCancelButton(effectiveLanguage)
             : cancelText;
+        _countdownSeconds = Math.Max(0, countdownSeconds);
+        _remainingCountdownSeconds = _countdownSeconds;
+        Title = _titleSnapshot;
+        TitleText.Text = _titleSnapshot;
+        PromptText.Text = _messageSnapshot;
+        CancelButton.Content = _cancelSnapshot;
+        UpdateConfirmButtonText(_remainingCountdownSeconds);
     }
 
     private void OnConfirmClick(object? sender, RoutedEventArgs e)
@@ -66,6 +75,7 @@ public partial class WarningConfirmDialogView : Window
     private void OnClosed(object? sender, EventArgs e)
     {
         StopCountdown();
+        Closed -= OnClosed;
     }
 
     private async void StartCountdown()
@@ -77,6 +87,7 @@ public partial class WarningConfirmDialogView : Window
         {
             for (var remaining = _countdownSeconds; remaining > 0; remaining--)
             {
+                _remainingCountdownSeconds = remaining;
                 UpdateConfirmButtonText(remaining);
                 await Task.Delay(TimeSpan.FromSeconds(1), _countdownCts.Token);
             }
@@ -86,6 +97,7 @@ public partial class WarningConfirmDialogView : Window
                 return;
             }
 
+            _remainingCountdownSeconds = 0;
             UpdateConfirmButtonText(0);
             Close(true);
         }
@@ -97,6 +109,7 @@ public partial class WarningConfirmDialogView : Window
 
     private void StopCountdown()
     {
+        _remainingCountdownSeconds = 0;
         _countdownCts?.Cancel();
         _countdownCts?.Dispose();
         _countdownCts = null;
@@ -104,8 +117,20 @@ public partial class WarningConfirmDialogView : Window
 
     private void UpdateConfirmButtonText(int remainingSeconds)
     {
+        var confirmText = _confirmSnapshot;
         ConfirmButton.Content = remainingSeconds > 0
-            ? DialogTextCatalog.Select(_language, $"{_confirmText}（{remainingSeconds}s）", $"{_confirmText} ({remainingSeconds}s)")
-            : _confirmText;
+            ? $"{confirmText} ({remainingSeconds}s)"
+            : confirmText;
+    }
+
+    public void ApplyDialogChrome(DialogChromeSnapshot chrome)
+    {
+        Title = chrome.Title;
+        TitleText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.SectionTitle, chrome.Title);
+        PromptText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.Prompt, _messageSnapshot);
+        _confirmSnapshot = chrome.ConfirmText ?? _confirmSnapshot;
+        _cancelSnapshot = chrome.CancelText ?? _cancelSnapshot;
+        CancelButton.Content = _cancelSnapshot;
+        UpdateConfirmButtonText(_remainingCountdownSeconds);
     }
 }

@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -75,6 +77,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     private readonly DispatcherTimer _peepTimer;
     private readonly ToolboxLocalizationTextMap _texts;
     private readonly RootLocalizationTextMap _rootTexts;
+    private readonly ConcurrentQueue<SessionCallbackEnvelope> _pendingSessionCallbacks = new();
     private readonly Dictionary<string, int> _operBoxPotential = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ToolboxOwnedOperatorState> _operBoxOwnedById = new(StringComparer.Ordinal);
     private readonly SemaphoreSlim _advancedSuiteInitGate = new(1, 1);
@@ -86,6 +89,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
     private bool _peepRefreshInFlight;
     private bool _peepWasAutoStarted;
+    private int _callbackDrainScheduled;
     private DateTimeOffset _lastPeepFpsWindowStartedAt = DateTimeOffset.MinValue;
     private int _peepFramesInWindow;
     private int _selectedTabIndex;
@@ -178,6 +182,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         TrayIntegrationPage = new TrayIntegrationPageViewModel(runtime);
         OverlayPage = new OverlayAdvancedPageViewModel(runtime);
         WebApiPage = new WebApiPageViewModel(runtime);
+        ForwardAdvancedPageLanguage(_currentLanguage);
 
         ExecutionHistory = new ObservableCollection<ToolExecutionRecord>();
         ExecutionHistory.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasExecutionHistory));
@@ -219,7 +224,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             OnPropertyChanged(nameof(DepotPanelWidth));
         };
 
-        runtime.SessionService.CallbackReceived += callback => _ = HandleCallbackAsync(callback);
+        runtime.SessionService.CallbackProjected += OnSessionCallbackProjected;
         RefreshCurrentToolParametersPreview();
     }
 
@@ -1157,17 +1162,17 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     internal void ApplyRuntimeCallback(CoreCallbackEvent callback)
     {
-        JsonObject? payload = null;
-        if (!string.IsNullOrWhiteSpace(callback.PayloadJson))
+        ApplyRuntimeCallback(SessionCallbackEnvelope.FromRaw(callback));
+    }
+
+    internal void ApplyRuntimeCallback(SessionCallbackEnvelope callbackEnvelope)
+    {
+        var callback = callbackEnvelope.Callback;
+        var payload = callbackEnvelope.Payload;
+        if (!string.IsNullOrWhiteSpace(callbackEnvelope.ParseError))
         {
-            try
-            {
-                payload = JsonNode.Parse(callback.PayloadJson) as JsonObject;
-            }
-            catch
-            {
-                Runtime.LogService.Warn($"Toolbox callback payload parse failed: msgName={callback.MsgName}, payload={callback.PayloadJson}");
-            }
+            Runtime.LogService.Warn(
+                $"Toolbox callback payload parse failed: msgName={callback.MsgName}; msgId={callback.MsgId}; error={callbackEnvelope.ParseError}");
         }
 
         if (string.Equals(callback.MsgName, "SubTaskExtraInfo", StringComparison.OrdinalIgnoreCase))
@@ -1214,9 +1219,50 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         }
     }
 
-    internal async Task HandleCallbackAsync(CoreCallbackEvent callback)
+    internal Task HandleCallbackAsync(CoreCallbackEvent callback)
     {
-        await Dispatcher.UIThread.InvokeAsync(() => ApplyRuntimeCallback(callback));
+        OnSessionCallbackProjected(SessionCallbackEnvelope.FromRaw(callback));
+        return Task.CompletedTask;
+    }
+
+    private void OnSessionCallbackProjected(SessionCallbackEnvelope callback)
+    {
+        _pendingSessionCallbacks.Enqueue(callback);
+        if (Interlocked.CompareExchange(ref _callbackDrainScheduled, 1, 0) != 0)
+        {
+            return;
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            DrainPendingSessionCallbacksOnUiThread();
+            return;
+        }
+
+        Dispatcher.UIThread.Post(DrainPendingSessionCallbacksOnUiThread, DispatcherPriority.Background);
+    }
+
+    private void DrainPendingSessionCallbacksOnUiThread()
+    {
+        var shouldReschedule = false;
+        try
+        {
+            while (_pendingSessionCallbacks.TryDequeue(out var callback))
+            {
+                ApplyRuntimeCallback(callback);
+            }
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _callbackDrainScheduled, 0);
+            shouldReschedule = !_pendingSessionCallbacks.IsEmpty
+                && Interlocked.CompareExchange(ref _callbackDrainScheduled, 1, 0) == 0;
+        }
+
+        if (shouldReschedule)
+        {
+            Dispatcher.UIThread.Post(DrainPendingSessionCallbacksOnUiThread, DispatcherPriority.Background);
+        }
     }
 
     private async Task DispatchToolAsync(
@@ -1518,12 +1564,14 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         var normalized = UiLanguageCatalog.Normalize(language);
         if (string.Equals(_currentLanguage, normalized, StringComparison.OrdinalIgnoreCase))
         {
+            ForwardAdvancedPageLanguage(normalized);
             return;
         }
 
         _currentLanguage = normalized;
         _texts.Language = normalized;
         _rootTexts.Language = normalized;
+        ForwardAdvancedPageLanguage(normalized);
         OnPropertyChanged(nameof(RecruitPotentialTip));
         OnPropertyChanged(nameof(OperBoxNotHaveHeader));
         OnPropertyChanged(nameof(OperBoxHaveHeader));
@@ -1575,6 +1623,16 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             ApplyRecruitResult(_lastRecruitResult, cacheResult: false);
         }
+    }
+
+    private void ForwardAdvancedPageLanguage(string language)
+    {
+        StageManagerPage.SetLanguage(language);
+        ExternalNotificationProvidersPage.SetLanguage(language);
+        RemoteControlCenterPage.SetLanguage(language);
+        TrayIntegrationPage.SetLanguage(language);
+        OverlayPage.SetLanguage(language);
+        WebApiPage.SetLanguage(language);
     }
 
     private void RelocalizeDepotItems()
@@ -2198,14 +2256,31 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         _peepRefreshInFlight = true;
         try
         {
+            var screenshotStopwatch = Stopwatch.StartNew();
             var imageResult = await Runtime.CoreBridge.GetImageAsync();
+            screenshotStopwatch.Stop();
             if (!imageResult.Success || imageResult.Value is null || imageResult.Value.Length == 0)
             {
+                _ = Runtime.DiagnosticsService.RecordScreenshotTestAsync(
+                    "Toolbox.Peep.Refresh",
+                    success: false,
+                    elapsedMs: screenshotStopwatch.Elapsed.TotalMilliseconds,
+                    provider: "CoreBridge.GetImageAsync",
+                    details: imageResult.Error?.Message,
+                    minInterval: TimeSpan.FromSeconds(10));
                 return;
             }
 
             using var stream = new MemoryStream(imageResult.Value, writable: false);
             var bitmap = new Bitmap(stream);
+            _ = Runtime.DiagnosticsService.RecordScreenshotTestAsync(
+                "Toolbox.Peep.Refresh",
+                success: true,
+                elapsedMs: screenshotStopwatch.Elapsed.TotalMilliseconds,
+                provider: "CoreBridge.GetImageAsync",
+                width: bitmap.PixelSize.Width,
+                height: bitmap.PixelSize.Height,
+                minInterval: TimeSpan.FromSeconds(30));
             PeepImage = bitmap;
 
             _peepFramesInWindow += 1;

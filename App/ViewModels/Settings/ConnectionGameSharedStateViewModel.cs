@@ -727,7 +727,8 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
             }
         }
 
-        return new ConnectionGameOptionItem(normalized, normalized);
+        // Keep SelectedItem bound to the current ItemsSource to avoid language-switch desync.
+        return options.FirstOrDefault();
     }
 
     private static string? ResolveAdbPathCore(string input)

@@ -29,7 +29,7 @@ public sealed class ThemeLanguageCombinationSmokeTests
             new ViewStructureCheck("App/Views/RuntimeLogWindow.axaml", "ItemsSource=\"{Binding GrowlMessages}\"", "ItemsSource=\"{Binding RootLogs}\"", "Text=\"{Binding CapabilitySummary}\""),
             new ViewStructureCheck("App/Features/Root/TaskQueueView.axaml", "<ListBox", "<ScrollViewer", "SelectedTaskSettingsViewModel", "OnToggleOverlayClick", "OverlayButtonToolTip"),
             new ViewStructureCheck("App/Features/Advanced/CopilotView.axaml", "OnToggleOverlayClick", "OnOverlayButtonPointerPressed", "DataContext.TaskQueuePage.OverlayButtonToolTip"),
-            new ViewStructureCheck("App/Features/Root/SettingsView.axaml", "<ListBox", "SectionScrollViewer", "SectionContentPanel", "ScrollChanged=\"OnSectionScrollChanged\"", "settingsViews:ConfigurationManagerView"),
+            new ViewStructureCheck("App/Features/Root/SettingsView.axaml", "<ListBox", "SectionScrollViewer", "SectionContentPanel", "ScrollChanged=\"OnSectionScrollChanged\"", "SectionConfigurationManager", "SectionAbout"),
         };
 
         foreach (var check in checks)
@@ -41,6 +41,13 @@ public sealed class ThemeLanguageCombinationSmokeTests
                 Assert.Contains(required, xaml, StringComparison.Ordinal);
             }
         }
+
+        var settingsXaml = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "SettingsView.axaml"));
+        var settingsCodeBehind = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "SettingsView.axaml.cs"));
+        Assert.DoesNotContain("settingsViews:ConfigurationManagerView", settingsXaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("settingsViews:AboutSettingsView", settingsXaml, StringComparison.Ordinal);
+        Assert.Contains("CreateSectionContent(", settingsCodeBehind, StringComparison.Ordinal);
+        Assert.Contains("EnsureSectionMaterialized(", settingsCodeBehind, StringComparison.Ordinal);
     }
 
     [Fact]

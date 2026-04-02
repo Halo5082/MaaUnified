@@ -54,6 +54,104 @@ public sealed class SettingsModuleAK1FeatureTests
     }
 
     [Fact]
+    public void ConnectionGameSharedState_SelectedOptions_WithUnknownOrLegacyValues_ShouldReturnItemsSourceEntries()
+    {
+        var state = new ConnectionGameSharedStateViewModel();
+
+        state.ConnectConfig = "Mumu";
+        Assert.Same(
+            state.ConnectConfigOptions.First(option => string.Equals(option.Value, "MuMuEmulator12", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedConnectConfigOption);
+
+        state.ConnectConfig = "LegacyConnectConfig";
+        Assert.Same(state.ConnectConfigOptions.First(), state.SelectedConnectConfigOption);
+
+        state.ClientType = "Txwy";
+        Assert.Same(
+            state.ClientTypeOptions.First(option => string.Equals(option.Value, "txwy", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedClientTypeOption);
+
+        state.ClientType = "LegacyClientType";
+        Assert.Same(state.ClientTypeOptions.First(), state.SelectedClientTypeOption);
+
+        state.TouchMode = "LegacyTouchMode";
+        Assert.Same(state.TouchModeOptions.First(), state.SelectedTouchModeOption);
+
+        state.AttachWindowScreencapMethod = "LegacyScreencap";
+        Assert.Same(state.AttachWindowScreencapOptions.First(), state.SelectedAttachWindowScreencapOption);
+
+        state.AttachWindowMouseMethod = "LegacyMouseInput";
+        Assert.Same(state.AttachWindowInputOptions.First(), state.SelectedAttachWindowMouseOption);
+
+        state.AttachWindowKeyboardMethod = "LegacyKeyboardInput";
+        Assert.Same(state.AttachWindowInputOptions.First(), state.SelectedAttachWindowKeyboardOption);
+    }
+
+    [Fact]
+    public void ConnectionGameSharedState_SetLanguage_AfterOptionsRebuild_SelectedOptionsShouldUseNewListEntries()
+    {
+        var state = new ConnectionGameSharedStateViewModel
+        {
+            ConnectConfig = "Mumu",
+            ClientType = "Txwy",
+            TouchMode = "adb",
+            AttachWindowScreencapMethod = "16",
+            AttachWindowMouseMethod = "32",
+            AttachWindowKeyboardMethod = "128",
+        };
+
+        var connectConfigOptionsBefore = state.ConnectConfigOptions;
+        var clientTypeOptionsBefore = state.ClientTypeOptions;
+        var touchModeOptionsBefore = state.TouchModeOptions;
+        var screencapOptionsBefore = state.AttachWindowScreencapOptions;
+        var inputOptionsBefore = state.AttachWindowInputOptions;
+
+        var selectedConnectConfigBefore = state.SelectedConnectConfigOption;
+        var selectedClientTypeBefore = state.SelectedClientTypeOption;
+        var selectedTouchModeBefore = state.SelectedTouchModeOption;
+        var selectedScreencapBefore = state.SelectedAttachWindowScreencapOption;
+        var selectedMouseBefore = state.SelectedAttachWindowMouseOption;
+        var selectedKeyboardBefore = state.SelectedAttachWindowKeyboardOption;
+
+        var nextLanguage = string.Equals(state.RootTexts.Language, "zh-cn", StringComparison.OrdinalIgnoreCase)
+            ? "en-us"
+            : "zh-cn";
+        state.SetLanguage(nextLanguage);
+
+        Assert.NotSame(connectConfigOptionsBefore, state.ConnectConfigOptions);
+        Assert.NotSame(clientTypeOptionsBefore, state.ClientTypeOptions);
+        Assert.NotSame(touchModeOptionsBefore, state.TouchModeOptions);
+        Assert.NotSame(screencapOptionsBefore, state.AttachWindowScreencapOptions);
+        Assert.NotSame(inputOptionsBefore, state.AttachWindowInputOptions);
+
+        Assert.NotSame(selectedConnectConfigBefore, state.SelectedConnectConfigOption);
+        Assert.NotSame(selectedClientTypeBefore, state.SelectedClientTypeOption);
+        Assert.NotSame(selectedTouchModeBefore, state.SelectedTouchModeOption);
+        Assert.NotSame(selectedScreencapBefore, state.SelectedAttachWindowScreencapOption);
+        Assert.NotSame(selectedMouseBefore, state.SelectedAttachWindowMouseOption);
+        Assert.NotSame(selectedKeyboardBefore, state.SelectedAttachWindowKeyboardOption);
+
+        Assert.Same(
+            state.ConnectConfigOptions.First(option => string.Equals(option.Value, "MuMuEmulator12", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedConnectConfigOption);
+        Assert.Same(
+            state.ClientTypeOptions.First(option => string.Equals(option.Value, "txwy", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedClientTypeOption);
+        Assert.Same(
+            state.TouchModeOptions.First(option => string.Equals(option.Value, "adb", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedTouchModeOption);
+        Assert.Same(
+            state.AttachWindowScreencapOptions.First(option => string.Equals(option.Value, "16", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedAttachWindowScreencapOption);
+        Assert.Same(
+            state.AttachWindowInputOptions.First(option => string.Equals(option.Value, "32", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedAttachWindowMouseOption);
+        Assert.Same(
+            state.AttachWindowInputOptions.First(option => string.Equals(option.Value, "128", StringComparison.OrdinalIgnoreCase)),
+            state.SelectedAttachWindowKeyboardOption);
+    }
+
+    [Fact]
     public async Task SaveConnectionGameSettings_AndMainShellSyncConnectionToProfile_WriteSameFieldSet()
     {
         await using var fixture = await TestFixture.CreateAsync();

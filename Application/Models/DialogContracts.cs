@@ -35,13 +35,76 @@ public sealed record DialogErrorRaisedEvent(
     UiOperationResult Result,
     DateTimeOffset TimestampUtc);
 
+public sealed record DialogChromeSnapshot
+{
+    private static readonly IReadOnlyDictionary<string, string> EmptyNamedTexts =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    public DialogChromeSnapshot(
+        string title,
+        string? confirmText = null,
+        string? cancelText = null,
+        IReadOnlyDictionary<string, string>? namedTexts = null)
+    {
+        Title = title;
+        ConfirmText = confirmText;
+        CancelText = cancelText;
+        NamedTexts = namedTexts ?? EmptyNamedTexts;
+    }
+
+    public string Title { get; init; }
+
+    public string? ConfirmText { get; init; }
+
+    public string? CancelText { get; init; }
+
+    public IReadOnlyDictionary<string, string> NamedTexts { get; init; }
+
+    public string GetNamedTextOrDefault(string key, string fallback = "")
+    {
+        if (!string.IsNullOrWhiteSpace(key)
+            && NamedTexts.TryGetValue(key, out var value)
+            && !string.IsNullOrWhiteSpace(value))
+        {
+            return value;
+        }
+
+        return fallback;
+    }
+}
+
+public sealed class DialogChromeCatalog
+{
+    private readonly Func<string, DialogChromeSnapshot> _snapshotFactory;
+
+    public DialogChromeCatalog(string initialLanguage, Func<string, DialogChromeSnapshot> snapshotFactory)
+    {
+        InitialLanguage = string.IsNullOrWhiteSpace(initialLanguage) ? "en-us" : initialLanguage.Trim();
+        _snapshotFactory = snapshotFactory ?? throw new ArgumentNullException(nameof(snapshotFactory));
+    }
+
+    public string InitialLanguage { get; }
+
+    public DialogChromeSnapshot GetSnapshot(string? language = null)
+    {
+        var resolvedLanguage = string.IsNullOrWhiteSpace(language) ? InitialLanguage : language.Trim();
+        return _snapshotFactory(resolvedLanguage);
+    }
+}
+
+public interface IDialogChromeAware
+{
+    void ApplyDialogChrome(DialogChromeSnapshot chrome);
+}
+
 public sealed record AnnouncementDialogRequest(
     string Title,
     string AnnouncementInfo,
     bool DoNotRemindThisAnnouncementAgain,
     bool DoNotShowAnnouncement,
     string ConfirmText = "Confirm",
-    string CancelText = "Cancel");
+    string CancelText = "Cancel",
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record AnnouncementDialogPayload(
     string AnnouncementInfo,
@@ -55,7 +118,8 @@ public sealed record VersionUpdateDialogRequest(
     string Summary,
     string Body,
     string ConfirmText = "Confirm",
-    string CancelText = "Later");
+    string CancelText = "Later",
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record VersionUpdateDialogPayload(
     string Action,
@@ -74,7 +138,8 @@ public sealed record ProcessPickerDialogRequest(
     string? SelectedId,
     string ConfirmText = "Select",
     string CancelText = "Cancel",
-    Func<CancellationToken, Task<IReadOnlyList<ProcessPickerItem>>>? RefreshItemsAsync = null);
+    Func<CancellationToken, Task<IReadOnlyList<ProcessPickerItem>>>? RefreshItemsAsync = null,
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record ProcessPickerDialogPayload(
     string SelectedId,
@@ -85,7 +150,8 @@ public sealed record EmulatorPathDialogRequest(
     IReadOnlyList<string> CandidatePaths,
     string? SelectedPath,
     string ConfirmText = "Confirm",
-    string CancelText = "Cancel");
+    string CancelText = "Cancel",
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record EmulatorPathDialogPayload(string SelectedPath);
 
@@ -96,7 +162,8 @@ public sealed record ErrorDialogRequest(
     string? Suggestion = null,
     string ConfirmText = "Close",
     string CancelText = "Ignore",
-    string Language = "en-us");
+    string Language = "en-us",
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record ErrorDialogPayload(
     string FormattedErrorText,
@@ -129,7 +196,8 @@ public sealed record AchievementListDialogRequest(
     string? InitialFilter,
     string ConfirmText = "Confirm",
     string CancelText = "Cancel",
-    string FilterWatermark = "Filter");
+    string FilterWatermark = "Filter",
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record AchievementListDialogPayload(
     string FilterText,
@@ -141,7 +209,8 @@ public sealed record TextDialogRequest(
     string DefaultText,
     bool MultiLine = false,
     string ConfirmText = "Confirm",
-    string CancelText = "Cancel");
+    string CancelText = "Cancel",
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record TextDialogPayload(string Text);
 
@@ -151,6 +220,7 @@ public sealed record WarningConfirmDialogRequest(
     string ConfirmText = "Confirm",
     string CancelText = "Cancel",
     string Language = "en-us",
-    int CountdownSeconds = 0);
+    int CountdownSeconds = 0,
+    DialogChromeCatalog? Chrome = null);
 
 public sealed record WarningConfirmDialogPayload(bool Confirmed);

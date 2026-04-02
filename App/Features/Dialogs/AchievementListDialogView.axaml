@@ -7,7 +7,9 @@
         MinHeight="420"
         WindowStartupLocation="CenterOwner">
   <Grid Margin="10" RowDefinitions="Auto,Auto,*,Auto">
-    <TextBlock Classes="section-title" Text="Achievement List" />
+    <TextBlock x:Name="DialogTitleText"
+               Classes="section-title"
+               Text="Achievement List" />
     <TextBox x:Name="FilterInput"
              Grid.Row="1"
              Margin="0,8,0,0"
@@ -35,7 +37,7 @@
               <StackPanel Grid.Column="1" Spacing="4">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
-                  <TextBlock Text="NEW"
+                  <TextBlock Text="{Binding NewBadgeText}"
                              FontWeight="Bold"
                              Foreground="#D96C0D"
                              IsVisible="{Binding IsNewUnlock}" />
@@ -48,7 +50,7 @@
                              IsVisible="{Binding ShowProgress}"
                              Height="10"
                              Width="220" />
-                <TextBlock Text="{Binding Progress, StringFormat=进度：{0}}"
+                <TextBlock Text="{Binding ProgressText}"
                            IsVisible="{Binding ShowProgress}" />
                 <TextBlock Opacity="0.72" Text="{Binding Status}" />
                 <TextBlock Text="{Binding UnlockedAtText}"

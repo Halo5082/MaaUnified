@@ -1,12 +1,15 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MAAUnified.App.Infrastructure;
+using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Models;
 
 namespace MAAUnified.App.Features.Dialogs;
 
-public partial class TextDialogView : Window
+public partial class TextDialogView : Window, IDialogChromeAware
 {
+    private string _promptSnapshot = string.Empty;
+
     public TextDialogView()
     {
         InitializeComponent();
@@ -21,9 +24,11 @@ public partial class TextDialogView : Window
     public void ApplyRequest(TextDialogRequest request)
     {
         Title = request.Title;
-        PromptText.Text = request.Prompt;
+        _promptSnapshot = request.Prompt;
+        PromptText.Text = _promptSnapshot;
         InputBox.Text = request.DefaultText;
         InputBox.AcceptsReturn = request.MultiLine;
+        DialogTitleText.Text = Title;
         ConfirmButton.Content = request.ConfirmText;
         CancelButton.Content = request.CancelText;
     }
@@ -41,5 +46,14 @@ public partial class TextDialogView : Window
     private void OnCancelClick(object? sender, RoutedEventArgs e)
     {
         Close(DialogReturnSemantic.Cancel);
+    }
+
+    public void ApplyDialogChrome(DialogChromeSnapshot chrome)
+    {
+        Title = chrome.Title;
+        DialogTitleText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.SectionTitle, chrome.Title);
+        PromptText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.Prompt, _promptSnapshot);
+        ConfirmButton.Content = chrome.ConfirmText ?? ConfirmButton.Content;
+        CancelButton.Content = chrome.CancelText ?? CancelButton.Content;
     }
 }

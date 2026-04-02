@@ -13,8 +13,10 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
     private readonly UnifiedConfigurationService? _configService;
     private readonly string _baseDirectory;
     private readonly object _snapshotGate = new();
+    private readonly object _resourceCacheGate = new();
     private readonly Dictionary<string, StageSnapshot> _localSnapshots = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, StageSnapshot> _webSnapshots = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ResourceJsonCacheEntry> _resourceJsonCache = new(StringComparer.OrdinalIgnoreCase);
 
     public StageManagerFeatureService()
         : this(configService: null, baseDirectory: AppContext.BaseDirectory)
@@ -314,7 +316,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
             new Uri(sourceFile).AbsoluteUri);
     }
 
-    private static bool TryReadStageCodes(
+    private bool TryReadStageCodes(
         StageSourceDescriptor source,
         out IReadOnlyList<string> stageCodes,
         out string errorMessage)
@@ -326,13 +328,25 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         {
             if (!string.IsNullOrWhiteSpace(source.StagesPath))
             {
-                var root = JsonNode.Parse(File.ReadAllText(source.StagesPath!));
+                if (!TryReadJsonRootFromFile(source.StagesPath!, out var root, out var readError))
+                {
+                    stageCodes = Array.Empty<string>();
+                    errorMessage = $"Failed to read stage resources from `{source.SourceUrl}`: {readError}";
+                    return false;
+                }
+
                 AppendStageCodesFromStagesJson(root, orderedCodes, seenCodes);
             }
 
             if (!string.IsNullOrWhiteSpace(source.TasksPath))
             {
-                var root = JsonNode.Parse(File.ReadAllText(source.TasksPath!));
+                if (!TryReadJsonRootFromFile(source.TasksPath!, out var root, out var readError))
+                {
+                    stageCodes = Array.Empty<string>();
+                    errorMessage = $"Failed to read stage resources from `{source.SourceUrl}`: {readError}";
+                    return false;
+                }
+
                 AppendStageCodesFromTasksJson(root, orderedCodes, seenCodes);
             }
         }
@@ -346,6 +360,52 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         stageCodes = orderedCodes;
         errorMessage = string.Empty;
         return orderedCodes.Count > 0;
+    }
+
+    private bool TryReadJsonRootFromFile(
+        string path,
+        out JsonNode? root,
+        out string errorMessage)
+    {
+        try
+        {
+            var fileInfo = new FileInfo(path);
+            if (!fileInfo.Exists)
+            {
+                root = null;
+                errorMessage = $"File not found: {path}";
+                return false;
+            }
+
+            var cacheKey = fileInfo.FullName;
+            var cacheStamp = new ResourceCacheStamp(fileInfo.LastWriteTimeUtc, fileInfo.Length);
+            lock (_resourceCacheGate)
+            {
+                if (_resourceJsonCache.TryGetValue(cacheKey, out var cached)
+                    && cached.Stamp.Equals(cacheStamp))
+                {
+                    root = cached.Root;
+                    errorMessage = string.Empty;
+                    return true;
+                }
+            }
+
+            var parsed = JsonNode.Parse(File.ReadAllText(cacheKey));
+            lock (_resourceCacheGate)
+            {
+                _resourceJsonCache[cacheKey] = new ResourceJsonCacheEntry(cacheStamp, parsed);
+            }
+
+            root = parsed;
+            errorMessage = string.Empty;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            root = null;
+            errorMessage = ex.Message;
+            return false;
+        }
     }
 
     private static void AppendStageCodesFromStagesJson(
@@ -577,6 +637,10 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         string? StagesPath,
         string? TasksPath,
         string SourceUrl);
+
+    private sealed record ResourceCacheStamp(DateTime LastWriteTimeUtc, long Length);
+
+    private sealed record ResourceJsonCacheEntry(ResourceCacheStamp Stamp, JsonNode? Root);
 
     private sealed record StageSnapshot(
         string ClientType,

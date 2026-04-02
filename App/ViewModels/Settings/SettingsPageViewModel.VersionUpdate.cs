@@ -152,16 +152,23 @@ public sealed partial class SettingsPageViewModel
             }
 
             await ApplyVersionUpdateCheckResultAsync(checkResult, cancellationToken);
+            var chrome = CreateSettingsDialogChrome(
+                texts => new DialogChromeSnapshot(
+                    title: texts.GetOrDefault("Settings.VersionUpdate.Dialog.Title", "Version Update"),
+                    confirmText: texts.GetOrDefault("Settings.VersionUpdate.Dialog.Confirm", "Confirm"),
+                    cancelText: texts.GetOrDefault("Settings.VersionUpdate.Dialog.Cancel", "Later")));
+            var chromeSnapshot = chrome.GetSnapshot();
             var request = new VersionUpdateDialogRequest(
-                Title: RootTexts.GetOrDefault("Settings.VersionUpdate.Dialog.Title", "Version Update"),
+                Title: chromeSnapshot.Title,
                 CurrentVersion: checkResult.CurrentVersion,
                 TargetVersion: string.IsNullOrWhiteSpace(checkResult.ReleaseName)
                     ? checkResult.TargetVersion
                     : checkResult.ReleaseName,
                 Summary: checkResult.Summary,
                 Body: checkResult.Body,
-                ConfirmText: RootTexts.GetOrDefault("Settings.VersionUpdate.Dialog.Confirm", "Confirm"),
-                CancelText: RootTexts.GetOrDefault("Settings.VersionUpdate.Dialog.Cancel", "Later"));
+                ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.Dialog.Confirm", "Confirm"),
+                CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.Dialog.Cancel", "Later"),
+                Chrome: chrome);
             var dialogResult = await _dialogService.ShowVersionUpdateAsync(request, "Settings.VersionUpdate.Dialog", cancellationToken);
             VersionUpdateStatusMessage = dialogResult.Return switch
             {
@@ -374,26 +381,29 @@ public sealed partial class SettingsPageViewModel
 
     private void ApplyVersionUpdatePolicy(VersionUpdatePolicy policy)
     {
-        VersionUpdateProxy = policy.Proxy;
-        VersionUpdateProxyType = policy.ProxyType;
-        VersionUpdateVersionType = policy.VersionType;
-        VersionUpdateResourceSource = policy.ResourceUpdateSource;
-        VersionUpdateForceGithubSource = policy.ForceGithubGlobalSource;
-        VersionUpdateMirrorChyanCdk = policy.MirrorChyanCdk;
-        VersionUpdateMirrorChyanCdkExpired = policy.MirrorChyanCdkExpired;
-        VersionUpdateStartupCheck = policy.StartupUpdateCheck;
-        VersionUpdateScheduledCheck = policy.ScheduledUpdateCheck;
-        VersionUpdateResourceApi = policy.ResourceApi;
-        VersionUpdateAllowNightly = policy.AllowNightlyUpdates;
-        VersionUpdateAcknowledgedNightlyWarning = policy.HasAcknowledgedNightlyWarning;
-        VersionUpdateUseAria2 = policy.UseAria2;
-        VersionUpdateAutoDownload = policy.AutoDownloadUpdatePackage;
-        VersionUpdateAutoInstall = policy.AutoInstallUpdatePackage;
-        VersionUpdateName = policy.VersionName;
-        VersionUpdateBody = policy.VersionBody;
-        VersionUpdateIsFirstBoot = policy.IsFirstBoot;
-        VersionUpdatePackage = policy.VersionPackage;
-        VersionUpdateDoNotShow = policy.DoNotShowUpdate;
+        RunWithSuppressedSettingsBackfill(() =>
+        {
+            VersionUpdateProxy = policy.Proxy;
+            VersionUpdateProxyType = policy.ProxyType;
+            VersionUpdateVersionType = policy.VersionType;
+            VersionUpdateResourceSource = policy.ResourceUpdateSource;
+            VersionUpdateForceGithubSource = policy.ForceGithubGlobalSource;
+            VersionUpdateMirrorChyanCdk = policy.MirrorChyanCdk;
+            VersionUpdateMirrorChyanCdkExpired = policy.MirrorChyanCdkExpired;
+            VersionUpdateStartupCheck = policy.StartupUpdateCheck;
+            VersionUpdateScheduledCheck = policy.ScheduledUpdateCheck;
+            VersionUpdateResourceApi = policy.ResourceApi;
+            VersionUpdateAllowNightly = policy.AllowNightlyUpdates;
+            VersionUpdateAcknowledgedNightlyWarning = policy.HasAcknowledgedNightlyWarning;
+            VersionUpdateUseAria2 = policy.UseAria2;
+            VersionUpdateAutoDownload = policy.AutoDownloadUpdatePackage;
+            VersionUpdateAutoInstall = policy.AutoInstallUpdatePackage;
+            VersionUpdateName = policy.VersionName;
+            VersionUpdateBody = policy.VersionBody;
+            VersionUpdateIsFirstBoot = policy.IsFirstBoot;
+            VersionUpdatePackage = policy.VersionPackage;
+            VersionUpdateDoNotShow = policy.DoNotShowUpdate;
+        });
     }
 
     private async Task RunVersionUpdateCheckInternalAsync(string scope, CancellationToken cancellationToken)

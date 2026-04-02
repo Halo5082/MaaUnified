@@ -130,18 +130,40 @@ public sealed class RootViewStructureContractTests
     }
 
     [Fact]
-    public void SettingsView_ShouldLoadAllSectionsIntoSharedScrollSurface()
+    public void SettingsView_ShouldUseLazySectionHosts_AndKeepSharedScrollSurface()
     {
         var root = GetMaaUnifiedRoot();
         var text = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "SettingsView.axaml"));
+        var codeBehind = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "SettingsView.axaml.cs"));
 
+        Assert.Contains("ItemsSource=\"{Binding Sections}\"", text, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedSection}\"", text, StringComparison.Ordinal);
         Assert.Contains("SelectionChanged=\"OnSectionSelectionChanged\"", text, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"SectionScrollViewer\"", text, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"SectionContentPanel\"", text, StringComparison.Ordinal);
         Assert.Contains("ScrollChanged=\"OnSectionScrollChanged\"", text, StringComparison.Ordinal);
-        Assert.Contains("settingsViews:ConfigurationManagerView", text, StringComparison.Ordinal);
-        Assert.Contains("settingsViews:AboutSettingsView", text, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SectionConfigurationManager\"", text, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SectionAbout\"", text, StringComparison.Ordinal);
+
+        var sectionHostCount = System.Text.RegularExpressions.Regex.Matches(
+            text,
+            "<Border\\s+x:Name=\"Section[A-Za-z]+\"").Count;
+        Assert.Equal(15, sectionHostCount);
+
+        Assert.DoesNotContain("settingsViews:ConfigurationManagerView", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("settingsViews:AboutSettingsView", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("xmlns:settingsViews=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("x:Name=\"SectionHost\"", text, StringComparison.Ordinal);
+
+        Assert.Contains("private readonly HashSet<string> _materializedSections", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("private readonly Dictionary<string, double> _sectionTopCache", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("EnsureSectionMaterialized(", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("CreateSectionContent(", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("anchor.Child = content;", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("TryMaterializeNextSectionForScroll();", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("EnsureSectionsThrough(", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("new settingsViews.ConfigurationManagerView()", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("new settingsViews.AboutSettingsView()", codeBehind, StringComparison.Ordinal);
     }
 
     [Fact]

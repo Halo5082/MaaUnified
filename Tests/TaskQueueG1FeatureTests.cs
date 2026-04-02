@@ -86,6 +86,63 @@ public sealed class TaskQueueG1FeatureTests
     }
 
     [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldKeepRoguelikeCoreCharStableAndRebuildLocalizedOptions()
+    {
+        await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Roguelike, "rogue")).Success);
+        EnsureRoguelikeCoreCharResourceFilesAvailable();
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = Assert.Single(vm.Tasks);
+        await vm.WaitForPendingBindingAsync();
+
+        var (stableCoreChar, zhDisplayText, enDisplayText) = ResolveCrossLanguageCoreChar(vm);
+        vm.RoguelikeModule.CoreCharDisplayText = zhDisplayText;
+        Assert.Equal(stableCoreChar, vm.RoguelikeModule.CoreChar);
+        Assert.Equal(zhDisplayText, vm.RoguelikeModule.CoreCharDisplayText);
+
+        vm.SetLanguage("en-us");
+
+        Assert.Equal(stableCoreChar, vm.RoguelikeModule.CoreChar);
+        Assert.Equal(enDisplayText, vm.RoguelikeModule.CoreCharDisplayText);
+        Assert.Contains(enDisplayText, vm.RoguelikeModule.CoreCharNameOptions);
+        Assert.DoesNotContain(zhDisplayText, vm.RoguelikeModule.CoreCharNameOptions);
+    }
+
+    [Fact]
+    public async Task RoguelikeCoreChar_LegacyDisplayText_ShouldNormalizeToStableValueAfterSave()
+    {
+        await using var fixture = await TestFixture.CreateAsync(language: "en-us");
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Roguelike, "rogue")).Success);
+        EnsureRoguelikeCoreCharResourceFilesAvailable();
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = Assert.Single(vm.Tasks);
+        await vm.WaitForPendingBindingAsync();
+
+        var (stableCoreChar, _, enDisplayText) = ResolveCrossLanguageCoreChar(vm);
+        vm.SetLanguage("en-us");
+
+        var rawParams = (await fixture.TaskQueue.GetTaskParamsAsync(0)).Value!;
+        rawParams["core_char"] = JsonValue.Create(enDisplayText);
+        Assert.True((await fixture.TaskQueue.UpdateTaskParamsAsync(0, rawParams)).Success);
+
+        await vm.ReloadTasksAsync();
+        vm.SelectedTask = Assert.Single(vm.Tasks);
+        await vm.WaitForPendingBindingAsync();
+
+        Assert.Equal(stableCoreChar, vm.RoguelikeModule.CoreChar);
+        Assert.Equal(enDisplayText, vm.RoguelikeModule.CoreCharDisplayText);
+
+        Assert.True(await vm.RoguelikeModule.SaveAsync());
+
+        var persisted = (await fixture.TaskQueue.GetTaskParamsAsync(0)).Value!;
+        Assert.Equal(stableCoreChar, persisted["core_char"]?.GetValue<string>());
+    }
+
+    [Fact]
     public async Task SelectedTask_ShouldProjectTaskConfigVisibilityFlags()
     {
         await using var fixture = await TestFixture.CreateAsync();
@@ -509,6 +566,102 @@ public sealed class TaskQueueG1FeatureTests
         }
 
         return false;
+    }
+
+    private static (string StableCoreChar, string ZhDisplayText, string EnDisplayText) ResolveCrossLanguageCoreChar(TaskQueuePageViewModel vm)
+    {
+        vm.SetLanguage("zh-cn");
+        var zhOptions = vm.RoguelikeModule.CoreCharOptions;
+        Assert.NotEmpty(zhOptions);
+
+        vm.SetLanguage("en-us");
+        var enOptionsByType = vm.RoguelikeModule.CoreCharOptions
+            .Where(option => !string.IsNullOrWhiteSpace(option.Type))
+            .GroupBy(option => option.Type, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.First().DisplayName, StringComparer.Ordinal);
+
+        var stableCoreChar = string.Empty;
+        var zhDisplayText = string.Empty;
+        var enDisplayText = string.Empty;
+        foreach (var option in zhOptions)
+        {
+            if (string.IsNullOrWhiteSpace(option.Type)
+                || string.IsNullOrWhiteSpace(option.DisplayName)
+                || !enOptionsByType.TryGetValue(option.Type, out var localized)
+                || string.IsNullOrWhiteSpace(localized)
+                || string.Equals(option.DisplayName, localized, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            stableCoreChar = option.Type;
+            zhDisplayText = option.DisplayName;
+            enDisplayText = localized;
+            break;
+        }
+
+        Assert.False(
+            string.IsNullOrWhiteSpace(stableCoreChar),
+            "Expected at least one Roguelike CoreChar option whose zh-cn/en-us display text differs.");
+
+        vm.SetLanguage("zh-cn");
+        return (stableCoreChar, zhDisplayText, enDisplayText);
+    }
+
+    private static void EnsureRoguelikeCoreCharResourceFilesAvailable()
+    {
+        var repoRoot = ResolveRepoRoot();
+        var sourceBattleData = Path.Combine(repoRoot, "resource", "battle_data.json");
+        var sourceRecruitment = Path.Combine(repoRoot, "resource", "roguelike", "JieGarden", "recruitment.json");
+        var targetBattleData = Path.Combine(AppContext.BaseDirectory, "resource", "battle_data.json");
+        var targetRecruitment = Path.Combine(AppContext.BaseDirectory, "resource", "roguelike", "JieGarden", "recruitment.json");
+
+        CopyResourceIfMissing(sourceBattleData, targetBattleData);
+        CopyResourceIfMissing(sourceRecruitment, targetRecruitment);
+    }
+
+    private static void CopyResourceIfMissing(string sourcePath, string targetPath)
+    {
+        if (File.Exists(targetPath))
+        {
+            return;
+        }
+
+        if (!File.Exists(sourcePath))
+        {
+            throw new FileNotFoundException($"Required test resource is missing: {sourcePath}");
+        }
+
+        var parent = Path.GetDirectoryName(targetPath);
+        if (!string.IsNullOrWhiteSpace(parent))
+        {
+            Directory.CreateDirectory(parent);
+        }
+
+        File.Copy(sourcePath, targetPath, overwrite: false);
+    }
+
+    private static string ResolveRepoRoot()
+    {
+        var current = AppContext.BaseDirectory;
+        for (var i = 0; i < 12; i++)
+        {
+            if (Directory.Exists(Path.Combine(current, "src", "MAAUnified"))
+                && File.Exists(Path.Combine(current, "resource", "battle_data.json")))
+            {
+                return current;
+            }
+
+            var parent = Directory.GetParent(current);
+            if (parent is null)
+            {
+                break;
+            }
+
+            current = parent.FullName;
+        }
+
+        throw new DirectoryNotFoundException("Failed to locate repo root containing src/MAAUnified and resource/battle_data.json.");
     }
 
     private sealed class TestFixture : IAsyncDisposable

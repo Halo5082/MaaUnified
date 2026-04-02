@@ -3,31 +3,31 @@
              xmlns:controls="clr-namespace:MAAUnified.App.Controls"
              x:Class="MAAUnified.App.Features.Advanced.WebApiView">
   <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
-    <TextBlock Classes="section-title" Text="WebApi (兼容)" />
+    <TextBlock Classes="section-title" Text="{Binding Texts[Toolbox.Advanced.WebApi.Title]}" />
     <TextBlock Grid.Row="1"
                Classes="state-warning long-wrap"
-               Text="该面板用于兼容旧版 WebApi 接入。仅在你明确需要外部调用时启用，并建议配置访问令牌。" />
+               Text="{Binding Texts[Toolbox.Advanced.WebApi.Warning]}" />
     <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,160,Auto,120,Auto,*">
-      <CheckBox Content="启用 WebApi" IsChecked="{Binding Enabled}" />
-      <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Host" />
+      <CheckBox Content="{Binding Texts[Toolbox.Advanced.WebApi.Enabled]}" IsChecked="{Binding Enabled}" />
+      <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.WebApi.Host]}" />
       <TextBox Grid.Column="2" Text="{Binding Host}" Width="200" />
-      <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="Port" />
+      <TextBlock Grid.Column="3" VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.WebApi.Port]}" />
       <controls:VerticalSpinNumberBox Grid.Column="4"
                                       Minimum="1"
                                       Maximum="65535"
                                       Value="{Binding Port}" />
-      <TextBlock Grid.Column="5" VerticalAlignment="Center" Text="运行状态" />
-      <TextBlock Grid.Column="6" VerticalAlignment="Center" Text="{Binding IsRunning}" />
+      <TextBlock Grid.Column="5" VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.WebApi.RunningStatus]}" />
+      <TextBlock Grid.Column="6" VerticalAlignment="Center" Text="{Binding RunningStatusText}" />
     </Grid>
     <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
-      <TextBlock VerticalAlignment="Center" Text="Access Token" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.WebApi.AccessToken]}" />
       <TextBox Text="{Binding AccessToken}" />
     </Grid>
     <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="{DynamicResource MAA.Spacing.Small}">
-      <Button Classes="wpf-button" Content="保存配置" Click="OnSaveClick" />
-      <Button Classes="wpf-button" Content="启动服务" Click="OnStartClick" />
-      <Button Classes="wpf-button" Content="停止服务" Click="OnStopClick" />
-      <Button Classes="wpf-button" Content="刷新状态" Click="OnRefreshStatusClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.WebApi.SaveConfig]}" Click="OnSaveClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.WebApi.StartService]}" Click="OnStartClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.WebApi.StopService]}" Click="OnStopClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.WebApi.RefreshStatus]}" Click="OnRefreshStatusClick" />
     </StackPanel>
     <StackPanel Grid.Row="5" Spacing="{DynamicResource MAA.Spacing.Small}">
       <TextBlock Text="{Binding StatusMessage}" />

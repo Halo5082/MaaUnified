@@ -3,17 +3,17 @@
              xmlns:controls="clr-namespace:MAAUnified.App.Controls"
              x:Class="MAAUnified.App.Features.Advanced.RemoteControlCenterView">
   <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*">
-    <TextBlock Classes="section-title" Text="Remote Control Center" />
+    <TextBlock Classes="section-title" Text="{Binding Texts[Toolbox.Advanced.RemoteControl.Title]}" />
     <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
-      <TextBlock VerticalAlignment="Center" Text="GetTask Endpoint" />
-      <TextBox Text="{Binding GetTaskEndpoint}" Watermark="https://example.com/get-task" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.RemoteControl.GetTaskEndpoint]}" />
+      <TextBox Text="{Binding GetTaskEndpoint}" Watermark="{Binding Texts[Toolbox.Advanced.RemoteControl.GetTaskEndpoint.Watermark]}" />
     </Grid>
     <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
-      <TextBlock VerticalAlignment="Center" Text="Report Endpoint" />
-      <TextBox Text="{Binding ReportEndpoint}" Watermark="https://example.com/report" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.RemoteControl.ReportEndpoint]}" />
+      <TextBox Text="{Binding ReportEndpoint}" Watermark="{Binding Texts[Toolbox.Advanced.RemoteControl.ReportEndpoint.Watermark]}" />
     </Grid>
     <Grid Grid.Row="3" ColumnDefinitions="Auto,120,Auto,*">
-      <TextBlock VerticalAlignment="Center" Text="Poll (ms)" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.RemoteControl.PollInterval]}" />
       <controls:VerticalSpinNumberBox Grid.Column="1"
                                       Minimum="500"
                                       Maximum="60000"
@@ -21,13 +21,13 @@
       <Button Grid.Column="2"
               Classes="wpf-button"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="连通性测试"
+              Content="{Binding Texts[Toolbox.Advanced.RemoteControl.TestConnectivity]}"
               Click="OnTestConnectivityClick" />
       <Button Grid.Column="3"
               Classes="wpf-button"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
               HorizontalAlignment="Left"
-              Content="保存"
+              Content="{Binding Texts[Toolbox.Advanced.RemoteControl.Save]}"
               Click="OnSaveClick" />
     </Grid>
     <TextBlock Grid.Row="4"

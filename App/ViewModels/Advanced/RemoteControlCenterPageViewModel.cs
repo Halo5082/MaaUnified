@@ -1,12 +1,15 @@
 using MAAUnified.App.ViewModels.Infrastructure;
+using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.Localization;
 using MAAUnified.Compat.Constants;
 
 namespace MAAUnified.App.ViewModels.Advanced;
 
 public sealed class RemoteControlCenterPageViewModel : PageViewModelBase
 {
+    private readonly ToolboxLocalizationTextMap _texts = new();
     private string _getTaskEndpoint = string.Empty;
     private string _reportEndpoint = string.Empty;
     private int _pollIntervalMs = 5000;
@@ -16,6 +19,8 @@ public sealed class RemoteControlCenterPageViewModel : PageViewModelBase
         : base(runtime)
     {
     }
+
+    public ToolboxLocalizationTextMap Texts => _texts;
 
     public string GetTaskEndpoint
     {
@@ -110,5 +115,22 @@ public sealed class RemoteControlCenterPageViewModel : PageViewModelBase
         return int.TryParse(node.ToString(), out var parsed)
             ? parsed
             : fallback;
+    }
+
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _texts.Language = normalized;
+        RefreshLocalizedUiState();
+    }
+
+    private void RefreshLocalizedUiState()
+    {
+        OnPropertyChanged(nameof(Texts));
     }
 }

@@ -183,12 +183,21 @@ public sealed class SettingsGuiBackgroundFeatureTests
         await using var fixture = await RuntimeFixture.CreateAsync(uiLanguageCoordinator: coordinator);
         var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
         await vm.InitializeAsync();
+        var changedProperties = new List<string>();
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.PropertyName))
+            {
+                changedProperties.Add(e.PropertyName);
+            }
+        };
 
         var languageOption = vm.SupportedLanguages.First(option => string.Equals(option.Value, "en-us", StringComparison.OrdinalIgnoreCase));
 
         vm.SelectedLanguageOption = languageOption;
 
         await WaitUntilAsync(() => coordinator.ChangeCallCount == 1);
+        Assert.Contains(nameof(SettingsPageViewModel.SelectedLanguageOption), changedProperties);
         Assert.Equal("zh-cn", vm.Language);
         Assert.Equal("zh-cn", vm.SelectedLanguageOption?.Value);
         Assert.True(string.IsNullOrWhiteSpace(ReadGlobalString(fixture.Config, ConfigurationKeys.Localization)));

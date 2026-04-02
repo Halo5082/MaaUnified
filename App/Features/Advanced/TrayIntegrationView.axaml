@@ -2,35 +2,35 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MAAUnified.App.Features.Advanced.TrayIntegrationView">
   <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
-    <TextBlock Classes="section-title" Text="Tray Integration" />
+    <TextBlock Classes="section-title" Text="{Binding Texts[Toolbox.Advanced.Tray.Title]}" />
     <TextBlock Grid.Row="1" Classes="long-wrap" Text="{Binding CapabilitySummary}" />
     <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto,*">
-      <CheckBox Content="Tray 可见" IsChecked="{Binding TrayVisible}" />
+      <CheckBox Content="{Binding Texts[Toolbox.Advanced.Tray.Visible]}" IsChecked="{Binding TrayVisible}" />
       <Button Grid.Column="1"
               Classes="wpf-button"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="应用可见性"
+              Content="{Binding Texts[Toolbox.Advanced.Tray.ApplyVisibility]}"
               Click="OnApplyTrayVisibilityClick" />
       <Button Grid.Column="2"
               Classes="wpf-button"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-              Content="同步菜单状态"
+              Content="{Binding Texts[Toolbox.Advanced.Tray.SyncMenuState]}"
               Click="OnSyncMenuStateClick" />
       <Button Grid.Column="3"
               Classes="wpf-button"
               Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
               HorizontalAlignment="Left"
-              Content="刷新能力"
+              Content="{Binding Texts[Toolbox.Advanced.Tray.RefreshCapability]}"
               Click="OnRefreshCapabilityClick" />
     </Grid>
     <Grid Grid.Row="3" ColumnDefinitions="Auto,200,Auto,*">
-      <TextBlock VerticalAlignment="Center" Text="通知标题" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.Tray.MessageTitle]}" />
       <TextBox Text="{Binding TrayMessageTitle}" />
-      <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="通知内容" />
+      <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.Tray.MessageBody]}" />
       <TextBox Grid.Column="3" Text="{Binding TrayMessageBody}" />
     </Grid>
     <StackPanel Grid.Row="4" Spacing="{DynamicResource MAA.Spacing.Small}">
-      <Button Classes="wpf-button" Content="发送托盘通知" Click="OnSendTrayMessageClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.Tray.SendMessage]}" Click="OnSendTrayMessageClick" />
       <TextBlock Text="{Binding StatusMessage}" />
       <TextBlock Classes="state-error long-wrap" Text="{Binding LastErrorMessage}" />
     </StackPanel>

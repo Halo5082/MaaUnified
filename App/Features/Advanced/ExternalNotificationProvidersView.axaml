@@ -2,23 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MAAUnified.App.Features.Advanced.ExternalNotificationProvidersView">
   <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
-    <TextBlock Classes="section-title" Text="External Notification Providers" />
+    <TextBlock Classes="section-title" Text="{Binding Texts[Toolbox.Advanced.ExternalNotification.Title]}" />
     <Grid Grid.Row="1" ColumnDefinitions="Auto,200,Auto,*">
-      <TextBlock VerticalAlignment="Center" Text="Provider" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.ExternalNotification.Provider]}" />
       <ComboBox ItemsSource="{Binding Providers}" SelectedItem="{Binding SelectedProvider}" />
-      <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="参数(JSON)" />
-      <TextBox Grid.Column="3" Text="{Binding ParametersText}" Watermark="key=value;key2=value2" />
+      <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.ExternalNotification.Parameters]}" />
+      <TextBox Grid.Column="3" Text="{Binding ParametersText}" Watermark="{Binding Texts[Toolbox.Advanced.ExternalNotification.Parameters.Watermark]}" />
     </Grid>
     <Grid Grid.Row="2" ColumnDefinitions="Auto,200,Auto,*">
-      <TextBlock VerticalAlignment="Center" Text="标题" />
+      <TextBlock VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.ExternalNotification.MessageTitle]}" />
       <TextBox Text="{Binding Title}" />
-      <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="内容" />
+      <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Texts[Toolbox.Advanced.ExternalNotification.MessageBody]}" />
       <TextBox Grid.Column="3" Text="{Binding Message}" />
     </Grid>
     <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="{DynamicResource MAA.Spacing.Small}">
-      <Button Classes="wpf-button" Content="刷新 Provider" Click="OnRefreshProvidersClick" />
-      <Button Classes="wpf-button" Content="校验参数" Click="OnValidateClick" />
-      <Button Classes="wpf-button" Content="发送测试" Click="OnSendTestClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.ExternalNotification.RefreshProviders]}" Click="OnRefreshProvidersClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.ExternalNotification.ValidateParameters]}" Click="OnValidateClick" />
+      <Button Classes="wpf-button" Content="{Binding Texts[Toolbox.Advanced.ExternalNotification.SendTest]}" Click="OnSendTestClick" />
     </StackPanel>
     <StackPanel Grid.Row="4" Spacing="{DynamicResource MAA.Spacing.Small}">
       <TextBlock Text="{Binding StatusMessage}" />

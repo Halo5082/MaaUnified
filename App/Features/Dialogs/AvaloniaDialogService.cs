@@ -2,8 +2,10 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.Localization;
 
 namespace MAAUnified.App.Features.Dialogs;
 
@@ -37,6 +39,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
 
         var dialog = new AnnouncementDialogView();
         dialog.ApplyRequest(normalizedRequest);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var semantic = await dialog.ShowDialog<DialogReturnSemantic?>(owner) ?? DialogReturnSemantic.Close;
         var payload = semantic == DialogReturnSemantic.Confirm ? dialog.BuildPayload() : null;
         await _runtime.DialogFeatureService.RecordDialogActionAsync(token, "return", semantic.ToString(), cancellationToken);
@@ -64,6 +67,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
 
         var dialog = new VersionUpdateDialogView();
         dialog.ApplyRequest(normalizedRequest);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var semantic = await dialog.ShowDialog<DialogReturnSemantic?>(owner) ?? DialogReturnSemantic.Close;
         var payload = semantic == DialogReturnSemantic.Confirm ? dialog.BuildPayload() : null;
         await _runtime.DialogFeatureService.RecordDialogActionAsync(token, "return", semantic.ToString(), cancellationToken);
@@ -91,6 +95,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
 
         var dialog = new ProcessPickerDialogView();
         dialog.ApplyRequest(normalizedRequest);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var semantic = await dialog.ShowDialog<DialogReturnSemantic?>(owner) ?? DialogReturnSemantic.Close;
         var payload = semantic == DialogReturnSemantic.Confirm ? dialog.BuildPayload() : null;
         await _runtime.DialogFeatureService.RecordDialogActionAsync(token, "return", semantic.ToString(), cancellationToken);
@@ -118,6 +123,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
 
         var dialog = new EmulatorPathSelectionDialogView();
         dialog.ApplyRequest(normalizedRequest);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var semantic = await dialog.ShowDialog<DialogReturnSemantic?>(owner) ?? DialogReturnSemantic.Close;
         var payload = semantic == DialogReturnSemantic.Confirm ? dialog.BuildPayload() : null;
         await _runtime.DialogFeatureService.RecordDialogActionAsync(token, "return", semantic.ToString(), cancellationToken);
@@ -146,6 +152,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
 
         var dialog = new ErrorDialogView();
         dialog.ApplyRequest(normalizedRequest, openIssueReportAsync ?? OpenIssueReportAsync);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var semantic = await dialog.ShowDialog<DialogReturnSemantic?>(owner) ?? DialogReturnSemantic.Close;
         var payload = dialog.BuildPayload();
         if (payload.Copied)
@@ -183,6 +190,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
 
         var dialog = new AchievementListDialogView();
         dialog.ApplyRequest(normalizedRequest);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var semantic = await dialog.ShowDialog<DialogReturnSemantic?>(owner) ?? DialogReturnSemantic.Close;
         var payload = dialog.BuildPayload();
         await _runtime.DialogFeatureService.RecordDialogActionAsync(token, "return", semantic.ToString(), cancellationToken);
@@ -210,6 +218,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
 
         var dialog = new TextDialogView();
         dialog.ApplyRequest(normalizedRequest);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var semantic = await dialog.ShowDialog<DialogReturnSemantic?>(owner) ?? DialogReturnSemantic.Close;
         var payload = semantic == DialogReturnSemantic.Confirm ? dialog.BuildPayload() : null;
         await _runtime.DialogFeatureService.RecordDialogActionAsync(token, "return", semantic.ToString(), cancellationToken);
@@ -243,6 +252,7 @@ public sealed class AvaloniaDialogService : IAppDialogService
             normalizedRequest.CancelText,
             normalizedRequest.Language,
             normalizedRequest.CountdownSeconds);
+        using var chromeBinding = AttachChromeLocalization(dialog, normalizedRequest.Title, normalizedRequest.Chrome);
         var confirmed = await dialog.ShowDialog<bool?>(owner);
         var semantic = confirmed switch
         {
@@ -295,8 +305,97 @@ public sealed class AvaloniaDialogService : IAppDialogService
         }
     }
 
+    private IDisposable? AttachChromeLocalization(Window dialog, string fallbackTitle, DialogChromeCatalog? chromeCatalog)
+    {
+        if (chromeCatalog is null)
+        {
+            return null;
+        }
+
+        var binding = new DialogChromeBinding(_runtime.UiLanguageCoordinator, dialog, fallbackTitle, chromeCatalog);
+        binding.Attach();
+        return binding;
+    }
+
     private static string NormalizeDialogTitle(string title)
     {
         return string.IsNullOrWhiteSpace(title) ? "Dialog" : title.Trim();
+    }
+
+    private sealed class DialogChromeBinding : IDisposable
+    {
+        private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
+        private readonly Window _dialog;
+        private readonly string _fallbackTitle;
+        private readonly DialogChromeCatalog _chromeCatalog;
+        private bool _disposed;
+
+        public DialogChromeBinding(
+            IUiLanguageCoordinator uiLanguageCoordinator,
+            Window dialog,
+            string fallbackTitle,
+            DialogChromeCatalog chromeCatalog)
+        {
+            _uiLanguageCoordinator = uiLanguageCoordinator;
+            _dialog = dialog;
+            _fallbackTitle = fallbackTitle;
+            _chromeCatalog = chromeCatalog;
+        }
+
+        public void Attach()
+        {
+            Apply(_uiLanguageCoordinator.CurrentLanguage);
+            _uiLanguageCoordinator.LanguageChanged += OnLanguageChanged;
+            _dialog.Closed += OnDialogClosed;
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _uiLanguageCoordinator.LanguageChanged -= OnLanguageChanged;
+            _dialog.Closed -= OnDialogClosed;
+        }
+
+        private void OnDialogClosed(object? sender, EventArgs e)
+        {
+            Dispose();
+        }
+
+        private void OnLanguageChanged(object? sender, UiLanguageChangedEventArgs e)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (Dispatcher.UIThread.CheckAccess() || Avalonia.Application.Current is null)
+            {
+                Apply(e.CurrentLanguage);
+                return;
+            }
+
+            Dispatcher.UIThread.Post(() => Apply(e.CurrentLanguage));
+        }
+
+        private void Apply(string? language)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            var chrome = _chromeCatalog.GetSnapshot(language);
+            var resolvedTitle = string.IsNullOrWhiteSpace(chrome.Title) ? _fallbackTitle : chrome.Title;
+            _dialog.Title = NormalizeDialogTitle(resolvedTitle);
+            if (_dialog is IDialogChromeAware chromeAware)
+            {
+                chromeAware.ApplyDialogChrome(chrome);
+            }
+        }
     }
 }

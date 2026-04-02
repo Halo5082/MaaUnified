@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Text;
 using System.Text.Json;
@@ -54,6 +55,8 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
     private readonly RootLocalizationTextMap _rootTexts;
     private readonly CopilotLocalizationTextMap _texts;
     private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
+    private readonly ConcurrentQueue<SessionCallbackEnvelope> _pendingSessionCallbacks = new();
+    private int _callbackDrainScheduled;
 
     public CopilotPageViewModel(MAAUnifiedRuntime runtime)
         : base(runtime)
@@ -79,7 +82,7 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         {
             Language = currentLanguage,
         };
-        runtime.SessionService.CallbackReceived += callback => _ = HandleCallbackAsync(callback);
+        runtime.SessionService.CallbackProjected += OnSessionCallbackProjected;
         runtime.SessionService.SessionStateChanged += OnSessionStateChanged;
         _currentSessionState = runtime.SessionService.CurrentState;
         LoadPersistedItems();
@@ -781,42 +784,89 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         Runtime.SessionService.EndRun(CopilotRunOwner);
     }
 
-    private static CopilotCallbackPayload ParseCopilotCallbackPayload(string payloadJson)
+    private static CopilotCallbackPayload BuildCopilotCallbackPayload(SessionCallbackEnvelope callback)
     {
-        if (string.IsNullOrWhiteSpace(payloadJson))
+        if (callback.Payload is null)
         {
-            return CopilotCallbackPayload.Empty;
+            return new CopilotCallbackPayload(
+                callback.TaskChain,
+                callback.SubTask,
+                callback.TaskId,
+                callback.What,
+                null,
+                null,
+                null,
+                callback.ParseError);
         }
 
-        try
-        {
-            if (JsonNode.Parse(payloadJson) is not JsonObject root)
-            {
-                return new CopilotCallbackPayload(null, null, null, null, null, null, null, "payload is not a JSON object");
-            }
-
-            var taskChain = GetStringValue(root, "task_chain") ?? GetStringValue(root, "taskchain");
-            var subTask = GetStringValue(root, "sub_task") ?? GetStringValue(root, "subtask");
-            var taskId = GetIntValue(root, "task_id") ?? GetIntValue(root, "taskid");
-            var what = GetStringValue(root, "what");
-            var why = GetStringValue(root, "why");
-            var details = GetObjectValue(root, "details");
-            return new CopilotCallbackPayload(taskChain, subTask, taskId, what, why, details, root, null);
-        }
-        catch (JsonException ex)
-        {
-            return new CopilotCallbackPayload(null, null, null, null, null, null, null, $"payload parse failed: {ex.Message}");
-        }
+        var why = GetStringValue(callback.Payload, "why");
+        var details = GetObjectValue(callback.Payload, "details");
+        return new CopilotCallbackPayload(
+            callback.TaskChain,
+            callback.SubTask,
+            callback.TaskId,
+            callback.What,
+            why,
+            details,
+            callback.Payload,
+            callback.ParseError);
     }
 
-    private async Task HandleCallbackAsync(CoreCallbackEvent callback)
+    private Task HandleCallbackAsync(CoreCallbackEvent callback)
     {
-        await Dispatcher.UIThread.InvokeAsync(() => ApplyRuntimeCallback(callback));
+        OnSessionCallbackProjected(SessionCallbackEnvelope.FromRaw(callback));
+        return Task.CompletedTask;
+    }
+
+    private void OnSessionCallbackProjected(SessionCallbackEnvelope callback)
+    {
+        _pendingSessionCallbacks.Enqueue(callback);
+        if (Interlocked.CompareExchange(ref _callbackDrainScheduled, 1, 0) != 0)
+        {
+            return;
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            DrainPendingSessionCallbacksOnUiThread();
+            return;
+        }
+
+        Dispatcher.UIThread.Post(DrainPendingSessionCallbacksOnUiThread, DispatcherPriority.Background);
+    }
+
+    private void DrainPendingSessionCallbacksOnUiThread()
+    {
+        var shouldReschedule = false;
+        try
+        {
+            while (_pendingSessionCallbacks.TryDequeue(out var callback))
+            {
+                ApplyRuntimeCallback(callback);
+            }
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _callbackDrainScheduled, 0);
+            shouldReschedule = !_pendingSessionCallbacks.IsEmpty
+                && Interlocked.CompareExchange(ref _callbackDrainScheduled, 1, 0) == 0;
+        }
+
+        if (shouldReschedule)
+        {
+            Dispatcher.UIThread.Post(DrainPendingSessionCallbacksOnUiThread, DispatcherPriority.Background);
+        }
     }
 
     internal void ApplyRuntimeCallback(CoreCallbackEvent callback)
     {
-        var metadata = ParseCopilotCallbackPayload(callback.PayloadJson);
+        ApplyRuntimeCallback(SessionCallbackEnvelope.FromRaw(callback));
+    }
+
+    internal void ApplyRuntimeCallback(SessionCallbackEnvelope callbackEnvelope)
+    {
+        var callback = callbackEnvelope.Callback;
+        var metadata = BuildCopilotCallbackPayload(callbackEnvelope);
         if (metadata.HasParseError)
         {
             var warning = $"msgId={callback.MsgId}; msgName={callback.MsgName}; {metadata.ParseError}";

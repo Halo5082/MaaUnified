@@ -156,6 +156,48 @@ public sealed class TaskQueueG2FeatureTests
     }
 
     [Fact]
+    public async Task LanguageSwitch_ShouldRefreshLiveTaskTextWithoutBacktrackingExistingRuntimeLogs()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Fight", "Fight")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SetLanguage("zh-cn");
+
+        var taskBefore = Assert.Single(vm.Tasks);
+        var displayNameBefore = taskBefore.DisplayName;
+
+        await InvokeCallbackAsync(vm, new CoreCallbackEvent(
+            10001,
+            "TaskChainStart",
+            """{"task_chain":"Fight","task_index":0,"run_id":"run-g2-language"}""",
+            DateTimeOffset.UtcNow));
+
+        var startLogBefore = Assert.Single(vm.LogCards).PrimaryContent;
+
+        vm.SetLanguage("en-us");
+
+        var taskAfter = Assert.Single(vm.Tasks);
+        Assert.Equal("Combat", taskAfter.DisplayName);
+        Assert.NotEqual(displayNameBefore, taskAfter.DisplayName);
+        Assert.Equal(startLogBefore, Assert.Single(vm.LogCards).PrimaryContent);
+
+        await InvokeCallbackAsync(vm, new CoreCallbackEvent(
+            10002,
+            "TaskChainCompleted",
+            """{"task_chain":"Fight","task_index":0,"run_id":"run-g2-language"}""",
+            DateTimeOffset.UtcNow));
+
+        var logEntries = vm.LogCards
+            .SelectMany(card => card.Items)
+            .ToArray();
+        Assert.Equal(startLogBefore, logEntries[0].Content);
+        Assert.Contains("Combat", logEntries[^1].Content, StringComparison.Ordinal);
+        Assert.NotEqual(startLogBefore, logEntries[^1].Content);
+    }
+
+    [Fact]
     public async Task Callback_StageDrops_ShouldAppendToCurrentCardAndAttachThumbnail()
     {
         await using var fixture = await TestFixture.CreateAsync();

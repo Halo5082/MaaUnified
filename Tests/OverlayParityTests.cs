@@ -132,6 +132,25 @@ public sealed class OverlayParityTests
     }
 
     [Fact]
+    public async Task LanguageSwitch_ShouldRefreshOverlayTooltipWithoutBacktrackingExistingOverlayLogs()
+    {
+        await using var fixture = await OverlayFixture.CreateAsync();
+        var vm = fixture.Shell.TaskQueuePage;
+        vm.SetLanguage("zh-cn");
+        vm.AppendSystemLog("已有悬浮窗日志");
+
+        var tooltipBefore = vm.OverlayButtonToolTip;
+        var logBefore = Assert.Single(vm.OverlayLogs).Content;
+
+        vm.SetLanguage("en-us");
+
+        Assert.Contains("选择目标", tooltipBefore, StringComparison.Ordinal);
+        Assert.Contains("Pick target", vm.OverlayButtonToolTip, StringComparison.Ordinal);
+        Assert.NotEqual(tooltipBefore, vm.OverlayButtonToolTip);
+        Assert.Equal(logBefore, Assert.Single(vm.OverlayLogs).Content);
+    }
+
+    [Fact]
     public async Task OverlaySharedState_ShouldSyncVisibilityBetweenTaskQueueConsumers()
     {
         await using var fixture = await OverlayFixture.CreateAsync();

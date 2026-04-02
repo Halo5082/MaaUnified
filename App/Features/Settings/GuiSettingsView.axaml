@@ -53,7 +53,8 @@
           <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.OperNameLanguage]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                     ItemsSource="{Binding OperNameLanguageOptions}"
-                    SelectedItem="{Binding SelectedOperNameLanguageOption}">
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding OperNameLanguage, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:DisplayValueOption">
                 <TextBlock Text="{Binding Display}" />
@@ -66,7 +67,8 @@
           <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.Theme]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldNarrowWidth}"
                     ItemsSource="{Binding ThemeOptions}"
-                    SelectedItem="{Binding SelectedThemeOption}">
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding Theme, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:DisplayValueOption">
                 <TextBlock Text="{Binding Display}" />
@@ -79,7 +81,8 @@
           <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.GUI.InverseClearMode]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                     ItemsSource="{Binding InverseClearModeOptions}"
-                    SelectedItem="{Binding SelectedInverseClearModeOption}">
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding InverseClearMode, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:DisplayValueOption">
                 <TextBlock Text="{Binding Display}" />

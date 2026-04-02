@@ -1,6 +1,8 @@
 using MAAUnified.App.ViewModels.Infrastructure;
+using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.Localization;
 
 namespace MAAUnified.App.ViewModels.Advanced;
 
@@ -16,6 +18,7 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
         "txwy",
     ];
 
+    private readonly ToolboxLocalizationTextMap _texts = new();
     private string _stageCodesText = string.Empty;
     private string _localStageCodesText = string.Empty;
     private string _webStageCodesText = string.Empty;
@@ -27,6 +30,8 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
         : base(runtime)
     {
     }
+
+    public ToolboxLocalizationTextMap Texts => _texts;
 
     public IReadOnlyList<string> ClientTypeOptions => DefaultClientTypes;
 
@@ -149,6 +154,18 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
             cancellationToken);
     }
 
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _texts.Language = normalized;
+        RefreshLocalizedUiState();
+    }
+
     private void ApplyState(StageManagerState state)
     {
         ClientType = state.ClientType;
@@ -168,4 +185,8 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
         ClientType = config.ClientType;
     }
 
+    private void RefreshLocalizedUiState()
+    {
+        OnPropertyChanged(nameof(Texts));
+    }
 }

@@ -7,6 +7,12 @@ using MAAUnified.Application.Services.TaskParams;
 
 namespace MAAUnified.Application.Services;
 
+public enum ConfigValidationMode
+{
+    Minimal = 0,
+    Full = 1,
+}
+
 public sealed class UnifiedConfigurationService
 {
     private static readonly JsonSerializerOptions _reportOptions = new()
@@ -50,7 +56,14 @@ public sealed class UnifiedConfigurationService
 
     public IReadOnlyList<ConfigValidationIssue> RevalidateCurrentConfig(bool logIssues = false)
     {
-        return RefreshValidationState(logIssues);
+        return RevalidateCurrentConfig(ConfigValidationMode.Full, logIssues);
+    }
+
+    public IReadOnlyList<ConfigValidationIssue> RevalidateCurrentConfig(
+        ConfigValidationMode validationMode,
+        bool logIssues = false)
+    {
+        return RefreshValidationState(validationMode, logIssues);
     }
 
     public bool TryGetCurrentProfile(out UnifiedProfile profile)
@@ -63,7 +76,12 @@ public sealed class UnifiedConfigurationService
         await SaveCoreAsync(CurrentConfig, logSavedConfig: true, cancellationToken);
     }
 
-    public async Task<ConfigLoadResult> LoadOrBootstrapAsync(CancellationToken cancellationToken = default)
+    public Task<ConfigLoadResult> LoadOrBootstrapAsync(CancellationToken cancellationToken = default)
+        => LoadOrBootstrapAsync(ConfigValidationMode.Full, cancellationToken);
+
+    public async Task<ConfigLoadResult> LoadOrBootstrapAsync(
+        ConfigValidationMode validationMode,
+        CancellationToken cancellationToken = default)
     {
         if (_store.Exists())
         {
@@ -100,7 +118,7 @@ public sealed class UnifiedConfigurationService
                             "No automatic migration is applied.");
                     }
 
-                    var validationIssues = RefreshValidationState(logIssues: true);
+                    var validationIssues = RefreshValidationState(validationMode, logIssues: true);
                     LogService.Info("Loaded config/avalonia.json and skipped legacy auto import");
                     ConfigChanged?.Invoke(CurrentConfig);
 
@@ -114,7 +132,11 @@ public sealed class UnifiedConfigurationService
 
                 LogService.Warn(
                     $"[{ParseNullWarningCode}] config/avalonia.json parse returned null; rebuilding defaults and skipping legacy import");
-                var rebuildIssues = await SaveCoreAsync(new UnifiedConfig(), logSavedConfig: false, cancellationToken);
+                var rebuildIssues = await SaveCoreAsync(
+                    new UnifiedConfig(),
+                    logSavedConfig: false,
+                    cancellationToken,
+                    validationMode);
                 return new ConfigLoadResult {
                     Config = CurrentConfig,
                     LoadedFromExistingConfig = true,
@@ -126,7 +148,11 @@ public sealed class UnifiedConfigurationService
             {
                 LogService.Warn(
                     $"[{ParseExceptionWarningCode}] failed to load config/avalonia.json ({ex.GetType().Name}: {ex.Message}); rebuilding defaults and skipping legacy import");
-                var fallbackIssues = await SaveCoreAsync(new UnifiedConfig(), logSavedConfig: false, cancellationToken);
+                var fallbackIssues = await SaveCoreAsync(
+                    new UnifiedConfig(),
+                    logSavedConfig: false,
+                    cancellationToken,
+                    validationMode);
                 return new ConfigLoadResult {
                     Config = CurrentConfig,
                     LoadedFromExistingConfig = true,
@@ -137,7 +163,7 @@ public sealed class UnifiedConfigurationService
         }
 
         var report = await ImportLegacyAsync(ImportSource.Auto, manualImport: false, cancellationToken: cancellationToken);
-        var importValidationIssues = RefreshValidationState(logIssues: true);
+        var importValidationIssues = RefreshValidationState(validationMode, logIssues: true);
 
         return new ConfigLoadResult {
             Config = CurrentConfig,
@@ -248,7 +274,44 @@ public sealed class UnifiedConfigurationService
         return report;
     }
 
-    private IReadOnlyList<ConfigValidationIssue> ValidateCurrentConfig()
+    private IReadOnlyList<ConfigValidationIssue> ValidateCurrentConfig(ConfigValidationMode validationMode)
+    {
+        var issues = ValidateMinimumConfig();
+        if (validationMode == ConfigValidationMode.Minimal || CurrentConfig.Profiles.Count == 0)
+        {
+            return issues;
+        }
+
+        foreach (var (profileName, profile) in CurrentConfig.Profiles)
+        {
+            for (var index = 0; index < profile.TaskQueue.Count; index++)
+            {
+                var task = profile.TaskQueue[index];
+                var compiled = TaskParamCompiler.CompileTask(task, profile, CurrentConfig, strict: true);
+                foreach (var issue in compiled.Issues)
+                {
+                    issues.Add(new ConfigValidationIssue
+                    {
+                        Scope = "TaskValidation",
+                        Code = issue.Code,
+                        Field = issue.Field,
+                        Message = issue.Message,
+                        Blocking = issue.Blocking,
+                        ProfileName = profileName,
+                        TaskIndex = index,
+                        TaskName = task.Name,
+                        SuggestedAction = issue.Blocking
+                            ? $"Open task `{task.Name}` ({TaskParamCompiler.NormalizeTaskType(task.Type)}) and save again."
+                            : null,
+                    });
+                }
+            }
+        }
+
+        return issues;
+    }
+
+    private List<ConfigValidationIssue> ValidateMinimumConfig()
     {
         var issues = new List<ConfigValidationIssue>();
         var schemaMigrationNotice = BuildSchemaMigrationNotice();
@@ -290,32 +353,6 @@ public sealed class UnifiedConfigurationService
                 Blocking = true,
                 SuggestedAction = "Switch to an existing profile or recreate the current profile.",
             });
-        }
-
-        foreach (var (profileName, profile) in CurrentConfig.Profiles)
-        {
-            for (var index = 0; index < profile.TaskQueue.Count; index++)
-            {
-                var task = profile.TaskQueue[index];
-                var compiled = TaskParamCompiler.CompileTask(task, profile, CurrentConfig, strict: true);
-                foreach (var issue in compiled.Issues)
-                {
-                    issues.Add(new ConfigValidationIssue
-                    {
-                        Scope = "TaskValidation",
-                        Code = issue.Code,
-                        Field = issue.Field,
-                        Message = issue.Message,
-                        Blocking = issue.Blocking,
-                        ProfileName = profileName,
-                        TaskIndex = index,
-                        TaskName = task.Name,
-                        SuggestedAction = issue.Blocking
-                            ? $"Open task `{task.Name}` ({TaskParamCompiler.NormalizeTaskType(task.Type)}) and save again."
-                            : null,
-                    });
-                }
-            }
         }
 
         return issues;
@@ -360,9 +397,9 @@ public sealed class UnifiedConfigurationService
         _currentValidationIssues = [.. issues];
     }
 
-    private IReadOnlyList<ConfigValidationIssue> RefreshValidationState(bool logIssues)
+    private IReadOnlyList<ConfigValidationIssue> RefreshValidationState(ConfigValidationMode validationMode, bool logIssues)
     {
-        var issues = ValidateCurrentConfig();
+        var issues = ValidateCurrentConfig(validationMode);
         UpdateValidationIssues(issues);
         if (logIssues)
         {
@@ -375,7 +412,8 @@ public sealed class UnifiedConfigurationService
     private async Task<IReadOnlyList<ConfigValidationIssue>> SaveCoreAsync(
         UnifiedConfig config,
         bool logSavedConfig,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        ConfigValidationMode validationMode = ConfigValidationMode.Full)
     {
         var sourceSchemaVersion = config.SchemaVersion;
         if (sourceSchemaVersion != UnifiedConfig.LatestSchemaVersion && _store.Exists())
@@ -389,7 +427,7 @@ public sealed class UnifiedConfigurationService
         config.SchemaVersion = UnifiedConfig.LatestSchemaVersion;
         await _store.SaveAsync(config, cancellationToken);
         CurrentConfig = config;
-        var issues = RefreshValidationState(logIssues: true);
+        var issues = RefreshValidationState(validationMode, logIssues: true);
         ConfigChanged?.Invoke(CurrentConfig);
 
         if (logSavedConfig)

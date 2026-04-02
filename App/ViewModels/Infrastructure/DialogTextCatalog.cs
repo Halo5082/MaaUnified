@@ -5,6 +5,26 @@ namespace MAAUnified.App.ViewModels.Infrastructure;
 
 public static class DialogTextCatalog
 {
+    private static readonly IReadOnlyDictionary<string, string> EmptyNamedTexts =
+        new Dictionary<string, string>(StringComparer.Ordinal);
+
+    public static class ChromeKeys
+    {
+        public const string Prompt = "Prompt";
+        public const string FilterWatermark = "FilterWatermark";
+        public const string RefreshButton = "RefreshButton";
+        public const string RefreshingButton = "RefreshingButton";
+        public const string SectionTitle = "SectionTitle";
+        public const string CopyButton = "CopyButton";
+        public const string IssueReportButton = "IssueReportButton";
+        public const string TimestampLabel = "TimestampLabel";
+        public const string ContextLabel = "ContextLabel";
+        public const string CodeLabel = "CodeLabel";
+        public const string MessageLabel = "MessageLabel";
+        public const string DetailsLabel = "DetailsLabel";
+        public const string SuggestionLabel = "SuggestionLabel";
+    }
+
     public static bool UseChinese(string? language)
     {
         var normalized = UiLanguageCatalog.Normalize(language);
@@ -95,6 +115,60 @@ public static class DialogTextCatalog
     public static string WarningDialogCancelButton(string? language)
     {
         return Select(language, "取消", "Cancel");
+    }
+
+    public static DialogChromeCatalog CreateCatalog(
+        string? language,
+        Func<string, DialogChromeSnapshot> snapshotFactory)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        return new DialogChromeCatalog(
+            normalized,
+            nextLanguage => snapshotFactory(UiLanguageCatalog.Normalize(nextLanguage)));
+    }
+
+    public static DialogChromeCatalog CreateRootCatalog(
+        string? language,
+        string scope,
+        Func<RootLocalizationTextMap, DialogChromeSnapshot> snapshotFactory,
+        Action<LocalizationFallbackInfo>? fallbackReporter = null)
+    {
+        return CreateCatalog(
+            language,
+            nextLanguage =>
+            {
+                var texts = new RootLocalizationTextMap(scope)
+                {
+                    Language = nextLanguage,
+                };
+                if (fallbackReporter is not null)
+                {
+                    texts.FallbackReported += fallbackReporter;
+                }
+
+                return snapshotFactory(texts);
+            });
+    }
+
+    public static IReadOnlyDictionary<string, string> CreateNamedTexts(params (string Key, string Value)[] entries)
+    {
+        if (entries.Length == 0)
+        {
+            return EmptyNamedTexts;
+        }
+
+        var namedTexts = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (key, value) in entries)
+        {
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            namedTexts[key] = value;
+        }
+
+        return namedTexts.Count == 0 ? EmptyNamedTexts : namedTexts;
     }
 
     public static UiOperationResult LocalizeErrorResult(string? language, UiOperationResult result)

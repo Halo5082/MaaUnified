@@ -207,6 +207,49 @@ public sealed class DialogModuleP1FeatureTests
     }
 
     [Fact]
+    public void AchievementListRequestSnapshots_ShouldKeepExistingItemsAndPayload_WhenLanguageChanges()
+    {
+        var firstRequest = CreateAchievementListRequest("zh-cn");
+        var firstPayload = new AchievementListDialogPayload(firstRequest.InitialFilter ?? string.Empty, ["achievement-1"]);
+
+        var englishChrome = Assert.IsType<DialogChromeCatalog>(firstRequest.Chrome).GetSnapshot("en-us");
+        var secondRequest = CreateAchievementListRequest("en-us");
+
+        var firstItem = Assert.Single(firstRequest.Items);
+        var secondItem = Assert.Single(secondRequest.Items);
+
+        Assert.Equal("成就列表", firstRequest.Title);
+        Assert.Equal("搜索成就", firstRequest.FilterWatermark);
+        Assert.Equal("确认", firstRequest.ConfirmText);
+        Assert.Equal("取消", firstRequest.CancelText);
+        Assert.Equal("首次会面", firstItem.Title);
+        Assert.Equal("旧语言描述", firstItem.Description);
+        Assert.Equal("已解锁", firstItem.Status);
+        Assert.Equal("首次", firstPayload.FilterText);
+        Assert.Equal(["achievement-1"], firstPayload.SelectedIds);
+
+        Assert.Equal("Achievement List", englishChrome.Title);
+        Assert.Equal("Confirm", englishChrome.ConfirmText);
+        Assert.Equal("Cancel", englishChrome.CancelText);
+        Assert.Equal(
+            "Filter achievements",
+            englishChrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.FilterWatermark));
+
+        Assert.Equal("成就列表", firstRequest.Title);
+        Assert.Equal("搜索成就", firstRequest.FilterWatermark);
+        Assert.Equal("首次会面", firstItem.Title);
+        Assert.Equal("首次", firstPayload.FilterText);
+
+        Assert.Equal("Achievement List", secondRequest.Title);
+        Assert.Equal("Filter achievements", secondRequest.FilterWatermark);
+        Assert.Equal("Confirm", secondRequest.ConfirmText);
+        Assert.Equal("Cancel", secondRequest.CancelText);
+        Assert.Equal("First encounter", secondItem.Title);
+        Assert.Equal("Legacy-language description", secondItem.Description);
+        Assert.Equal("Unlocked", secondItem.Status);
+    }
+
+    [Fact]
     public async Task ProcessPickerDialogView_Refresh_ShouldCallProviderAndReplaceItems()
     {
         var view = CreateProcessPickerDialogViewForRefreshTest();
@@ -254,6 +297,38 @@ public sealed class DialogModuleP1FeatureTests
         Assert.Equal(
             ["keep", "third"],
             view.ProcessList.Items.Cast<ProcessPickerItem>().Select(static item => item.Id).ToArray());
+    }
+
+    private static AchievementListDialogRequest CreateAchievementListRequest(string language)
+    {
+        var chrome = DialogTextCatalog.CreateCatalog(
+            language,
+            currentLanguage => new DialogChromeSnapshot(
+                title: DialogTextCatalog.Select(currentLanguage, "成就列表", "Achievement List"),
+                confirmText: DialogTextCatalog.WarningDialogConfirmButton(currentLanguage),
+                cancelText: DialogTextCatalog.WarningDialogCancelButton(currentLanguage),
+                namedTexts: DialogTextCatalog.CreateNamedTexts(
+                    (
+                        DialogTextCatalog.ChromeKeys.FilterWatermark,
+                        DialogTextCatalog.Select(currentLanguage, "搜索成就", "Filter achievements")))));
+        var snapshot = chrome.GetSnapshot();
+        return new AchievementListDialogRequest(
+            Title: snapshot.Title,
+            Items:
+            [
+                new AchievementListItem(
+                    "achievement-1",
+                    DialogTextCatalog.Select(language, "首次会面", "First encounter"),
+                    DialogTextCatalog.Select(language, "旧语言描述", "Legacy-language description"),
+                    DialogTextCatalog.Select(language, "已解锁", "Unlocked"))
+            ],
+            InitialFilter: DialogTextCatalog.Select(language, "首次", "first"),
+            ConfirmText: snapshot.ConfirmText ?? DialogTextCatalog.WarningDialogConfirmButton(language),
+            CancelText: snapshot.CancelText ?? DialogTextCatalog.WarningDialogCancelButton(language),
+            FilterWatermark: snapshot.GetNamedTextOrDefault(
+                DialogTextCatalog.ChromeKeys.FilterWatermark,
+                DialogTextCatalog.Select(language, "搜索成就", "Filter achievements")),
+            Chrome: chrome);
     }
 
     private static void AssertAllCloseSemantics<TPayload>(

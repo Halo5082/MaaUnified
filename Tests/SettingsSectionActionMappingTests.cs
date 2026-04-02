@@ -43,6 +43,43 @@ public sealed class SettingsSectionActionMappingTests
     }
 
     [Fact]
+    public async Task LanguageSwitch_ShouldRebuildSelectedSectionAndRefreshActionLabels()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        vm.Language = "zh-cn";
+        vm.SelectedSection = vm.Sections.Single(section => section.Key == "ExternalNotification");
+
+        var sectionBefore = Assert.IsType<SettingsSectionViewModel>(vm.SelectedSection);
+        var sectionNameBefore = sectionBefore.DisplayName;
+        var actionsBefore = vm.CurrentSectionActions.ToDictionary(action => action.ActionId, action => action);
+        var actionLabelsBefore = actionsBefore.ToDictionary(pair => pair.Key, pair => pair.Value.Label, StringComparer.Ordinal);
+
+        vm.Language = "en-us";
+
+        var sectionAfter = Assert.IsType<SettingsSectionViewModel>(vm.SelectedSection);
+        Assert.Equal("ExternalNotification", sectionAfter.Key);
+        Assert.NotSame(sectionBefore, sectionAfter);
+        Assert.Equal("External notifications", sectionAfter.DisplayName);
+        Assert.NotEqual(sectionNameBefore, sectionAfter.DisplayName);
+        Assert.DoesNotContain(vm.Sections, section => ReferenceEquals(section, sectionBefore));
+
+        var actionsAfter = vm.CurrentSectionActions.ToDictionary(action => action.ActionId, action => action);
+        Assert.Equal(actionsBefore.Keys.OrderBy(id => id), actionsAfter.Keys.OrderBy(id => id));
+        Assert.NotSame(actionsBefore["settings.save-notification"], actionsAfter["settings.save-notification"]);
+        Assert.NotSame(actionsBefore["settings.validate-notification"], actionsAfter["settings.validate-notification"]);
+        Assert.NotSame(actionsBefore["settings.test-notification"], actionsAfter["settings.test-notification"]);
+        Assert.Equal("Save Notification", actionsAfter["settings.save-notification"].Label);
+        Assert.Equal("Validate Notification", actionsAfter["settings.validate-notification"].Label);
+        Assert.Equal("Test Notification", actionsAfter["settings.test-notification"].Label);
+        Assert.NotEqual(actionLabelsBefore["settings.save-notification"], actionsAfter["settings.save-notification"].Label);
+        Assert.NotEqual(actionLabelsBefore["settings.validate-notification"], actionsAfter["settings.validate-notification"].Label);
+        Assert.NotEqual(actionLabelsBefore["settings.test-notification"], actionsAfter["settings.test-notification"].Label);
+    }
+
+    [Fact]
     public async Task ExecuteSectionAction_SaveRemote_ShouldRouteToRemoteSaveFlow()
     {
         await using var fixture = await RuntimeFixture.CreateAsync();

@@ -9,7 +9,13 @@ namespace MAAUnified.Application.Services;
 public sealed class UiDiagnosticsService
 {
     private const string StartupLogFileName = "avalonia-ui-startup.log";
+    private const string PerfEventTypeUiThreadLag = "ui_thread_lag";
+    private const string PerfEventTypeNavigationTiming = "navigation_timing";
+    private const string PerfEventTypeScreenshotTest = "screenshot_test";
+    private static readonly TimeSpan DefaultUiLagThrottleInterval = TimeSpan.FromSeconds(5);
     private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly object _performanceEventGate = new();
+    private readonly Dictionary<string, DateTimeOffset> _lastPerformanceEventAt = new(StringComparer.Ordinal);
     private readonly string _debugDirectory;
 
     public UiDiagnosticsService(string baseDirectory, UiLogService uiLogService)
@@ -85,6 +91,106 @@ public sealed class UiDiagnosticsService
     public Task RecordEventAsync(string scope, string message, CancellationToken cancellationToken = default)
     {
         return WriteLineAsync(EventLogPath, $"{DateTimeOffset.UtcNow:O} [EVENT] [{scope}] {message}", cancellationToken);
+    }
+
+    public Task RecordUiLagAsync(
+        string scope,
+        double lagMs,
+        int thresholdMs,
+        int probeIntervalMs,
+        TimeSpan? minInterval = null,
+        CancellationToken cancellationToken = default)
+    {
+        var fields = new Dictionary<string, object?>
+        {
+            ["thresholdMs"] = thresholdMs,
+            ["probeIntervalMs"] = probeIntervalMs,
+        };
+        return RecordPerformanceEventAsync(
+            PerfEventTypeUiThreadLag,
+            scope,
+            lagMs,
+            fields,
+            minInterval ?? DefaultUiLagThrottleInterval,
+            cancellationToken);
+    }
+
+    public Task RecordNavigationTimingAsync(
+        string scope,
+        string from,
+        string to,
+        double elapsedMs,
+        CancellationToken cancellationToken = default)
+    {
+        var fields = new Dictionary<string, object?>
+        {
+            ["from"] = from,
+            ["to"] = to,
+        };
+        return RecordPerformanceEventAsync(
+            PerfEventTypeNavigationTiming,
+            scope,
+            elapsedMs,
+            fields,
+            minInterval: null,
+            cancellationToken);
+    }
+
+    public Task RecordScreenshotTestAsync(
+        string scope,
+        bool success,
+        double elapsedMs,
+        string? provider = null,
+        string? details = null,
+        int? width = null,
+        int? height = null,
+        TimeSpan? minInterval = null,
+        CancellationToken cancellationToken = default)
+    {
+        var fields = new Dictionary<string, object?>
+        {
+            ["success"] = success,
+            ["provider"] = provider,
+            ["details"] = details,
+            ["width"] = width,
+            ["height"] = height,
+        };
+        return RecordPerformanceEventAsync(
+            PerfEventTypeScreenshotTest,
+            scope,
+            elapsedMs,
+            fields,
+            minInterval,
+            cancellationToken);
+    }
+
+    public Task RecordPerformanceEventAsync(
+        string eventType,
+        string scope,
+        double elapsedMs,
+        IReadOnlyDictionary<string, object?>? fields = null,
+        TimeSpan? minInterval = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(eventType) || string.IsNullOrWhiteSpace(scope))
+        {
+            return Task.CompletedTask;
+        }
+
+        var timestamp = DateTimeOffset.UtcNow;
+        if (ShouldSkipPerformanceEvent(eventType, scope, minInterval, timestamp))
+        {
+            return Task.CompletedTask;
+        }
+
+        var payload = new UiPerformanceEventLogLine(
+            timestamp,
+            eventType.Trim(),
+            scope.Trim(),
+            Math.Max(0, elapsedMs),
+            fields is null || fields.Count == 0 ? null : new Dictionary<string, object?>(fields));
+        var line = $"{timestamp:O} [PERF] {JsonSerializer.Serialize(payload)}";
+        return WriteLineAsync(EventLogPath, line, cancellationToken);
     }
 
     public Task RecordPlatformEventAsync(
@@ -203,6 +309,31 @@ public sealed class UiDiagnosticsService
         writer.WriteLine(placeholderMessage);
     }
 
+    private bool ShouldSkipPerformanceEvent(
+        string eventType,
+        string scope,
+        TimeSpan? minInterval,
+        DateTimeOffset timestamp)
+    {
+        if (!minInterval.HasValue || minInterval.Value <= TimeSpan.Zero)
+        {
+            return false;
+        }
+
+        var dedupeKey = $"{eventType}|{scope}";
+        lock (_performanceEventGate)
+        {
+            if (_lastPerformanceEventAt.TryGetValue(dedupeKey, out var previous)
+                && timestamp - previous < minInterval.Value)
+            {
+                return true;
+            }
+
+            _lastPerformanceEventAt[dedupeKey] = timestamp;
+            return false;
+        }
+    }
+
     private sealed record PlatformEventLogLine(
         DateTimeOffset Timestamp,
         PlatformCapabilityId Capability,
@@ -214,4 +345,11 @@ public sealed class UiDiagnosticsService
         string? ErrorCode,
         string Message,
         string? OperationId);
+
+    private sealed record UiPerformanceEventLogLine(
+        DateTimeOffset Timestamp,
+        string EventType,
+        string Scope,
+        double ElapsedMs,
+        Dictionary<string, object?>? Fields);
 }

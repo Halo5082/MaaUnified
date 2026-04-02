@@ -130,6 +130,60 @@ public sealed class ToolboxModuleO3FeatureTests
     }
 
     [Fact]
+    public async Task LanguageSwitch_ShouldKeepExecutionHistorySnapshotWhileRelocalizingLiveRecruitResult()
+    {
+        await using var fixture = await ToolboxTestFixture.CreateAsync();
+        var vm = new ToolboxPageViewModel(fixture.Runtime, fixture.ConnectionState);
+        await vm.InitializeAsync();
+        vm.SetLanguage("zh-cn");
+
+        await vm.StartRecruitAsync();
+        vm.ApplyRuntimeCallback(CreateCallback(
+            "SubTaskExtraInfo",
+            new JsonObject
+            {
+                ["taskchain"] = "Recruit",
+                ["what"] = "RecruitResult",
+                ["details"] = new JsonObject
+                {
+                    ["result"] = new JsonArray
+                    {
+                        new JsonObject
+                        {
+                            ["level"] = 4,
+                            ["tags"] = new JsonArray("先锋干员", "费用回复"),
+                            ["opers"] = new JsonArray
+                            {
+                                new JsonObject
+                                {
+                                    ["level"] = 5,
+                                    ["id"] = "char_102_texas",
+                                    ["name"] = "德克萨斯",
+                                },
+                            },
+                        },
+                    },
+                },
+            }));
+        vm.ApplyRuntimeCallback(CreateCallback("TaskChainCompleted"));
+
+        var historyBefore = Assert.Single(vm.ExecutionHistory);
+        var recruitResultBefore = string.Join('\n', vm.RecruitResultLines.Select(line => line.Text));
+
+        vm.SetLanguage("en-us");
+
+        var historyAfter = Assert.Single(vm.ExecutionHistory);
+        var recruitResultAfter = string.Join('\n', vm.RecruitResultLines.Select(line => line.Text));
+
+        Assert.Same(historyBefore, historyAfter);
+        Assert.Equal("招募识别", historyAfter.ToolName);
+        Assert.Equal("en-us", vm.RootTexts.Language);
+        Assert.Equal("Recruit Recognition", vm.Texts["Toolbox.ToolName.Recruit"]);
+        Assert.NotEqual(historyAfter.ToolName, vm.Texts["Toolbox.ToolName.Recruit"]);
+        Assert.NotEqual(recruitResultBefore, recruitResultAfter);
+    }
+
+    [Fact]
     public async Task ApplyRuntimeCallback_OperBoxDone_ShouldPersistLegacyBoxData()
     {
         await using var fixture = await ToolboxTestFixture.CreateAsync();

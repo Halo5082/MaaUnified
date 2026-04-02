@@ -1,3 +1,5 @@
+using Avalonia;
+using Avalonia.X11;
 using MAAUnified.App;
 
 namespace MAAUnified.Tests;
@@ -151,6 +153,22 @@ public sealed class StartupProgramTests
         {
             Directory.Delete(root, recursive: true);
         }
+    }
+
+    [Fact]
+    public void BuildLinuxPlatformOptions_DisablesDbusMenu()
+    {
+        var options = Program.BuildLinuxPlatformOptions(useSoftwareRendering: false);
+
+        Assert.False(options.UseDBusMenu);
+    }
+
+    [Fact]
+    public void BuildLinuxPlatformOptions_WhenSoftwareRenderingRequested_UsesSoftwareMode()
+    {
+        var options = Program.BuildLinuxPlatformOptions(useSoftwareRendering: true);
+
+        Assert.Contains(global::Avalonia.X11RenderingMode.Software, options.RenderingMode);
     }
 
     private static string CreateTempConfigDirectory(string? avaloniaJson = null, string? guiNewJson = null)

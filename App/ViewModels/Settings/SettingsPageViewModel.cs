@@ -61,6 +61,27 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     private const string VersionUpdateChangelogUrl = "https://github.com/MaaAssistantArknights/MaaAssistantArknights/releases";
     private const string VersionUpdateResourceRepositoryUrl = "https://github.com/MaaAssistantArknights/MaaResource";
     private const string VersionUpdateMirrorChyanUrl = "https://mirrorchyan.com/?source=maaunified-settings";
+    private const string SettingsDataBucketGuiBackground = "GuiBackground";
+    private const string SettingsDataBucketHotKey = "HotKey";
+    private const string SettingsDataBucketTimer = "Timer";
+    private const string SettingsDataBucketStartPerformance = "StartPerformance";
+    private const string SettingsDataBucketConnectionGame = "ConnectionGame";
+    private const string SettingsDataBucketRemoteControl = "RemoteControl";
+    private const string SettingsDataBucketExternalNotification = "ExternalNotification";
+    private const string SettingsDataBucketVersionUpdate = "VersionUpdate";
+    private const string SettingsDataBucketAchievement = "Achievement";
+    private static readonly string[] AllSettingsDataBuckets =
+    [
+        SettingsDataBucketGuiBackground,
+        SettingsDataBucketHotKey,
+        SettingsDataBucketTimer,
+        SettingsDataBucketStartPerformance,
+        SettingsDataBucketConnectionGame,
+        SettingsDataBucketRemoteControl,
+        SettingsDataBucketExternalNotification,
+        SettingsDataBucketVersionUpdate,
+        SettingsDataBucketAchievement,
+    ];
     private static readonly string[] SectionOrder =
     [
         "ConfigurationManager",
@@ -170,6 +191,11 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     private CancellationTokenSource? _achievementAutoSaveCts;
     private CancellationTokenSource? _autostartAutoApplyCts;
     private CancellationTokenSource? _autostartFeedbackCts;
+    private readonly SemaphoreSlim _settingsDataLoadSemaphore = new(1, 1);
+    private readonly HashSet<string> _loadedSettingsDataBuckets = new(StringComparer.OrdinalIgnoreCase);
+    private bool _deferredSectionDataLoadEnabled;
+    private bool _suppressVersionUpdateResourceRefresh;
+    private long _gpuRefreshSequence;
     private bool _suppressPageAutoSave;
     private bool _suppressGuiAutoSave;
     private bool _suppressGuiPreview;
@@ -463,7 +489,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
                 return;
             }
 
-            _ = ChangeLanguageAsync(value.Value);
+            RequestLanguageChangeFromSelection(value.Value);
         }
     }
 
@@ -604,6 +630,10 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             OnPropertyChanged(nameof(IsIssueReportSelected));
             OnPropertyChanged(nameof(IsAboutSelected));
             RefreshCurrentSectionActions();
+            if (_deferredSectionDataLoadEnabled && value is not null)
+            {
+                _ = EnsureSectionDataLoadedAsync(value.Key, CancellationToken.None);
+            }
         }
     }
 
@@ -672,7 +702,10 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
                 RebuildGuiOptionLists();
                 RebuildSections(SelectedSection?.Key);
                 RebuildVersionUpdateOptionLists();
-                RefreshGpuUiState();
+                if (IsSettingsDataBucketLoaded(SettingsDataBucketStartPerformance))
+                {
+                    RefreshGpuUiState();
+                }
                 RefreshAchievementUiState();
                 UpdateAchievementPolicySummary(new AchievementPolicy(AchievementPopupDisabled, AchievementPopupAutoClose));
                 OnPropertyChanged(nameof(VersionUpdateMirrorChyanCdkExpiryText));
@@ -2541,19 +2574,12 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        _suppressPageAutoSave = true;
-        try
-        {
-            await LoadFromConfigAsync(Runtime.ConfigurationService.CurrentConfig, cancellationToken);
-            await RefreshConfigurationProfilesAsync(cancellationToken);
-            LoadConnectionSharedStateFromConfig();
-            await RefreshAutostartStatusAsync(cancellationToken);
-            await RefreshGpuUiStateAsync(cancellationToken);
-        }
-        finally
-        {
-            _suppressPageAutoSave = false;
-        }
+        await LoadInitialSettingsAsync(cancellationToken);
+        await RefreshConfigurationProfilesAsync(cancellationToken);
+        await LoadImmediateSettingsDataAsync(cancellationToken);
+        await RefreshAutostartStatusAsync(cancellationToken);
+        _deferredSectionDataLoadEnabled = true;
+        await EnsureSectionDataLoadedAsync(SelectedSection?.Key, cancellationToken);
 
         await RecordEventAsync("Settings", "Settings page initialized.", cancellationToken);
     }
@@ -2565,6 +2591,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         var appliedLanguage = await ApplyResultAsync(changeResult, "Settings.Gui.Language.Change", cancellationToken);
         if (appliedLanguage is null)
         {
+            OnPropertyChanged(nameof(SelectedLanguageOption));
             return;
         }
 
@@ -3125,15 +3152,34 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             return;
         }
 
+        var chrome = DialogTextCatalog.CreateCatalog(
+            Language,
+            language =>
+            {
+                var filterWatermark = GetSettingsTextForLanguage(
+                    language,
+                    "Settings.Achievement.Dialog.FilterWatermark",
+                    DialogTextCatalog.Select(language, "搜索成就", "Filter achievements"));
+                return new DialogChromeSnapshot(
+                    title: AchievementTextCatalog.GetString("AchievementList", language, "成就列表"),
+                    confirmText: DialogTextCatalog.WarningDialogConfirmButton(language),
+                    cancelText: DialogTextCatalog.WarningDialogCancelButton(language),
+                    namedTexts: DialogTextCatalog.CreateNamedTexts(
+                        (DialogTextCatalog.ChromeKeys.FilterWatermark, filterWatermark)));
+            });
+        var chromeSnapshot = chrome.GetSnapshot();
         var request = new AchievementListDialogRequest(
-            Title: AchievementTextCatalog.GetString("AchievementList", Language, "成就列表"),
+            Title: chromeSnapshot.Title,
             Items: snapshot.Items,
             InitialFilter: string.Empty,
-            ConfirmText: DialogTextCatalog.WarningDialogConfirmButton(Language),
-            CancelText: DialogTextCatalog.WarningDialogCancelButton(Language),
-            FilterWatermark: RootTexts.GetOrDefault(
-                "Settings.Achievement.Dialog.FilterWatermark",
-                DialogTextCatalog.Select(Language, "搜索成就", "Filter achievements")));
+            ConfirmText: chromeSnapshot.ConfirmText ?? DialogTextCatalog.WarningDialogConfirmButton(Language),
+            CancelText: chromeSnapshot.CancelText ?? DialogTextCatalog.WarningDialogCancelButton(Language),
+            FilterWatermark: chromeSnapshot.GetNamedTextOrDefault(
+                DialogTextCatalog.ChromeKeys.FilterWatermark,
+                RootTexts.GetOrDefault(
+                    "Settings.Achievement.Dialog.FilterWatermark",
+                    DialogTextCatalog.Select(Language, "搜索成就", "Filter achievements"))),
+            Chrome: chrome);
         var dialogResult = await _dialogService.ShowAchievementListAsync(request, "Settings.Achievement.Dialog", cancellationToken);
         AchievementStatusMessage = dialogResult.Return switch
         {
@@ -3651,13 +3697,20 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             return;
         }
 
+        var announcementChrome = CreateSettingsDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: texts.GetOrDefault("Settings.About.Dialog.Title", "Announcement"),
+                confirmText: texts.GetOrDefault("Settings.About.Dialog.Confirm", "Confirm"),
+                cancelText: texts.GetOrDefault("Settings.About.Dialog.Cancel", "Cancel")));
+        var announcementChromeSnapshot = announcementChrome.GetSnapshot();
         var request = new AnnouncementDialogRequest(
-            Title: LocalizeSettingsText("Settings.About.Dialog.Title", "Announcement"),
+            Title: announcementChromeSnapshot.Title,
             AnnouncementInfo: state.AnnouncementInfo,
             DoNotRemindThisAnnouncementAgain: state.DoNotRemindThisAnnouncementAgain,
             DoNotShowAnnouncement: state.DoNotShowAnnouncement,
-            ConfirmText: LocalizeSettingsText("Settings.About.Dialog.Confirm", "Confirm"),
-            CancelText: LocalizeSettingsText("Settings.About.Dialog.Cancel", "Cancel"));
+            ConfirmText: announcementChromeSnapshot.ConfirmText ?? LocalizeSettingsText("Settings.About.Dialog.Confirm", "Confirm"),
+            CancelText: announcementChromeSnapshot.CancelText ?? LocalizeSettingsText("Settings.About.Dialog.Cancel", "Cancel"),
+            Chrome: announcementChrome);
         var dialogResult = await _dialogService.ShowAnnouncementAsync(request, "Settings.About.Announcement.Dialog", cancellationToken);
         if (dialogResult.Return == DialogReturnSemantic.Confirm && dialogResult.Payload is not null)
         {
@@ -3861,7 +3914,10 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         catch (Exception ex)
         {
             HasPendingGuiChanges = true;
-            SetGuiValidationMessageForCurrentSection($"GUI settings save failed: {ex.Message}");
+            SetGuiValidationMessageForCurrentSection(
+                string.Format(
+                    RootTexts.GetOrDefault("Settings.SaveScoped.Error.SaveFailed", "Failed to save settings: {0}"),
+                    ex.Message));
             await RecordUnhandledExceptionAsync(
                 "Settings.Save.GuiBatch",
                 ex,
@@ -4140,6 +4196,11 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
                 nameof(ConnectionGameSharedStateViewModel.ClientType),
                 StringComparison.Ordinal))
         {
+            if (_suppressVersionUpdateResourceRefresh)
+            {
+                return;
+            }
+
             _ = RefreshVersionUpdateResourceInfoAsync();
         }
     }
@@ -4937,8 +4998,11 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void ApplyAchievementPolicy(AchievementPolicy policy)
     {
-        AchievementPopupDisabled = policy.PopupDisabled;
-        AchievementPopupAutoClose = policy.PopupAutoClose;
+        RunWithSuppressedSettingsBackfill(() =>
+        {
+            AchievementPopupDisabled = policy.PopupDisabled;
+            AchievementPopupAutoClose = policy.PopupAutoClose;
+        });
     }
 
     private void UpdateAchievementPolicySummary(AchievementPolicy policy)
@@ -5255,14 +5319,19 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private async Task LoadFromConfigAsync(UnifiedConfig config, CancellationToken cancellationToken)
     {
-        ClearHotkeyStatus();
-        ClearRemoteControlStatus();
-        ClearExternalNotificationStatus();
-        ClearAutostartFeedback();
-        await EnsureNotificationProvidersLoadedAsync(cancellationToken);
-        var guiWarnings = new List<string>();
-        var backgroundWarnings = new List<string>();
-        var hotkeyWarnings = new List<string>();
+        var previousSuppressPageAutoSave = _suppressPageAutoSave;
+        _suppressPageAutoSave = true;
+        _loadedSettingsDataBuckets.Clear();
+        try
+        {
+            ClearHotkeyStatus();
+            ClearRemoteControlStatus();
+            ClearExternalNotificationStatus();
+            ClearAutostartFeedback();
+            await EnsureNotificationProvidersLoadedAsync(cancellationToken);
+            var guiWarnings = new List<string>();
+            var backgroundWarnings = new List<string>();
+            var hotkeyWarnings = new List<string>();
 
         var rawTheme = ReadGlobalString(config, ThemeModeKey, DefaultTheme);
         var rawLanguage = ReadGlobalString(config, ConfigurationKeys.Localization, DefaultLanguage);
@@ -5475,19 +5544,25 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             StartPerformanceValidationMessage = string.Empty;
         }
 
-        if (timerWarnings.Count > 0)
-        {
-            TimerValidationMessage = string.Join(" ", timerWarnings);
-            await RecordEventAsync(
-                "Settings.Timer.Normalize",
-                string.Join(" | ", timerWarnings),
-                cancellationToken);
-        }
-        else
-        {
-            TimerValidationMessage = string.Empty;
-        }
+            if (timerWarnings.Count > 0)
+            {
+                TimerValidationMessage = string.Join(" ", timerWarnings);
+                await RecordEventAsync(
+                    "Settings.Timer.Normalize",
+                    string.Join(" | ", timerWarnings),
+                    cancellationToken);
+            }
+            else
+            {
+                TimerValidationMessage = string.Empty;
+            }
 
+            MarkAllSettingsDataBucketsLoaded();
+        }
+        finally
+        {
+            _suppressPageAutoSave = previousSuppressPageAutoSave;
+        }
     }
 
     private void BeginAutostartInteraction()
@@ -5625,6 +5700,14 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         OnPropertyChanged(nameof(HasBackgroundValidationMessage));
         OnPropertyChanged(nameof(GuiValidationMessage));
         OnPropertyChanged(nameof(HasGuiValidationMessage));
+        OnPropertyChanged(nameof(VersionUpdateStatusMessage));
+        OnPropertyChanged(nameof(RemoteControlStatusMessage));
+        OnPropertyChanged(nameof(ConfigurationManagerStatusMessage));
+        OnPropertyChanged(nameof(HotkeyStatusMessage));
+        OnPropertyChanged(nameof(IssueReportStatusMessage));
+        OnPropertyChanged(nameof(AboutStatusMessage));
+        OnPropertyChanged(nameof(GpuSupportMessage));
+        OnPropertyChanged(nameof(HasGpuSupportMessage));
         OnPropertyChanged(nameof(StatusMessage));
     }
 
@@ -5666,6 +5749,465 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             messages.Where(static message => !string.IsNullOrWhiteSpace(message)));
     }
 
+    private void RunWithSuppressedSettingsBackfill(
+        Action apply,
+        bool suppressGuiAutoSave = false,
+        bool suppressGuiPreview = false,
+        bool suppressStartPerformanceDirtyTracking = false,
+        bool suppressGpuUiRefresh = false,
+        bool suppressGpuSelectionChange = false,
+        bool suppressVersionUpdateResourceRefresh = false)
+    {
+        ArgumentNullException.ThrowIfNull(apply);
+
+        var previousSuppressPageAutoSave = _suppressPageAutoSave;
+        var previousSuppressGuiAutoSave = _suppressGuiAutoSave;
+        var previousSuppressGuiPreview = _suppressGuiPreview;
+        var previousSuppressStartPerformanceDirtyTracking = _suppressStartPerformanceDirtyTracking;
+        var previousSuppressGpuUiRefresh = _suppressGpuUiRefresh;
+        var previousSuppressGpuSelectionChange = _suppressGpuSelectionChange;
+        var previousSuppressVersionUpdateResourceRefresh = _suppressVersionUpdateResourceRefresh;
+
+        _suppressPageAutoSave = true;
+        if (suppressGuiAutoSave)
+        {
+            _suppressGuiAutoSave = true;
+        }
+
+        if (suppressGuiPreview)
+        {
+            _suppressGuiPreview = true;
+        }
+
+        if (suppressStartPerformanceDirtyTracking)
+        {
+            _suppressStartPerformanceDirtyTracking = true;
+        }
+
+        if (suppressGpuUiRefresh)
+        {
+            _suppressGpuUiRefresh = true;
+        }
+
+        if (suppressGpuSelectionChange)
+        {
+            _suppressGpuSelectionChange = true;
+        }
+
+        if (suppressVersionUpdateResourceRefresh)
+        {
+            _suppressVersionUpdateResourceRefresh = true;
+        }
+
+        try
+        {
+            apply();
+        }
+        finally
+        {
+            _suppressVersionUpdateResourceRefresh = previousSuppressVersionUpdateResourceRefresh;
+            _suppressGpuSelectionChange = previousSuppressGpuSelectionChange;
+            _suppressGpuUiRefresh = previousSuppressGpuUiRefresh;
+            _suppressStartPerformanceDirtyTracking = previousSuppressStartPerformanceDirtyTracking;
+            _suppressGuiPreview = previousSuppressGuiPreview;
+            _suppressGuiAutoSave = previousSuppressGuiAutoSave;
+            _suppressPageAutoSave = previousSuppressPageAutoSave;
+        }
+    }
+
+    private bool IsSettingsDataBucketLoaded(string bucket)
+        => _loadedSettingsDataBuckets.Contains(bucket);
+
+    private void MarkSettingsDataBucketsLoaded(params string[] buckets)
+    {
+        foreach (var bucket in buckets)
+        {
+            if (!string.IsNullOrWhiteSpace(bucket))
+            {
+                _loadedSettingsDataBuckets.Add(bucket);
+            }
+        }
+    }
+
+    private void MarkAllSettingsDataBucketsLoaded()
+    {
+        _loadedSettingsDataBuckets.Clear();
+        MarkSettingsDataBucketsLoaded(AllSettingsDataBuckets);
+    }
+
+    private static IReadOnlyList<string> GetSettingsDataBucketsForSection(string? sectionKey)
+    {
+        if (string.IsNullOrWhiteSpace(sectionKey))
+        {
+            return [];
+        }
+
+        return sectionKey.Trim() switch
+        {
+            "HotKey" => [SettingsDataBucketHotKey],
+            "Timer" => [SettingsDataBucketTimer],
+            "Performance" => [SettingsDataBucketStartPerformance],
+            "Start" => [SettingsDataBucketStartPerformance],
+            "Game" => [SettingsDataBucketConnectionGame, SettingsDataBucketStartPerformance],
+            "Connect" => [SettingsDataBucketConnectionGame],
+            "RemoteControl" => [SettingsDataBucketRemoteControl],
+            "ExternalNotification" => [SettingsDataBucketExternalNotification],
+            "Achievement" => [SettingsDataBucketAchievement],
+            "VersionUpdate" => [SettingsDataBucketConnectionGame, SettingsDataBucketVersionUpdate],
+            _ => [],
+        };
+    }
+
+    public async Task EnsureSectionDataLoadedAsync(string? sectionKey, CancellationToken cancellationToken = default)
+    {
+        if (!_deferredSectionDataLoadEnabled)
+        {
+            return;
+        }
+
+        foreach (var bucket in GetSettingsDataBucketsForSection(sectionKey))
+        {
+            await EnsureSettingsDataBucketLoadedAsync(bucket, cancellationToken);
+        }
+    }
+
+    private async Task EnsureSettingsDataBucketLoadedAsync(string bucket, CancellationToken cancellationToken)
+    {
+        if (IsSettingsDataBucketLoaded(bucket))
+        {
+            return;
+        }
+
+        await _settingsDataLoadSemaphore.WaitAsync(cancellationToken);
+        try
+        {
+            if (IsSettingsDataBucketLoaded(bucket))
+            {
+                return;
+            }
+
+            await LoadSettingsDataBucketCoreAsync(bucket, Runtime.ConfigurationService.CurrentConfig, cancellationToken);
+            MarkSettingsDataBucketsLoaded(bucket);
+        }
+        finally
+        {
+            _settingsDataLoadSemaphore.Release();
+        }
+    }
+
+    private async Task LoadSettingsDataBucketCoreAsync(
+        string bucket,
+        UnifiedConfig config,
+        CancellationToken cancellationToken)
+    {
+        switch (bucket)
+        {
+            case SettingsDataBucketHotKey:
+                await RefreshHotkeyRuntimeStateAsync(cancellationToken);
+                break;
+            case SettingsDataBucketTimer:
+                await LoadTimerDataFromConfigAsync(config, cancellationToken);
+                break;
+            case SettingsDataBucketStartPerformance:
+                await LoadStartPerformanceDataFromConfigAsync(config, cancellationToken);
+                break;
+            case SettingsDataBucketConnectionGame:
+                LoadConnectionSharedStateFromConfig();
+                break;
+            case SettingsDataBucketRemoteControl:
+                LoadRemoteControlDataFromConfig(config);
+                break;
+            case SettingsDataBucketExternalNotification:
+                await LoadExternalNotificationDataFromConfigAsync(config, cancellationToken);
+                break;
+            case SettingsDataBucketVersionUpdate:
+                await LoadVersionUpdateDataFromConfigAsync(cancellationToken);
+                break;
+            case SettingsDataBucketAchievement:
+                await LoadAchievementDataFromConfigAsync(cancellationToken);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private async Task LoadInitialSettingsAsync(CancellationToken cancellationToken)
+    {
+        ClearHotkeyStatus();
+        ClearRemoteControlStatus();
+        ClearExternalNotificationStatus();
+        ClearAutostartFeedback();
+        _deferredSectionDataLoadEnabled = false;
+        _loadedSettingsDataBuckets.Clear();
+        await LoadGuiBackgroundBaselineFromConfigAsync(Runtime.ConfigurationService.CurrentConfig, cancellationToken);
+        MarkSettingsDataBucketsLoaded(SettingsDataBucketGuiBackground);
+    }
+
+    private async Task LoadImmediateSettingsDataAsync(CancellationToken cancellationToken)
+    {
+        await EnsureSettingsDataBucketLoadedAsync(SettingsDataBucketConnectionGame, cancellationToken);
+        await EnsureSettingsDataBucketLoadedAsync(SettingsDataBucketRemoteControl, cancellationToken);
+        await EnsureSettingsDataBucketLoadedAsync(SettingsDataBucketExternalNotification, cancellationToken);
+        await EnsureSettingsDataBucketLoadedAsync(SettingsDataBucketTimer, cancellationToken);
+        await EnsureSettingsDataBucketLoadedAsync(SettingsDataBucketStartPerformance, cancellationToken);
+        await EnsureSettingsDataBucketLoadedAsync(SettingsDataBucketHotKey, cancellationToken);
+    }
+
+    private async Task LoadGuiBackgroundBaselineFromConfigAsync(
+        UnifiedConfig config,
+        CancellationToken cancellationToken)
+    {
+        var guiWarnings = new List<string>();
+        var backgroundWarnings = new List<string>();
+        var hotkeyWarnings = new List<string>();
+
+        var rawTheme = ReadGlobalString(config, ThemeModeKey, DefaultTheme);
+        var rawLanguage = ReadGlobalString(config, ConfigurationKeys.Localization, DefaultLanguage);
+        var rawBackgroundPath = ReadGlobalString(config, ConfigurationKeys.BackgroundImagePath, string.Empty);
+        var rawOpacity = ReadGlobalInt(config, ConfigurationKeys.BackgroundOpacity, _backgroundOpacity);
+        var rawBlur = ReadGlobalInt(config, ConfigurationKeys.BackgroundBlurEffectRadius, _backgroundBlur);
+        var rawStretchMode = ReadGlobalString(config, ConfigurationKeys.BackgroundImageStretchMode, DefaultBackgroundStretchMode);
+        var rawLogItemDateFormat = ReadGlobalString(config, ConfigurationKeys.LogItemDateFormat, DefaultLogItemDateFormat);
+        var rawOperNameLanguage = ReadGlobalString(config, ConfigurationKeys.OperNameLanguage, DefaultOperNameLanguage);
+        var rawInverseClearMode = ReadProfileString(config, ConfigurationKeys.InverseClearMode, DefaultInverseClearMode);
+        var rawUseSoftwareRendering = ReadGlobalBool(config, SoftwareRenderingConfigKey, false);
+        var rawHotkeys = ReadGlobalString(config, ConfigurationKeys.HotKeys, string.Empty);
+        var parsedHotkeys = HotkeyConfigurationCodec.Parse(rawHotkeys);
+        hotkeyWarnings.AddRange(parsedHotkeys.Warnings);
+        var loadedShowGui = parsedHotkeys.ShowGui;
+        var loadedLinkStart = parsedHotkeys.LinkStart;
+
+        var theme = NormalizeTheme(rawTheme);
+        if (!string.Equals(rawTheme, theme, StringComparison.Ordinal))
+        {
+            guiWarnings.Add($"Theme normalized to `{theme}` from `{rawTheme}`.");
+        }
+
+        var language = NormalizeLanguage(rawLanguage);
+        if (!string.Equals(rawLanguage, language, StringComparison.OrdinalIgnoreCase))
+        {
+            guiWarnings.Add($"Language normalized to `{language}` from `{rawLanguage}`.");
+        }
+
+        var backgroundPath = NormalizeBackgroundPath(rawBackgroundPath);
+        if (!string.IsNullOrWhiteSpace(backgroundPath) && !File.Exists(backgroundPath))
+        {
+            backgroundWarnings.Add($"Background path not found and reset: {backgroundPath}");
+            backgroundPath = string.Empty;
+        }
+
+        var opacity = Math.Clamp(rawOpacity, BackgroundOpacityMin, BackgroundOpacityMax);
+        if (opacity != rawOpacity)
+        {
+            backgroundWarnings.Add($"Background opacity clamped to {opacity} from {rawOpacity}.");
+        }
+
+        var blur = Math.Clamp(rawBlur, BackgroundBlurMin, BackgroundBlurMax);
+        if (blur != rawBlur)
+        {
+            backgroundWarnings.Add($"Background blur clamped to {blur} from {rawBlur}.");
+        }
+
+        var stretch = NormalizeBackgroundStretchMode(rawStretchMode);
+        if (!string.Equals(rawStretchMode, stretch, StringComparison.OrdinalIgnoreCase))
+        {
+            backgroundWarnings.Add($"Background stretch mode normalized to `{stretch}` from `{rawStretchMode}`.");
+        }
+
+        var logItemDateFormat = NormalizeLogItemDateFormat(rawLogItemDateFormat);
+        if (!string.Equals(rawLogItemDateFormat, logItemDateFormat, StringComparison.Ordinal))
+        {
+            guiWarnings.Add(
+                $"Log item date format normalized to `{logItemDateFormat}` from `{rawLogItemDateFormat}`.");
+        }
+
+        var operNameLanguage = NormalizeOperNameLanguage(rawOperNameLanguage);
+        if (!string.Equals(rawOperNameLanguage, operNameLanguage, StringComparison.OrdinalIgnoreCase))
+        {
+            guiWarnings.Add(
+                $"Oper name language normalized to `{operNameLanguage}` from `{rawOperNameLanguage}`.");
+        }
+
+        var inverseClearMode = NormalizeInverseClearMode(rawInverseClearMode);
+        if (!string.Equals(rawInverseClearMode, inverseClearMode, StringComparison.OrdinalIgnoreCase))
+        {
+            guiWarnings.Add(
+                $"Inverse clear mode normalized to `{inverseClearMode}` from `{rawInverseClearMode}`.");
+        }
+
+        RunWithSuppressedSettingsBackfill(
+            () =>
+            {
+                Theme = theme;
+                Language = language;
+                UseTray = ReadGlobalBool(config, ConfigurationKeys.UseTray, true);
+                MinimizeToTray = ReadGlobalBool(config, ConfigurationKeys.MinimizeToTray, false);
+                WindowTitleScrollable = ReadGlobalBool(config, ConfigurationKeys.WindowTitleScrollable, false);
+                UseSoftwareRendering = rawUseSoftwareRendering;
+                DeveloperModeEnabled = ReadGlobalBool(config, DeveloperModeConfigKey, false);
+                LogItemDateFormatString = logItemDateFormat;
+                OperNameLanguage = operNameLanguage;
+                InverseClearMode = inverseClearMode;
+                BackgroundImagePath = backgroundPath;
+                BackgroundOpacity = opacity;
+                BackgroundBlur = blur;
+                BackgroundStretchMode = stretch;
+                HotkeyShowGui = loadedShowGui;
+                HotkeyLinkStart = loadedLinkStart;
+                _persistedHotkeyShowGui = loadedShowGui;
+                _persistedHotkeyLinkStart = loadedLinkStart;
+                HasPendingGuiChanges = false;
+            },
+            suppressGuiAutoSave: true,
+            suppressGuiPreview: true,
+            suppressGpuUiRefresh: true,
+            suppressStartPerformanceDirtyTracking: true);
+
+        var warnings = guiWarnings.Concat(backgroundWarnings).ToArray();
+        if (warnings.Length > 0)
+        {
+            GuiSectionValidationMessage = string.Join(" ", guiWarnings);
+            BackgroundValidationMessage = string.Join(" ", backgroundWarnings);
+            StatusMessage = GuiValidationMessage;
+            await RecordEventAsync(
+                "Settings.Gui.Normalize",
+                string.Join(" | ", warnings),
+                cancellationToken);
+        }
+        else
+        {
+            ClearGuiValidationMessages();
+        }
+
+        if (hotkeyWarnings.Count > 0)
+        {
+            HotkeyWarningMessage = string.Join(" ", hotkeyWarnings);
+            await RecordEventAsync(
+                "Settings.Hotkey.Normalize",
+                string.Join(" | ", hotkeyWarnings),
+                cancellationToken);
+        }
+        else
+        {
+            HotkeyWarningMessage = string.Empty;
+        }
+    }
+
+    private async Task LoadStartPerformanceDataFromConfigAsync(
+        UnifiedConfig config,
+        CancellationToken cancellationToken)
+    {
+        var warnings = new List<string>();
+        NormalizeUnsupportedGpuSettingsInConfig(config, warnings);
+        var startPerformanceSnapshot = ReadStartPerformanceSnapshot(config, warnings);
+        ApplyStartPerformanceSnapshotWithoutDirtyTracking(startPerformanceSnapshot, refreshGpuUi: false);
+        HasPendingStartPerformanceChanges = false;
+
+        if (warnings.Count > 0)
+        {
+            StartPerformanceValidationMessage = string.Join(" ", warnings);
+            await RecordEventAsync(
+                "Settings.StartPerformance.Normalize",
+                string.Join(" | ", warnings),
+                cancellationToken);
+        }
+        else
+        {
+            StartPerformanceValidationMessage = string.Empty;
+        }
+
+        await RefreshGpuUiStateAsync(cancellationToken);
+    }
+
+    private async Task LoadTimerDataFromConfigAsync(
+        UnifiedConfig config,
+        CancellationToken cancellationToken)
+    {
+        var warnings = new List<string>();
+        var timerSnapshot = ReadTimerSnapshot(config, warnings);
+        ApplyTimerSnapshot(timerSnapshot);
+        HasPendingTimerChanges = false;
+
+        if (warnings.Count > 0)
+        {
+            TimerValidationMessage = string.Join(" ", warnings);
+            await RecordEventAsync(
+                "Settings.Timer.Normalize",
+                string.Join(" | ", warnings),
+                cancellationToken);
+        }
+        else
+        {
+            TimerValidationMessage = string.Empty;
+        }
+    }
+
+    private void LoadRemoteControlDataFromConfig(UnifiedConfig config)
+    {
+        RunWithSuppressedSettingsBackfill(() =>
+        {
+            RemoteGetTaskEndpoint = ReadProfileString(config, ConfigurationKeys.RemoteControlGetTaskEndpointUri, string.Empty);
+            RemoteReportEndpoint = ReadProfileString(config, ConfigurationKeys.RemoteControlReportStatusUri, string.Empty);
+            RemoteUserIdentity = ReadProfileString(config, ConfigurationKeys.RemoteControlUserIdentity, string.Empty).Trim();
+            RemoteDeviceIdentity = ReadProfileString(config, ConfigurationKeys.RemoteControlDeviceIdentity, string.Empty).Trim();
+            RemotePollInterval = ReadProfileInt(config, ConfigurationKeys.RemoteControlPollIntervalMs, DefaultRemotePollIntervalMs);
+        });
+    }
+
+    private async Task LoadExternalNotificationDataFromConfigAsync(
+        UnifiedConfig config,
+        CancellationToken cancellationToken)
+    {
+        await EnsureNotificationProvidersLoadedAsync(cancellationToken);
+        RunWithSuppressedSettingsBackfill(() =>
+        {
+            ExternalNotificationEnabled = ReadProfileBool(config, ConfigurationKeys.ExternalNotificationEnabled, false);
+            ExternalNotificationSendWhenComplete = ReadProfileBool(config, ConfigurationKeys.ExternalNotificationSendWhenComplete, true);
+            ExternalNotificationSendWhenError = ReadProfileBool(config, ConfigurationKeys.ExternalNotificationSendWhenError, true);
+            ExternalNotificationSendWhenTimeout = ReadProfileBool(config, ConfigurationKeys.ExternalNotificationSendWhenTimeout, true);
+            ExternalNotificationEnableDetails = ReadProfileBool(config, ConfigurationKeys.ExternalNotificationEnableDetails, false);
+            LoadExternalNotificationProviderParametersFromConfig(config);
+        });
+    }
+
+    private async Task LoadVersionUpdateDataFromConfigAsync(CancellationToken cancellationToken)
+    {
+        var versionPolicyResult = await Runtime.VersionUpdateFeatureService.LoadPolicyAsync(cancellationToken);
+        if (versionPolicyResult.Success && versionPolicyResult.Value is not null)
+        {
+            ApplyVersionUpdatePolicy(versionPolicyResult.Value);
+            UpdatePanelCoreVersion = string.IsNullOrWhiteSpace(versionPolicyResult.Value.VersionName)
+                ? "unknown"
+                : versionPolicyResult.Value.VersionName;
+            VersionUpdateErrorMessage = string.Empty;
+        }
+        else
+        {
+            UpdatePanelCoreVersion = "unknown";
+            VersionUpdateErrorMessage = versionPolicyResult.Message;
+        }
+
+        await RefreshVersionUpdateResourceInfoAsync(cancellationToken);
+    }
+
+    private async Task LoadAchievementDataFromConfigAsync(CancellationToken cancellationToken)
+    {
+        var achievementPolicyResult = await Runtime.AchievementFeatureService.LoadPolicyAsync(cancellationToken);
+        if (achievementPolicyResult.Success && achievementPolicyResult.Value is not null)
+        {
+            ApplyAchievementPolicy(achievementPolicyResult.Value);
+            UpdateAchievementPolicySummary(achievementPolicyResult.Value);
+            AchievementErrorMessage = string.Empty;
+        }
+        else
+        {
+            UpdateAchievementPolicySummary(AchievementPolicy.Default);
+            AchievementErrorMessage = achievementPolicyResult.Message;
+        }
+
+        _ = await RefreshAchievementSnapshotAsync("Settings.Achievement.Initialize", cancellationToken);
+    }
+
     private void LoadConnectionSharedStateFromConfig()
     {
         if (!Runtime.ConfigurationService.TryGetCurrentProfile(out var profile))
@@ -5673,7 +6215,9 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             return;
         }
 
-        ConnectionGameProfileSync.ReadFromProfile(profile, ConnectionGameSharedState, tolerateMissing: false);
+        RunWithSuppressedSettingsBackfill(
+            () => ConnectionGameProfileSync.ReadFromProfile(profile, ConnectionGameSharedState, tolerateMissing: false),
+            suppressVersionUpdateResourceRefresh: true);
     }
 
     private static string ReadGlobalString(UnifiedConfig config, string key, string fallback)
@@ -5830,25 +6374,42 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             PreferredGpuInstancePath: PerformancePreferredGpuInstancePath);
     }
 
+    private static bool IsNonUiThreadContext()
+    {
+        if (Avalonia.Application.Current is null)
+        {
+            return true;
+        }
+
+        return !Dispatcher.UIThread.CheckAccess();
+    }
+
+    private void RequestLanguageChangeFromSelection(string targetLanguage)
+    {
+        var normalized = NormalizeLanguage(targetLanguage);
+        if (string.Equals(normalized, Language, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Non-UI contexts (test host/background callers) should observe language and config state immediately.
+        if (IsNonUiThreadContext())
+        {
+            Task.Run(() => ChangeLanguageAsync(normalized)).GetAwaiter().GetResult();
+            return;
+        }
+
+        _ = ChangeLanguageAsync(normalized);
+    }
+
+    private void InvalidatePendingGpuRefresh()
+    {
+        Interlocked.Increment(ref _gpuRefreshSequence);
+    }
+
     private void RefreshGpuUiState()
     {
-        if (_suppressGpuUiRefresh)
-        {
-            return;
-        }
-
-        GpuSelectionResolution resolution;
-        try
-        {
-            resolution = Runtime.Platform.GpuCapabilityService.Resolve(BuildCurrentGpuPreference());
-        }
-        catch (Exception ex)
-        {
-            ApplyGpuProbeFailureState(ex);
-            return;
-        }
-
-        ApplyGpuResolution(resolution);
+        _ = RefreshGpuUiStateAsync(CancellationToken.None);
     }
 
     private async Task RefreshGpuUiStateAsync(CancellationToken cancellationToken = default)
@@ -5859,16 +6420,62 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         }
 
         var preference = BuildCurrentGpuPreference();
+        var refreshSequence = Interlocked.Increment(ref _gpuRefreshSequence);
         try
         {
             var resolution = await Task.Run(
                 () => Runtime.Platform.GpuCapabilityService.Resolve(preference),
-                cancellationToken);
-            ApplyGpuResolution(resolution);
+                cancellationToken).ConfigureAwait(false);
+
+            void ApplyResolutionIfCurrent()
+            {
+                if (_suppressGpuUiRefresh
+                    || cancellationToken.IsCancellationRequested
+                    || refreshSequence != Interlocked.Read(ref _gpuRefreshSequence))
+                {
+                    return;
+                }
+
+                ApplyGpuResolution(resolution);
+            }
+
+            if (Avalonia.Application.Current is null)
+            {
+                ApplyResolutionIfCurrent();
+            }
+            else
+            {
+                await Dispatcher.UIThread.InvokeAsync(
+                    ApplyResolutionIfCurrent,
+                    DispatcherPriority.Background);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Cancellation is expected when a newer refresh supersedes an older request.
         }
         catch (Exception ex)
         {
-            ApplyGpuProbeFailureState(ex);
+            void ApplyFailureIfCurrent()
+            {
+                if (refreshSequence != Interlocked.Read(ref _gpuRefreshSequence))
+                {
+                    return;
+                }
+
+                ApplyGpuProbeFailureState(ex);
+            }
+
+            if (Avalonia.Application.Current is null)
+            {
+                ApplyFailureIfCurrent();
+            }
+            else
+            {
+                await Dispatcher.UIThread.InvokeAsync(
+                    ApplyFailureIfCurrent,
+                    DispatcherPriority.Background);
+            }
         }
     }
 
@@ -5917,6 +6524,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void ApplyGpuSelection(GpuOptionDescriptor descriptor)
     {
+        InvalidatePendingGpuRefresh();
         SetGpuLegacyPropertiesSilently(
             descriptor,
             descriptor.IsCustomEntry ? GpuCustomDescription : null,
@@ -5925,15 +6533,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         if (descriptor.IsCustomEntry)
         {
             IsGpuCustomSelectionFieldsVisible = true;
-            try
-            {
-                GpuWarningMessage = BuildGpuWarningMessage(Runtime.Platform.GpuCapabilityService.Resolve(BuildCurrentGpuPreference()));
-            }
-            catch (Exception ex)
-            {
-                ApplyGpuProbeFailureState(ex);
-            }
-
+            RefreshGpuUiState();
             MarkStartPerformanceDirty();
             return;
         }
@@ -5949,6 +6549,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             return;
         }
 
+        InvalidatePendingGpuRefresh();
         SetGpuLegacyPropertiesSilently(
             SelectedGpuOption.Descriptor,
             GpuCustomDescription,
@@ -6102,6 +6703,15 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         return textMap.GetOrDefault(key, fallback);
     }
 
+    private DialogChromeCatalog CreateSettingsDialogChrome(Func<RootLocalizationTextMap, DialogChromeSnapshot> snapshotFactory)
+    {
+        return DialogTextCatalog.CreateRootCatalog(
+            Language,
+            "Root.Localization.Settings",
+            snapshotFactory,
+            _localizationFallbackReporter);
+    }
+
     private string LocalizeSettingsText(string key, string fallback)
     {
         return RootTexts.GetOrDefault(key, fallback);
@@ -6219,12 +6829,19 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private async Task PromptForGpuRestartAsync(CancellationToken cancellationToken)
     {
+        var chrome = CreateSettingsDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: texts["Settings.Performance.Gpu.RestartDialog.Title"],
+                confirmText: texts["Settings.Performance.Gpu.RestartDialog.Confirm"],
+                cancelText: texts["Settings.Performance.Gpu.RestartDialog.Cancel"]));
+        var chromeSnapshot = chrome.GetSnapshot();
         var request = new WarningConfirmDialogRequest(
-            Title: RootTexts["Settings.Performance.Gpu.RestartDialog.Title"],
+            Title: chromeSnapshot.Title,
             Message: RootTexts["Settings.Performance.Gpu.RestartDialog.Message"],
-            ConfirmText: RootTexts["Settings.Performance.Gpu.RestartDialog.Confirm"],
-            CancelText: RootTexts["Settings.Performance.Gpu.RestartDialog.Cancel"],
-            Language: Language);
+            ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts["Settings.Performance.Gpu.RestartDialog.Confirm"],
+            CancelText: chromeSnapshot.CancelText ?? RootTexts["Settings.Performance.Gpu.RestartDialog.Cancel"],
+            Language: Language,
+            Chrome: chrome);
         var dialogResult = await _dialogService.ShowWarningConfirmAsync(
             request,
             "Settings.Save.StartPerformance.GpuRestartPrompt",
@@ -6268,12 +6885,19 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private async Task PromptForSoftwareRenderingRestartAsync(CancellationToken cancellationToken)
     {
+        var chrome = CreateSettingsDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: texts["Settings.GUI.SoftwareRendering.RestartDialog.Title"],
+                confirmText: texts["Settings.GUI.SoftwareRendering.RestartDialog.Confirm"],
+                cancelText: texts["Settings.GUI.SoftwareRendering.RestartDialog.Cancel"]));
+        var chromeSnapshot = chrome.GetSnapshot();
         var request = new WarningConfirmDialogRequest(
-            Title: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Title"],
+            Title: chromeSnapshot.Title,
             Message: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Message"],
-            ConfirmText: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Confirm"],
-            CancelText: RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Cancel"],
-            Language: Language);
+            ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Confirm"],
+            CancelText: chromeSnapshot.CancelText ?? RootTexts["Settings.GUI.SoftwareRendering.RestartDialog.Cancel"],
+            Language: Language,
+            Chrome: chrome);
         var dialogResult = await _dialogService.ShowWarningConfirmAsync(
             request,
             "Settings.Save.GuiBatch.SoftwareRenderingRestartPrompt",

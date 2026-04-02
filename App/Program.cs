@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -19,6 +20,7 @@ internal static class Program
     private const string ConfigDirectoryName = "config";
     private const string AvaloniaConfigFileName = "avalonia.json";
     private const string GuiNewConfigFileName = "gui.new.json";
+    private static readonly Stopwatch StartupElapsedSinceEntry = Stopwatch.StartNew();
 
     [STAThread]
     public static int Main(string[] args)
@@ -108,7 +110,9 @@ internal static class Program
             .Append(StartupScope)
             .Append('.')
             .Append(stage)
-            .Append("] ")
+            .Append("] elapsedMsSinceEntry=")
+            .Append(StartupElapsedSinceEntry.ElapsedMilliseconds)
+            .Append(" ")
             .Append(message);
 
         if (exception is not null)
@@ -165,6 +169,16 @@ internal static class Program
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        if (OperatingSystem.IsLinux())
+        {
+            var options = BuildLinuxPlatformOptions(useSoftwareRendering);
+            builder.With(options);
+            RecordStartupStage(
+                "Main.LinuxPlatformOptions",
+                $"useDBusMenu={options.UseDBusMenu}; softwareRendering={useSoftwareRendering}");
+            return;
+        }
+
         if (!useSoftwareRendering)
         {
             return;
@@ -180,15 +194,6 @@ internal static class Program
             return;
         }
 
-        if (OperatingSystem.IsLinux())
-        {
-            builder.With(new X11PlatformOptions
-            {
-                RenderingMode = [X11RenderingMode.Software],
-            });
-            return;
-        }
-
         if (OperatingSystem.IsMacOS())
         {
             builder.With(new AvaloniaNativePlatformOptions
@@ -196,6 +201,24 @@ internal static class Program
                 RenderingMode = [AvaloniaNativeRenderingMode.Software],
             });
         }
+    }
+
+    internal static X11PlatformOptions BuildLinuxPlatformOptions(bool useSoftwareRendering)
+    {
+        var options = new X11PlatformOptions
+        {
+            // MAAUnified does not expose a global app menu, and enabling the DBus menu
+            // exporter can trigger background probes for com.canonical.AppMenu.Registrar
+            // on desktops where that optional service is absent.
+            UseDBusMenu = false,
+        };
+
+        if (useSoftwareRendering)
+        {
+            options.RenderingMode = [X11RenderingMode.Software];
+        }
+
+        return options;
     }
 
     private static bool TryReadSoftwareRenderingFromAvaloniaConfig(string path, out bool value)
@@ -328,6 +351,8 @@ internal static class Program
             .Append(StartupScope)
             .Append("] code=")
             .Append(code)
+            .Append(" elapsedMsSinceEntry=")
+            .Append(StartupElapsedSinceEntry.ElapsedMilliseconds)
             .Append(" message=")
             .Append(message);
 

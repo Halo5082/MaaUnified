@@ -95,7 +95,7 @@
           </Grid>
           <AutoCompleteBox ItemsSource="{Binding CoreCharNameOptions}"
                            MinimumPrefixLength="0"
-                           Text="{Binding CoreChar, UpdateSourceTrigger=PropertyChanged}" />
+                           Text="{Binding CoreCharDisplayText, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
 
         <StackPanel IsVisible="{Binding IsAdvancedMode}" Spacing="{DynamicResource MAA.Spacing.Small}">

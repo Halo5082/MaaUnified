@@ -152,6 +152,77 @@ public sealed class SettingsModuleAK2FeatureTests
     }
 
     [Fact]
+    public async Task SaveStartPerformanceSettings_GpuRestartRequest_ShouldKeepExistingPayloadLanguage_AfterLanguageSwitch()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync(gpuCapabilityService: new ScriptedWindowsGpuCapabilityService());
+        fixture.Runtime.AppLifecycleService = new SpyAppLifecycleService(
+            restartResult: UiOperationResult.Ok("Restart process launched."),
+            exitResult: UiOperationResult.Ok("Application shutdown requested."));
+        var dialogService = new ScriptedDialogService(DialogReturnSemantic.Cancel);
+        var vm = new SettingsPageViewModel(
+            fixture.Runtime,
+            new ConnectionGameSharedStateViewModel(),
+            dialogService: dialogService);
+        await vm.InitializeAsync();
+
+        Assert.Equal("zh-cn", vm.Language);
+        var zhTitle = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Title"];
+        var zhMessage = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Message"];
+        var zhConfirm = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Confirm"];
+        var zhCancel = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Cancel"];
+
+        vm.PerformanceUseGpu = true;
+        vm.SelectedGpuOption = Assert.Single(
+            vm.AvailableGpuOptions,
+            option => option.Descriptor.InstancePath == "GPU-PATH");
+
+        await vm.SaveStartPerformanceSettingsAsync();
+
+        var firstRequest = Assert.Single(dialogService.WarningConfirmRequests);
+        Assert.Equal("zh-cn", firstRequest.Language);
+        Assert.Equal(zhTitle, firstRequest.Title);
+        Assert.Equal(zhMessage, firstRequest.Message);
+        Assert.Equal(zhConfirm, firstRequest.ConfirmText);
+        Assert.Equal(zhCancel, firstRequest.CancelText);
+
+        vm.Language = "en-us";
+
+        var enTitle = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Title"];
+        var enMessage = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Message"];
+        var enConfirm = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Confirm"];
+        var enCancel = vm.RootTexts["Settings.Performance.Gpu.RestartDialog.Cancel"];
+        Assert.NotEqual(zhTitle, enTitle);
+        Assert.NotEqual(zhMessage, enMessage);
+        Assert.NotEqual(zhConfirm, enConfirm);
+
+        Assert.Equal("zh-cn", firstRequest.Language);
+        Assert.Equal(zhTitle, firstRequest.Title);
+        Assert.Equal(zhMessage, firstRequest.Message);
+        Assert.Equal(zhConfirm, firstRequest.ConfirmText);
+        Assert.Equal(zhCancel, firstRequest.CancelText);
+
+        vm.SelectedGpuOption = Assert.Single(
+            vm.AvailableGpuOptions,
+            option => option.Descriptor.InstancePath == "PCI#0");
+
+        await vm.SaveStartPerformanceSettingsAsync();
+
+        Assert.Equal(2, dialogService.WarningConfirmRequests.Count);
+        var secondRequest = dialogService.WarningConfirmRequests[1];
+        Assert.Equal("en-us", secondRequest.Language);
+        Assert.Equal(enTitle, secondRequest.Title);
+        Assert.Equal(enMessage, secondRequest.Message);
+        Assert.Equal(enConfirm, secondRequest.ConfirmText);
+        Assert.Equal(enCancel, secondRequest.CancelText);
+
+        Assert.Equal("zh-cn", firstRequest.Language);
+        Assert.Equal(zhTitle, firstRequest.Title);
+        Assert.Equal(zhMessage, firstRequest.Message);
+        Assert.Equal(0, Assert.IsType<SpyAppLifecycleService>(fixture.Runtime.AppLifecycleService).RestartCallCount);
+        Assert.Equal(0, Assert.IsType<SpyAppLifecycleService>(fixture.Runtime.AppLifecycleService).ExitCallCount);
+    }
+
+    [Fact]
     public async Task SaveStartPerformanceSettings_UnsupportedGpuConfig_IsClearedToSafeValues()
     {
         await using var fixture = await RuntimeFixture.CreateAsync(gpuCapabilityService: new UnsupportedGpuCapabilityService());
@@ -710,6 +781,8 @@ public sealed class SettingsModuleAK2FeatureTests
 
         public int WarningConfirmCallCount { get; private set; }
 
+        public List<WarningConfirmDialogRequest> WarningConfirmRequests { get; } = [];
+
         public Task<DialogCompletion<AnnouncementDialogPayload>> ShowAnnouncementAsync(
             AnnouncementDialogRequest request,
             string sourceScope,
@@ -759,6 +832,7 @@ public sealed class SettingsModuleAK2FeatureTests
             CancellationToken cancellationToken = default)
         {
             WarningConfirmCallCount++;
+            WarningConfirmRequests.Add(request);
             return Task.FromResult(new DialogCompletion<WarningConfirmDialogPayload>(
                 _warningConfirmReturn,
                 _warningConfirmReturn == DialogReturnSemantic.Confirm ? new WarningConfirmDialogPayload(true) : null,

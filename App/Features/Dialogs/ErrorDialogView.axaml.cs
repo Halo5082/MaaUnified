@@ -6,7 +6,7 @@ using MAAUnified.Application.Models;
 
 namespace MAAUnified.App.Features.Dialogs;
 
-public partial class ErrorDialogView : Window
+public partial class ErrorDialogView : Window, IDialogChromeAware
 {
     private Func<CancellationToken, Task<UiOperationResult>>? _openIssueReportAsync;
     private bool _copied;
@@ -25,7 +25,7 @@ public partial class ErrorDialogView : Window
     {
         Title = request.Title;
         _openIssueReportAsync = openIssueReportAsync;
-        DialogTitleText.Text = DialogTextCatalog.ErrorDialogSectionTitle(request.Language);
+        DialogTitleText.Text = request.Title;
         CopyButton.Content = DialogTextCatalog.ErrorDialogCopyButton(request.Language);
         IssueReportButton.Content = DialogTextCatalog.ErrorDialogIssueReportButton(request.Language);
         ConfirmButton.Content = request.ConfirmText;
@@ -92,5 +92,17 @@ public partial class ErrorDialogView : Window
     private void OnCancelClick(object? sender, RoutedEventArgs e)
     {
         Close(DialogReturnSemantic.Cancel);
+    }
+
+    public void ApplyDialogChrome(DialogChromeSnapshot chrome)
+    {
+        Title = chrome.Title;
+        DialogTitleText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.SectionTitle, chrome.Title);
+        CopyButton.Content = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.CopyButton, CopyButton.Content?.ToString() ?? "Copy");
+        IssueReportButton.Content = chrome.GetNamedTextOrDefault(
+            DialogTextCatalog.ChromeKeys.IssueReportButton,
+            IssueReportButton.Content?.ToString() ?? "IssueReport");
+        ConfirmButton.Content = chrome.ConfirmText ?? ConfirmButton.Content;
+        CancelButton.Content = chrome.CancelText ?? CancelButton.Content;
     }
 }

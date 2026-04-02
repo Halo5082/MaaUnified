@@ -1,13 +1,19 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using MAAUnified.App.ViewModels.Infrastructure;
+using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.Localization;
 using MAAUnified.Platform;
 
 namespace MAAUnified.App.ViewModels.Advanced;
 
 public sealed class OverlayAdvancedPageViewModel : PageViewModelBase
 {
+    private readonly ToolboxLocalizationTextMap _texts = new();
+    private string _capabilityProvider = string.Empty;
+    private bool? _capabilitySupported;
+    private string? _capabilityFallbackMode;
     private OverlayTarget? _selectedTarget;
     private bool _visible;
     private string _capabilitySummary = string.Empty;
@@ -21,6 +27,8 @@ public sealed class OverlayAdvancedPageViewModel : PageViewModelBase
         _visible = _overlaySharedState.Visible;
         _overlaySharedState.PropertyChanged += OnOverlaySharedStateChanged;
     }
+
+    public ToolboxLocalizationTextMap Texts => _texts;
 
     public ObservableCollection<OverlayTarget> Targets { get; }
 
@@ -103,7 +111,7 @@ public sealed class OverlayAdvancedPageViewModel : PageViewModelBase
         if (snapshot is not null)
         {
             var capability = snapshot.Overlay;
-            CapabilitySummary = $"provider={capability.Provider}; supported={capability.Supported}; fallback={capability.FallbackMode ?? "none"}";
+            UpdateCapabilitySummary(capability.Provider, capability.Supported, capability.FallbackMode);
         }
     }
 
@@ -199,5 +207,49 @@ public sealed class OverlayAdvancedPageViewModel : PageViewModelBase
 
         _selectedTarget = selected;
         OnPropertyChanged(nameof(SelectedTarget));
+    }
+
+    public void SetLanguage(string language)
+    {
+        var normalized = UiLanguageCatalog.Normalize(language);
+        if (string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _texts.Language = normalized;
+        RefreshLocalizedUiState();
+    }
+
+    private void RefreshLocalizedUiState()
+    {
+        OnPropertyChanged(nameof(Texts));
+        if (_capabilitySupported.HasValue)
+        {
+            CapabilitySummary = string.Format(
+                T("Toolbox.Advanced.Capability.Summary", "Provider: {0}; Supported: {1}; Fallback: {2}"),
+                string.IsNullOrWhiteSpace(_capabilityProvider)
+                    ? T("Toolbox.Advanced.Capability.Provider.Unknown", "unknown")
+                    : _capabilityProvider,
+                _capabilitySupported.Value
+                    ? T("Toolbox.Advanced.Capability.Supported.True", "Yes")
+                    : T("Toolbox.Advanced.Capability.Supported.False", "No"),
+                string.IsNullOrWhiteSpace(_capabilityFallbackMode)
+                    ? T("Toolbox.Advanced.Capability.Fallback.None", "None")
+                    : _capabilityFallbackMode);
+        }
+    }
+
+    private void UpdateCapabilitySummary(string provider, bool supported, string? fallbackMode)
+    {
+        _capabilityProvider = provider ?? string.Empty;
+        _capabilitySupported = supported;
+        _capabilityFallbackMode = fallbackMode;
+        RefreshLocalizedUiState();
+    }
+
+    private string T(string key, string fallback)
+    {
+        return _texts.GetOrDefault(key, fallback);
     }
 }

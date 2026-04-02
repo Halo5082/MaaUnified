@@ -178,6 +178,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     private int _pendingBindingVersion;
     private bool _suppressTaskEnabledSync;
     private bool _suppressModuleAutoSave;
+    private bool _suppressSelectedTaskBindingDuringFirstScreenLoad;
     private SessionState _currentSessionState;
     private bool _hasBlockingConfigIssues;
     private int _blockingConfigIssueCount;
@@ -474,7 +475,10 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             RememberSelectedTaskIndex();
             RaiseSelectedTaskProjectionChanged();
             ResetSettingsModeForSelectedTask();
-            ScheduleBindSelectedTask();
+            if (!_suppressSelectedTaskBindingDuringFirstScreenLoad)
+            {
+                ScheduleBindSelectedTask();
+            }
         }
     }
 
@@ -878,16 +882,31 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     {
         SetLanguage(ResolveLanguage());
         RefreshConfigValidationState(Runtime.ConfigurationService.CurrentValidationIssues);
-        await ReloadTasksAsync(cancellationToken, preferProfileSelectedIndex: true);
-        await InfrastModule.ReloadPersistentConfigAsync(cancellationToken);
-        await RoguelikeModule.ReloadPersistentConfigAsync(cancellationToken);
+        _suppressSelectedTaskBindingDuringFirstScreenLoad = true;
+        try
+        {
+            await ReloadTasksAsync(cancellationToken, preferProfileSelectedIndex: true, waitForPendingBinding: false);
+        }
+        finally
+        {
+            _suppressSelectedTaskBindingDuringFirstScreenLoad = false;
+        }
+
         ApplyGuiSettingsFromConfig();
-        RefreshStagePresentation();
         UpdatePostActionSummary();
     }
 
     public async Task InitializeDeferredStartupAsync(CancellationToken cancellationToken = default)
     {
+        if (SelectedTask is not null)
+        {
+            ScheduleBindSelectedTask();
+        }
+
+        await WaitForPendingBindingAsync(cancellationToken);
+        await InfrastModule.ReloadPersistentConfigAsync(cancellationToken);
+        await RoguelikeModule.ReloadPersistentConfigAsync(cancellationToken);
+        RefreshStagePresentation();
         await ReloadOverlayTargetsAsync(cancellationToken);
         await PostActionModule.InitializeAsync(cancellationToken);
         UpdatePostActionSummary();
@@ -947,6 +966,15 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         OnPropertyChanged(nameof(OverlayTargetSummaryText));
         OnPropertyChanged(nameof(OverlayButtonToolTip));
         _ = RefreshOverlayStatusTextAsync();
+    }
+
+    private DialogChromeCatalog CreateTaskQueueDialogChrome(Func<RootLocalizationTextMap, DialogChromeSnapshot> snapshotFactory)
+    {
+        return DialogTextCatalog.CreateRootCatalog(
+            Texts.Language,
+            "Root.Localization.TaskQueue",
+            snapshotFactory,
+            _localizationFallbackReporter);
     }
 
     public void ApplyGuiSettingsPreview(GuiSettingsSnapshot snapshot)
@@ -1137,7 +1165,8 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
 
     public async Task ReloadTasksAsync(
         CancellationToken cancellationToken = default,
-        bool preferProfileSelectedIndex = false)
+        bool preferProfileSelectedIndex = false,
+        bool waitForPendingBinding = true)
     {
         var previousSelectedIndex = SelectedTask is null ? -1 : Tasks.IndexOf(SelectedTask);
         var tasks = await ApplyResultAsync(
@@ -1201,7 +1230,10 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
                 : Tasks.FirstOrDefault();
         }
 
-        await WaitForPendingBindingAsync(cancellationToken);
+        if (waitForPendingBinding)
+        {
+            await WaitForPendingBindingAsync(cancellationToken);
+        }
     }
 
     public async Task WaitForPendingBindingAsync(CancellationToken cancellationToken = default)
@@ -1426,15 +1458,26 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             return;
         }
 
+        var chrome = CreateTaskQueueDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: string.Format(
+                    texts.GetOrDefault("TaskQueue.Root.RenameDialogTitle", "Rename Task {0}"),
+                    index + 1),
+                confirmText: texts.GetOrDefault("TaskQueue.Root.RenameDialogConfirm", "Confirm"),
+                cancelText: texts.GetOrDefault("TaskQueue.Root.RenameDialogCancel", "Cancel"),
+                namedTexts: DialogTextCatalog.CreateNamedTexts(
+                    (DialogTextCatalog.ChromeKeys.Prompt, texts.GetOrDefault("TaskQueue.Root.RenameDialogPrompt", "Rename task")))));
+        var chromeSnapshot = chrome.GetSnapshot();
         var request = new TextDialogRequest(
-            Title: string.Format(
-                RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogTitle", "Rename Task {0}"),
-                index + 1),
-            Prompt: RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogPrompt", "Rename task"),
+            Title: chromeSnapshot.Title,
+            Prompt: chromeSnapshot.GetNamedTextOrDefault(
+                DialogTextCatalog.ChromeKeys.Prompt,
+                RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogPrompt", "Rename task")),
             DefaultText: SelectedTask.Name,
             MultiLine: false,
-            ConfirmText: RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogConfirm", "Confirm"),
-            CancelText: RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogCancel", "Cancel"));
+            ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogConfirm", "Confirm"),
+            CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("TaskQueue.Root.RenameDialogCancel", "Cancel"),
+            Chrome: chrome);
         var dialogResult = await _dialogService.ShowTextAsync(request, "TaskQueue.RenameTask.Dialog", cancellationToken);
         if (dialogResult.Return == DialogReturnSemantic.Confirm && dialogResult.Payload is not null)
         {
@@ -2560,13 +2603,23 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             return;
         }
 
+        var chrome = CreateTaskQueueDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: texts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerTitle", "Overlay Target Picker"),
+                confirmText: texts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerConfirm", "Select"),
+                cancelText: texts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerCancel", "Cancel"),
+                namedTexts: DialogTextCatalog.CreateNamedTexts(
+                    (DialogTextCatalog.ChromeKeys.RefreshButton, texts.GetOrDefault("TaskQueue.Root.ReloadTargets", "Refresh")),
+                    (DialogTextCatalog.ChromeKeys.RefreshingButton, texts.GetOrDefault("TaskQueue.Root.ReloadTargets", "Refresh")))));
+        var chromeSnapshot = chrome.GetSnapshot();
         var request = new ProcessPickerDialogRequest(
-            Title: RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerTitle", "Overlay Target Picker"),
+            Title: chromeSnapshot.Title,
             Items: OverlayTargets.Select(t => new ProcessPickerItem(t.Id, t.DisplayName, t.IsPrimary)).ToArray(),
             SelectedId: SelectedOverlayTarget?.Id,
-            ConfirmText: RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerConfirm", "Select"),
-            CancelText: RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerCancel", "Cancel"),
-            RefreshItemsAsync: RefreshOverlayPickerItemsAsync);
+            ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerConfirm", "Select"),
+            CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("TaskQueue.Root.OverlayTargetPickerCancel", "Cancel"),
+            RefreshItemsAsync: RefreshOverlayPickerItemsAsync,
+            Chrome: chrome);
         var dialogResult = await _dialogService.ShowProcessPickerAsync(request, "TaskQueue.Overlay.PickTarget", cancellationToken);
         if (dialogResult.Return != DialogReturnSemantic.Confirm || dialogResult.Payload is null)
         {

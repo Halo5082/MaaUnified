@@ -575,55 +575,9 @@ public sealed class FightTaskModuleViewModel : TypedTaskModuleViewModelBase<Figh
 
     private void RebuildDropOptions()
     {
-        var list = new List<DropOption>
-        {
-            new(Texts.GetOrDefault("Fight.Drop.NotSelected", "Not selected"), string.Empty),
-        };
-
-        var path = ResolveItemIndexPathByDisplayLanguage(UiLanguageCatalog.Normalize(Texts.Language));
-        if (File.Exists(path))
-        {
-            try
-            {
-                var root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject;
-                if (root is not null)
-                {
-                    foreach (var pair in root)
-                    {
-                        if (!int.TryParse(pair.Key, out _))
-                        {
-                            continue;
-                        }
-
-                        if (ExcludedDropIds.Contains(pair.Key))
-                        {
-                            continue;
-                        }
-
-                        if (pair.Value is not JsonObject itemObj
-                            || !TryReadString(itemObj["name"], out var name)
-                            || string.IsNullOrWhiteSpace(name))
-                        {
-                            continue;
-                        }
-
-                        list.Add(new DropOption(name, pair.Key));
-                    }
-                }
-            }
-            catch
-            {
-                // ignore malformed resource file and keep fallback option.
-            }
-        }
-
-        list = list
-            .GroupBy(option => option.Value, StringComparer.Ordinal)
-            .Select(group => group.First())
-            .OrderBy(option => option.Value, StringComparer.Ordinal)
-            .ToList();
-
-        _dropOptions = list;
+        _dropOptions = BuildDropOptionsForLanguage(
+            UiLanguageCatalog.Normalize(Texts.Language),
+            Texts.GetOrDefault("Fight.Drop.NotSelected", "Not selected"));
         NormalizeDropSelectionToKnownOption();
         OnPropertyChanged(nameof(DropOptions));
         OnPropertyChanged(nameof(SelectedDropOption));
@@ -644,14 +598,93 @@ public sealed class FightTaskModuleViewModel : TypedTaskModuleViewModelBase<Figh
         SetTrackedProperty(ref _dropId, string.Empty, nameof(DropId));
     }
 
-    private static string ResolveItemIndexPathByDisplayLanguage(string language)
+    internal static IReadOnlyList<DropOption> BuildDropOptionsForLanguage(
+        string language,
+        string notSelectedText,
+        string? baseDirectory = null)
     {
-        if (DisplayLanguageClientDirectoryMap.TryGetValue(language, out var clientDirectory))
+        var list = new List<DropOption>
         {
-            return Path.Combine(AppContext.BaseDirectory, "resource", "global", clientDirectory, "resource", "item_index.json");
+            new(notSelectedText, string.Empty),
+        };
+
+        foreach (var path in ResolveItemIndexCandidatePathsByDisplayLanguage(language, baseDirectory))
+        {
+            if (TryAppendDropOptionsFromItemIndex(path, list))
+            {
+                break;
+            }
         }
 
-        return Path.Combine(AppContext.BaseDirectory, "resource", "item_index.json");
+        return list
+            .GroupBy(option => option.Value, StringComparer.Ordinal)
+            .Select(group => group.First())
+            .OrderBy(option => option.Value, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    internal static IReadOnlyList<string> ResolveItemIndexCandidatePathsByDisplayLanguage(
+        string language,
+        string? baseDirectory = null)
+    {
+        var root = baseDirectory ?? AppContext.BaseDirectory;
+        var candidates = new List<string>();
+
+        if (DisplayLanguageClientDirectoryMap.TryGetValue(language, out var clientDirectory))
+        {
+            candidates.Add(Path.Combine(root, "resource", "global", clientDirectory, "resource", "item_index.json"));
+        }
+
+        candidates.Add(Path.Combine(root, "resource", "item_index.json"));
+        return candidates
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static bool TryAppendDropOptionsFromItemIndex(string path, List<DropOption> list)
+    {
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        var originalCount = list.Count;
+        try
+        {
+            var root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject;
+            if (root is null)
+            {
+                return false;
+            }
+
+            foreach (var pair in root)
+            {
+                if (!int.TryParse(pair.Key, out _))
+                {
+                    continue;
+                }
+
+                if (ExcludedDropIds.Contains(pair.Key))
+                {
+                    continue;
+                }
+
+                if (pair.Value is not JsonObject itemObj
+                    || !TryReadString(itemObj["name"], out var name)
+                    || string.IsNullOrWhiteSpace(name))
+                {
+                    continue;
+                }
+
+                list.Add(new DropOption(name, pair.Key));
+            }
+        }
+        catch
+        {
+            return false;
+        }
+
+        return list.Count > originalCount;
     }
 
     private static bool TryReadString(JsonNode? node, out string value)

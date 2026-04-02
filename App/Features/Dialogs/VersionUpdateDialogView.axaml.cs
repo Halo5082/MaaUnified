@@ -1,11 +1,12 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using MAAUnified.App.Infrastructure;
+using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Models;
 
 namespace MAAUnified.App.Features.Dialogs;
 
-public partial class VersionUpdateDialogView : Window
+public partial class VersionUpdateDialogView : Window, IDialogChromeAware
 {
     public VersionUpdateDialogView()
     {
@@ -16,6 +17,7 @@ public partial class VersionUpdateDialogView : Window
     public void ApplyRequest(VersionUpdateDialogRequest request)
     {
         Title = request.Title;
+        DialogTitleText.Text = request.Title;
         VersionLine.Text = $"{request.CurrentVersion} -> {request.TargetVersion}";
         SummaryLine.Text = request.Summary;
         BodyBox.Text = request.Body;
@@ -44,5 +46,13 @@ public partial class VersionUpdateDialogView : Window
     private void OnCancelClick(object? sender, RoutedEventArgs e)
     {
         Close(DialogReturnSemantic.Cancel);
+    }
+
+    public void ApplyDialogChrome(DialogChromeSnapshot chrome)
+    {
+        Title = chrome.Title;
+        DialogTitleText.Text = chrome.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.SectionTitle, chrome.Title);
+        ConfirmButton.Content = chrome.ConfirmText ?? ConfirmButton.Content;
+        CancelButton.Content = chrome.CancelText ?? CancelButton.Content;
     }
 }

@@ -7,7 +7,9 @@
         MinHeight="420"
         WindowStartupLocation="CenterOwner">
   <Grid Margin="10" RowDefinitions="Auto,*,Auto">
-    <TextBlock Classes="section-title" Text="Announcement" />
+    <TextBlock x:Name="DialogTitleText"
+               Classes="section-title"
+               Text="Announcement" />
     <Grid Grid.Row="1" RowDefinitions="*,Auto,Auto" Margin="0,8,0,0">
       <TextBox x:Name="AnnouncementInfoBox"
                AcceptsReturn="True"
