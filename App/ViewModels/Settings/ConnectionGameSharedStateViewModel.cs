@@ -121,6 +121,12 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         }
     }
 
+    public string SelectedConnectConfigValue
+    {
+        get => NormalizeConnectConfigAlias(ConnectConfig);
+        set => ConnectConfig = value ?? string.Empty;
+    }
+
     public ConnectionGameOptionItem? SelectedClientTypeOption
     {
         get => ResolveSelectedOption(ClientTypeOptions, ClientType, NormalizeClientTypeAlias);
@@ -133,6 +139,12 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
 
             ClientType = value.Value;
         }
+    }
+
+    public string SelectedClientTypeValue
+    {
+        get => NormalizeClientTypeAlias(ClientType);
+        set => ClientType = value ?? string.Empty;
     }
 
     public ConnectionGameOptionItem? SelectedTouchModeOption
@@ -149,6 +161,12 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         }
     }
 
+    public string SelectedTouchModeValue
+    {
+        get => NormalizeTouchModeAlias(TouchMode);
+        set => TouchMode = value ?? string.Empty;
+    }
+
     public ConnectionGameOptionItem? SelectedAttachWindowScreencapOption
     {
         get => ResolveSelectedOption(AttachWindowScreencapOptions, AttachWindowScreencapMethod, NormalizeTouchModeAlias);
@@ -161,6 +179,12 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
 
             AttachWindowScreencapMethod = value.Value;
         }
+    }
+
+    public string SelectedAttachWindowScreencapValue
+    {
+        get => NormalizeTouchModeAlias(AttachWindowScreencapMethod);
+        set => AttachWindowScreencapMethod = value ?? string.Empty;
     }
 
     public ConnectionGameOptionItem? SelectedAttachWindowMouseOption
@@ -177,6 +201,12 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         }
     }
 
+    public string SelectedAttachWindowMouseValue
+    {
+        get => NormalizeTouchModeAlias(AttachWindowMouseMethod);
+        set => AttachWindowMouseMethod = value ?? string.Empty;
+    }
+
     public ConnectionGameOptionItem? SelectedAttachWindowKeyboardOption
     {
         get => ResolveSelectedOption(AttachWindowInputOptions, AttachWindowKeyboardMethod, NormalizeTouchModeAlias);
@@ -191,6 +221,12 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         }
     }
 
+    public string SelectedAttachWindowKeyboardValue
+    {
+        get => NormalizeTouchModeAlias(AttachWindowKeyboardMethod);
+        set => AttachWindowKeyboardMethod = value ?? string.Empty;
+    }
+
     public void SetLanguage(string? language)
     {
         var normalized = UiLanguageCatalog.Normalize(language);
@@ -201,6 +237,7 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
 
         _language = normalized;
         RootTexts.Language = normalized;
+        OnPropertyChanged(nameof(RootTexts));
         RebuildOptions();
         RefreshLocalizedConnectTexts();
     }
@@ -237,6 +274,7 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
 
             OnPropertyChanged(nameof(CanStartGameEnabled));
             OnPropertyChanged(nameof(SelectedConnectConfigOption));
+            OnPropertyChanged(nameof(SelectedConnectConfigValue));
             OnPropertyChanged(nameof(IsAttachWindowMode));
             OnPropertyChanged(nameof(IsAdbConnectionMode));
             OnPropertyChanged(nameof(IsMuMuEmulator12Mode));
@@ -270,6 +308,7 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
             if (SetProperty(ref _clientType, normalized))
             {
                 OnPropertyChanged(nameof(SelectedClientTypeOption));
+                OnPropertyChanged(nameof(SelectedClientTypeValue));
             }
         }
     }
@@ -315,6 +354,7 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
             if (SetProperty(ref _touchMode, normalized))
             {
                 OnPropertyChanged(nameof(SelectedTouchModeOption));
+                OnPropertyChanged(nameof(SelectedTouchModeValue));
             }
         }
     }
@@ -431,6 +471,7 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
             if (SetProperty(ref _attachWindowScreencapMethod, normalized))
             {
                 OnPropertyChanged(nameof(SelectedAttachWindowScreencapOption));
+                OnPropertyChanged(nameof(SelectedAttachWindowScreencapValue));
             }
         }
     }
@@ -444,6 +485,7 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
             if (SetProperty(ref _attachWindowMouseMethod, normalized))
             {
                 OnPropertyChanged(nameof(SelectedAttachWindowMouseOption));
+                OnPropertyChanged(nameof(SelectedAttachWindowMouseValue));
             }
         }
     }
@@ -457,6 +499,7 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
             if (SetProperty(ref _attachWindowKeyboardMethod, normalized))
             {
                 OnPropertyChanged(nameof(SelectedAttachWindowKeyboardOption));
+                OnPropertyChanged(nameof(SelectedAttachWindowKeyboardValue));
             }
         }
     }
@@ -701,11 +744,17 @@ public sealed class ConnectionGameSharedStateViewModel : ObservableObject
         AttachWindowInputOptions = SettingsOptionCatalog.BuildAttachWindowInputOptions(_language);
 
         OnPropertyChanged(nameof(SelectedConnectConfigOption));
+        OnPropertyChanged(nameof(SelectedConnectConfigValue));
         OnPropertyChanged(nameof(SelectedClientTypeOption));
+        OnPropertyChanged(nameof(SelectedClientTypeValue));
         OnPropertyChanged(nameof(SelectedTouchModeOption));
+        OnPropertyChanged(nameof(SelectedTouchModeValue));
         OnPropertyChanged(nameof(SelectedAttachWindowScreencapOption));
+        OnPropertyChanged(nameof(SelectedAttachWindowScreencapValue));
         OnPropertyChanged(nameof(SelectedAttachWindowMouseOption));
+        OnPropertyChanged(nameof(SelectedAttachWindowMouseValue));
         OnPropertyChanged(nameof(SelectedAttachWindowKeyboardOption));
+        OnPropertyChanged(nameof(SelectedAttachWindowKeyboardValue));
     }
 
     private static ConnectionGameOptionItem? ResolveSelectedOption(

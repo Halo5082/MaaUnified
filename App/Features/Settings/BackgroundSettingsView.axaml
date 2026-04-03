@@ -62,7 +62,7 @@
       <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Background.StretchMode]}" />
       <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                 ItemsSource="{Binding BackgroundStretchModes}"
-                SelectedItem="{Binding SelectedBackgroundStretchModeOption}">
+                SelectedItem="{Binding SelectedBackgroundStretchModeOption, Mode=TwoWay}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="vm:DisplayValueOption">
             <TextBlock Text="{Binding Display}" />
@@ -78,8 +78,6 @@
       <TextBlock Classes="state-warning settings-centered-text"
                  Text="{Binding BackgroundValidationMessage}"
                  IsVisible="{Binding HasBackgroundValidationMessage}" />
-      <TextBlock Classes="settings-note settings-centered-text"
-                 Text="{Binding RootTexts[Settings.Background.Note]}" />
     </StackPanel>
   </Grid>
 </UserControl>

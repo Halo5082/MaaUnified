@@ -12,11 +12,20 @@ public static class UiLanguageCatalog
         "pallas",
     ];
 
+    // Keep quick cycling on fully-maintained locales so repeated clicks stay predictable.
+    private static readonly string[] QuickCycleLanguages =
+    [
+        "zh-cn",
+        "en-us",
+    ];
+
     public const string DefaultLanguage = "zh-cn";
 
     public const string FallbackLanguage = "en-us";
 
     public static IReadOnlyList<string> Ordered => OrderedLanguages;
+
+    public static IReadOnlyList<string> QuickCycleOrdered => QuickCycleLanguages;
 
     public static bool IsSupported(string? language)
     {
@@ -40,16 +49,35 @@ public static class UiLanguageCatalog
 
     public static string NextInCycle(string? currentLanguage)
     {
+        return NextInSequence(OrderedLanguages, currentLanguage);
+    }
+
+    public static string NextInQuickCycle(string? currentLanguage)
+    {
+        return NextInSequence(QuickCycleLanguages, currentLanguage);
+    }
+
+    private static string NextInSequence(IReadOnlyList<string> languages, string? currentLanguage)
+    {
         var normalized = Normalize(currentLanguage);
-        var index = Array.FindIndex(
-            OrderedLanguages,
-            language => string.Equals(language, normalized, StringComparison.OrdinalIgnoreCase));
-        if (index < 0)
+        var index = -1;
+        for (var i = 0; i < languages.Count; i++)
         {
-            return DefaultLanguage;
+            if (!string.Equals(languages[i], normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            index = i;
+            break;
         }
 
-        return OrderedLanguages[(index + 1) % OrderedLanguages.Length];
+        if (index < 0)
+        {
+            return languages.Count == 0 ? DefaultLanguage : languages[0];
+        }
+
+        return languages[(index + 1) % languages.Count];
     }
 }
 

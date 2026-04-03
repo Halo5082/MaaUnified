@@ -61,6 +61,7 @@ public sealed class MainShellViewModel : ObservableObject
     private SettingsPageViewModel? _settingsPage;
     private bool _syncingConnectionState;
     private bool _sessionCallbackPumpStarted;
+    private bool _startupLaunchBehaviorExecuted;
     private int _timerScheduleProcessing;
     private int _selectedRootTabIndex;
     private bool _isWindowTopMost;
@@ -218,8 +219,25 @@ public sealed class MainShellViewModel : ObservableObject
     public int SelectedRootTabIndex
     {
         get => _selectedRootTabIndex;
-        set => SetProperty(ref _selectedRootTabIndex, Math.Clamp(value, 0, RootTabs.Count - 1));
+        set
+        {
+            if (SetProperty(ref _selectedRootTabIndex, Math.Clamp(value, 0, RootTabs.Count - 1)))
+            {
+                OnPropertyChanged(nameof(IsTaskQueueRootTabSelected));
+                OnPropertyChanged(nameof(IsCopilotRootTabSelected));
+                OnPropertyChanged(nameof(IsToolboxRootTabSelected));
+                OnPropertyChanged(nameof(IsSettingsRootTabSelected));
+            }
+        }
     }
+
+    public bool IsTaskQueueRootTabSelected => SelectedRootTabIndex == 0;
+
+    public bool IsCopilotRootTabSelected => SelectedRootTabIndex == 1;
+
+    public bool IsToolboxRootTabSelected => SelectedRootTabIndex == 2;
+
+    public bool IsSettingsRootTabSelected => SelectedRootTabIndex == 3;
 
     public bool IsWindowTopMost
     {
@@ -241,6 +259,7 @@ public sealed class MainShellViewModel : ObservableObject
             if (SetProperty(ref _windowVersionUpdateInfo, value))
             {
                 OnPropertyChanged(nameof(HasWindowVersionUpdateInfo));
+                OnPropertyChanged(nameof(HasWindowUpdateInfo));
                 RefreshWindowTitle();
             }
         }
@@ -254,6 +273,7 @@ public sealed class MainShellViewModel : ObservableObject
             if (SetProperty(ref _windowResourceUpdateInfo, value))
             {
                 OnPropertyChanged(nameof(HasWindowResourceUpdateInfo));
+                OnPropertyChanged(nameof(HasWindowUpdateInfo));
                 RefreshWindowTitle();
             }
         }
@@ -357,6 +377,8 @@ public sealed class MainShellViewModel : ObservableObject
 
     public bool HasWindowResourceUpdateInfo => !string.IsNullOrWhiteSpace(WindowResourceUpdateInfo);
 
+    public bool HasWindowUpdateInfo => HasWindowVersionUpdateInfo || HasWindowResourceUpdateInfo;
+
     public bool HasLastError => !string.IsNullOrWhiteSpace(LastError);
 
     public bool HasBlockingConfigIssues
@@ -447,6 +469,74 @@ public sealed class MainShellViewModel : ObservableObject
 
     public Task WaitForFirstScreenReadyAsync(CancellationToken cancellationToken = default)
         => _firstScreenReadyTcs.Task.WaitAsync(cancellationToken);
+
+    internal async Task ExecuteStartupLaunchBehaviorAsync(
+        Func<CancellationToken, Task<bool>>? startEmulatorAsync = null,
+        Func<CancellationToken, Task>? startTaskQueueAsync = null,
+        Func<CancellationToken, Task>? minimizeWindowAsync = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (_startupLaunchBehaviorExecuted)
+        {
+            return;
+        }
+
+        _startupLaunchBehaviorExecuted = true;
+        var snapshot = StartupLaunchBehaviorSnapshot.FromConfig(_runtime.ConfigurationService.CurrentConfig);
+        if (!snapshot.RunDirectly && !snapshot.MinimizeDirectly && !snapshot.OpenEmulatorAfterLaunch)
+        {
+            RecordStartupPhase("LaunchBehavior.Skip", "No startup launch behavior configured.");
+            return;
+        }
+
+        RecordStartupPhase(
+            "LaunchBehavior.Begin",
+            $"runDirectly={snapshot.RunDirectly}; minimizeDirectly={snapshot.MinimizeDirectly}; openEmulator={snapshot.OpenEmulatorAfterLaunch}");
+
+        try
+        {
+            if (snapshot.MinimizeDirectly && minimizeWindowAsync is not null)
+            {
+                await minimizeWindowAsync(cancellationToken);
+                RecordStartupPhase("LaunchBehavior.Minimize", "Main window minimized by startup behavior.");
+            }
+
+            if (snapshot.OpenEmulatorAfterLaunch)
+            {
+                var started = await (startEmulatorAsync ?? TaskQueuePage.TryStartEmulatorOnStartupAsync)(cancellationToken);
+                RecordStartupPhase(
+                    "LaunchBehavior.Emulator",
+                    started
+                        ? "Startup behavior launched emulator."
+                        : "Startup behavior skipped emulator launch or it failed.");
+            }
+
+            if (snapshot.RunDirectly)
+            {
+                await (startTaskQueueAsync ?? StartAsync)(cancellationToken);
+                RecordStartupPhase("LaunchBehavior.RunDirectly", "Startup behavior requested automatic task start.");
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            RecordStartupPhase("LaunchBehavior.Cancelled", "Startup launch behavior canceled.");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            RecordStartupPhase("LaunchBehavior.Fail", "Startup launch behavior failed unexpectedly.", ex);
+            await RecordUnhandledExceptionAsync(
+                "App.Startup.LaunchBehavior",
+                ex,
+                UiErrorCode.UiError,
+                $"启动行为执行异常: {ex.Message}",
+                cancellationToken);
+        }
+        finally
+        {
+            RecordStartupPhase("LaunchBehavior.End", "Startup launch behavior finished.");
+        }
+    }
 
     public void CancelStartupInitialization()
     {
@@ -1026,8 +1116,10 @@ public sealed class MainShellViewModel : ObservableObject
         page.GuiSettingsPreviewChanged += OnGuiSettingsPreviewChanged;
         page.GuiSettingsApplied += OnGuiSettingsApplied;
         page.ResourceVersionUpdated += OnSettingsResourceVersionUpdated;
+        page.UpdateAvailabilityChanged += OnSettingsUpdateAvailabilityChanged;
         page.ConfigurationContextChanged += OnSettingsConfigurationContextChanged;
         page.ApplyStartupSnapshot(BuildLatestShellSnapshot());
+        ApplySettingsUpdateAvailabilityState(page);
 
         return page;
     }
@@ -1688,6 +1780,22 @@ public sealed class MainShellViewModel : ObservableObject
         Dispatcher.UIThread.Post(() => TaskQueuePage.RefreshStagePresentation(forceReloadStageOptions: true));
     }
 
+    private void OnSettingsUpdateAvailabilityChanged(object? sender, EventArgs e)
+    {
+        if (sender is not SettingsPageViewModel page)
+        {
+            return;
+        }
+
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            ApplySettingsUpdateAvailabilityState(page);
+            return;
+        }
+
+        Dispatcher.UIThread.Post(() => ApplySettingsUpdateAvailabilityState(page));
+    }
+
     private async void OnSettingsConfigurationContextChanged(object? sender, ConfigurationContextChangedEventArgs e)
     {
         try
@@ -1706,8 +1814,7 @@ public sealed class MainShellViewModel : ObservableObject
 
     private void RefreshRootTextState()
     {
-        WindowVersionUpdateInfo = RootTexts["Main.Update.VersionAvailable"];
-        WindowResourceUpdateInfo = RootTexts["Main.Update.ResourceAvailable"];
+        ApplySettingsUpdateAvailabilityState();
         RefreshWindowTitle();
         OnPropertyChanged(nameof(RootTexts));
         OnPropertyChanged(nameof(BlockingConfigIssueSummary));
@@ -1725,6 +1832,21 @@ public sealed class MainShellViewModel : ObservableObject
         SelectedImportSourceOption = ImportSourceOptions.FirstOrDefault(item => item.Source == SelectedImportSource)
             ?? ImportSourceOptions.FirstOrDefault();
         RefreshRootPageHostStatusText();
+    }
+
+    private void ApplySettingsUpdateAvailabilityState(SettingsPageViewModel? page = null)
+    {
+        if (page is null && !TryGetSettingsPage(out page))
+        {
+            WindowVersionUpdateInfo = string.Empty;
+            WindowResourceUpdateInfo = string.Empty;
+            return;
+        }
+
+        WindowVersionUpdateInfo = page.HasPendingVersionUpdateAvailability
+            ? RootTexts["Main.Update.VersionAvailable"]
+            : string.Empty;
+        WindowResourceUpdateInfo = string.Empty;
     }
 
     private void RefreshWindowTitle()
@@ -2297,25 +2419,44 @@ public sealed class MainShellViewModel : ObservableObject
         }
 
         _schemaMigrationNoticeShown = true;
-        var prompt = string.Join(
-            Environment.NewLine,
-            "检测到配置版本落后于最新 schema。",
-            $"当前版本: v{notice.CurrentSchemaVersion}",
-            $"最新版本: v{notice.LatestSchemaVersion}",
-            string.Empty,
-            notice.Message,
-            $"建议动作: {notice.SuggestedAction}",
-            $"保存后会先备份为 avalonia.json.schema-v{notice.CurrentSchemaVersion}.bak.<timestamp> 再写入最新 schema。");
         try
         {
+            var chrome = DialogTextCatalog.CreateRootCatalog(
+                CurrentShellLanguage,
+                "Root.Localization.MainShell",
+                texts => new DialogChromeSnapshot(
+                    title: texts.GetOrDefault(
+                        "Main.SchemaMigration.Dialog.Title",
+                        "Configuration Schema Migration Notice"),
+                    confirmText: texts.GetOrDefault(
+                        "Main.SchemaMigration.Dialog.Confirm",
+                        "I Understand"),
+                    cancelText: texts.GetOrDefault(
+                        "Main.SchemaMigration.Dialog.Cancel",
+                        "Close"),
+                    namedTexts: DialogTextCatalog.CreateNamedTexts(
+                        (
+                            DialogTextCatalog.ChromeKeys.Prompt,
+                            string.Format(
+                                CultureInfo.CurrentCulture,
+                                texts.GetOrDefault(
+                                    "Main.SchemaMigration.Dialog.Prompt",
+                                    "The configuration schema is older than the latest version.{4}Current version: v{0}{4}Latest version: v{1}{4}{4}{2}{4}Suggested action: {3}{4}A backup named avalonia.json.schema-v{0}.bak.<timestamp> will be created before writing the latest schema."),
+                                notice.CurrentSchemaVersion,
+                                notice.LatestSchemaVersion,
+                                notice.Message,
+                                notice.SuggestedAction,
+                                Environment.NewLine)))));
+            var chromeSnapshot = chrome.GetSnapshot();
             var completion = await _dialogService.ShowTextAsync(
                 new TextDialogRequest(
-                    Title: "[工作包D] 配置版本迁移提示",
-                    Prompt: prompt,
+                    Title: chromeSnapshot.Title,
+                    Prompt: chromeSnapshot.GetNamedTextOrDefault(DialogTextCatalog.ChromeKeys.Prompt, string.Empty),
                     DefaultText: string.Empty,
                     MultiLine: true,
-                    ConfirmText: "我知道了",
-                    CancelText: "关闭"),
+                    ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("Main.SchemaMigration.Dialog.Confirm", "I Understand"),
+                    CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("Main.SchemaMigration.Dialog.Cancel", "Close"),
+                    Chrome: chrome),
                 "App.Shell.Config.SchemaMigration",
                 cancellationToken);
             await RecordEventAsync(
@@ -2468,17 +2609,6 @@ public sealed class MainShellViewModel : ObservableObject
                 nextLanguage,
                 settingsPage.StartSelf,
                 ReportLocalizationFallback);
-        }
-
-        TaskQueuePage.SetLanguage(nextLanguage);
-        if (TryGetCopilotPage(out var copilotPage))
-        {
-            copilotPage.SetLanguage(nextLanguage);
-        }
-
-        if (TryGetToolboxPage(out var toolboxPage))
-        {
-            toolboxPage.SetLanguage(nextLanguage);
         }
 
         RefreshRootTextState();

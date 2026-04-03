@@ -590,27 +590,27 @@ public sealed class TaskModuleAFeatureTests
     }
 
     [Fact]
-    public void Localization_RequiredKeysExistInEveryLocaleDictionaryWithoutFallback()
+    public void Localization_UsesUnifiedLocalizerInsteadOfEmbeddedLocaleDictionaries()
     {
-        var localeFields = new Dictionary<string, string>
-        {
-            ["zh-cn"] = "ZhCn",
-            ["zh-tw"] = "ZhTw",
-            ["en-us"] = "EnUs",
-            ["ja-jp"] = "JaJp",
-            ["ko-kr"] = "KoKr",
-            ["pallas"] = "Pallas",
-        };
-        var requiredKeys = GetRequiredLocalizationKeys();
+        var legacyLocaleFields = typeof(LocalizedTextMap)
+            .GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+            .Where(field =>
+                typeof(System.Collections.IDictionary).IsAssignableFrom(field.FieldType)
+                || typeof(IReadOnlyDictionary<string, string>).IsAssignableFrom(field.FieldType))
+            .ToArray();
 
-        foreach (var (language, fieldName) in localeFields)
+        Assert.Empty(legacyLocaleFields);
+
+        var requiredKeys = GetRequiredLocalizationKeys();
+        var languages = new[] { "zh-cn", "zh-tw", "en-us", "ja-jp", "ko-kr", "pallas" };
+        var text = new LocalizedTextMap();
+
+        foreach (var language in languages)
         {
-            var field = typeof(LocalizedTextMap).GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            Assert.NotNull(field);
-            var dictionary = Assert.IsType<Dictionary<string, string>>(field!.GetValue(null));
+            text.Language = language;
             foreach (var key in requiredKeys)
             {
-                Assert.True(dictionary.ContainsKey(key), $"Missing `{key}` in locale dictionary `{language}`");
+                Assert.NotEqual(key, text[key]);
             }
         }
     }

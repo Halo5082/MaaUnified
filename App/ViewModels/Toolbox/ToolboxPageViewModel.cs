@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -8,7 +9,6 @@ using System.Text.Json.Nodes;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
-using MAAUnified.App.ViewModels.Advanced;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.App.ViewModels.Settings;
 using MAAUnified.Application.Models;
@@ -69,19 +69,70 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         "5001",
     ];
 
+    private static readonly string[] LocalizedBindingPropertyNames =
+    [
+        nameof(Texts),
+        nameof(RootTexts),
+        nameof(RecruitTabTitle),
+        nameof(OperBoxTabTitle),
+        nameof(DepotTabTitle),
+        nameof(GachaTabTitle),
+        nameof(PeepTabTitle),
+        nameof(MiniGameTabTitle),
+        nameof(RecruitAutoSetTimeText),
+        nameof(RecruitShowPotentialText),
+        nameof(RecruitAutoSelect3Text),
+        nameof(RecruitAutoSelect4Text),
+        nameof(RecruitAutoSelect5Text),
+        nameof(RecruitAutoSelect6Text),
+        nameof(RecruitFixedSixStarText),
+        nameof(StartRecognitionText),
+        nameof(RecruitPotentialTip),
+        nameof(OperBoxCopyToClipboardText),
+        nameof(OperBoxNotHaveHeader),
+        nameof(OperBoxHaveHeader),
+        nameof(DepotExportArkPlannerText),
+        nameof(DepotExportLoliconText),
+        nameof(LastDepotSyncTimeText),
+        nameof(LastDepotSyncDisplayText),
+        nameof(GachaDisclaimerLeadText),
+        nameof(GachaDisclaimerEmphasisText),
+        nameof(GachaDisclaimerBodyText),
+        nameof(GachaDisclaimerAcknowledgeText),
+        nameof(GachaDisclaimerNoMoreText),
+        nameof(GachaDrawOnceText),
+        nameof(GachaDrawTenText),
+        nameof(GachaWarningText),
+        nameof(DialogLanguage),
+        nameof(PeepTip),
+        nameof(PeepCommandText),
+        nameof(PeepTargetFpsText),
+        nameof(ShowPeepTip),
+        nameof(MiniGameNameText),
+        nameof(MiniGameEndingText),
+        nameof(MiniGameEventPriorityText),
+        nameof(MiniGameCommandText),
+        nameof(ExecutionReviewTitle),
+        nameof(ExecutionReviewResultLabelText),
+        nameof(ExecutionReviewParametersLabelText),
+        nameof(ExecutionReviewHistoryLabelText),
+        nameof(OperBoxExportText),
+        nameof(ArkPlannerResult),
+        nameof(LoliconResult),
+    ];
+
     private const double OperBoxPanelItemWidth = 148d;
     private const double DepotPanelItemWidth = 166d;
 
     private readonly ConnectionGameSharedStateViewModel? _connectionState;
     private readonly DispatcherTimer _gachaTipTimer;
     private readonly DispatcherTimer _peepTimer;
-    private readonly ToolboxLocalizationTextMap _texts;
-    private readonly RootLocalizationTextMap _rootTexts;
+    private ToolboxLocalizationTextMap _texts;
+    private RootLocalizationTextMap _rootTexts;
     private readonly ConcurrentQueue<SessionCallbackEnvelope> _pendingSessionCallbacks = new();
     private readonly Dictionary<string, int> _operBoxPotential = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ToolboxOwnedOperatorState> _operBoxOwnedById = new(StringComparer.Ordinal);
-    private readonly SemaphoreSlim _advancedSuiteInitGate = new(1, 1);
-    private bool _advancedSuiteInitialized;
+    private bool _operBoxListsMaterialized;
     private ToolboxToolKind? _activeTool;
     private string _lastDispatchedParameterSummary = string.Empty;
     private string _currentLanguage = UiLanguageCatalog.DefaultLanguage;
@@ -149,14 +200,8 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         _uiLanguageCoordinator = runtime.UiLanguageCoordinator;
         _uiLanguageCoordinator.LanguageChanged += OnUnifiedLanguageChanged;
         _currentLanguage = ResolveCurrentLanguage();
-        _texts = new ToolboxLocalizationTextMap
-        {
-            Language = _currentLanguage,
-        };
-        _rootTexts = new RootLocalizationTextMap("Root.Localization.Toolbox")
-        {
-            Language = _currentLanguage,
-        };
+        _texts = CreateTexts(_currentLanguage);
+        _rootTexts = CreateRootTexts(_currentLanguage);
 
         Tabs =
         [
@@ -166,7 +211,6 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             "gacha",
             "peep",
             "minigame",
-            "advanced",
         ];
 
         _resultText = T("Toolbox.Status.WaitingForExecution", "Waiting to execute tool.");
@@ -176,19 +220,11 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         _gachaInfo = T("Toolbox.Tip.GachaInit", "Gacha hint.");
         _miniGameTip = T("Toolbox.Tip.MiniGameNameEmpty", "Select a mini-game above to start.");
 
-        StageManagerPage = new StageManagerPageViewModel(runtime);
-        ExternalNotificationProvidersPage = new ExternalNotificationProvidersPageViewModel(runtime);
-        RemoteControlCenterPage = new RemoteControlCenterPageViewModel(runtime);
-        TrayIntegrationPage = new TrayIntegrationPageViewModel(runtime);
-        OverlayPage = new OverlayAdvancedPageViewModel(runtime);
-        WebApiPage = new WebApiPageViewModel(runtime);
-        ForwardAdvancedPageLanguage(_currentLanguage);
-
         ExecutionHistory = new ObservableCollection<ToolExecutionRecord>();
         ExecutionHistory.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasExecutionHistory));
         RecruitResultLines = new ObservableCollection<RecruitResultLineViewModel>();
-        OperBoxHaveList = new ObservableCollection<OperBoxOperatorItemViewModel>();
-        OperBoxNotHaveList = new ObservableCollection<OperBoxOperatorItemViewModel>();
+        OperBoxHaveList = new BatchedObservableCollection<OperBoxOperatorItemViewModel>();
+        OperBoxNotHaveList = new BatchedObservableCollection<OperBoxOperatorItemViewModel>();
         DepotResult = new ObservableCollection<DepotItemViewModel>();
         MiniGameTaskList = new ObservableCollection<ToolboxMiniGameEntry>();
         RebuildMiniGameSecretFrontEventOptions();
@@ -236,6 +272,72 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public RootLocalizationTextMap RootTexts => _rootTexts;
 
+    public string RecruitTabTitle => T("Toolbox.Tab.Recruit", "Recruit Recognition");
+
+    public string OperBoxTabTitle => T("Toolbox.Tab.OperBox", "Operator Recognition");
+
+    public string DepotTabTitle => T("Toolbox.Tab.Depot", "Depot Recognition");
+
+    public string GachaTabTitle => T("Toolbox.Tab.Gacha", "Gacha");
+
+    public string PeepTabTitle => T("Toolbox.Tab.Peep", "Peep");
+
+    public string MiniGameTabTitle => T("Toolbox.Tab.MiniGame", "Mini-Game");
+
+    public string RecruitAutoSetTimeText => T("Toolbox.Recruit.AutoSetTime", "Auto set time");
+
+    public string RecruitShowPotentialText => T("Toolbox.Recruit.ShowPotential", "Show operator potential (4/5/6★ tags)");
+
+    public string RecruitAutoSelect3Text => T("Toolbox.Recruit.AutoSelect3", "Auto select 3★ tags");
+
+    public string RecruitAutoSelect4Text => T("Toolbox.Recruit.AutoSelect4", "Auto select 4★ tags");
+
+    public string RecruitAutoSelect5Text => T("Toolbox.Recruit.AutoSelect5", "Auto select 5★ tags");
+
+    public string RecruitAutoSelect6Text => T("Toolbox.Recruit.AutoSelect6", "Auto select 6★ tags");
+
+    public string RecruitFixedSixStarText => T("Toolbox.Recruit.FixedSixStar", "Fixed 09:00 (guaranteed 6★)");
+
+    public string StartRecognitionText => T("Toolbox.Action.StartRecognition", "Start recognition");
+
+    public string OperBoxCopyToClipboardText => T("Toolbox.OperBox.CopyToClipboard", "Copy to clipboard");
+
+    public string DepotExportArkPlannerText => T("Toolbox.Depot.ExportArkPlanner", "Export to Penguin Stats planner");
+
+    public string DepotExportLoliconText => T("Toolbox.Depot.ExportLolicon", "Export to Arknights Toolbox");
+
+    public string GachaDisclaimerLeadText => T("Toolbox.Gacha.Disclaimer.Lead", "Please note, this is");
+
+    public string GachaDisclaimerEmphasisText => T("Toolbox.Gacha.Disclaimer.Emphasis", "REAL GACHA");
+
+    public string GachaDisclaimerBodyText => T(
+        "Toolbox.Gacha.Disclaimer.Body",
+        "The gacha tool directly operates the current client. Make sure this is not your main account and the emulator is already on the gacha screen.");
+
+    public string GachaDisclaimerAcknowledgeText => T("Toolbox.Gacha.Disclaimer.Acknowledge", "I understand");
+
+    public string GachaDisclaimerNoMoreText => T("Toolbox.Gacha.Disclaimer.NoMore", "Don't show again");
+
+    public string GachaDrawOnceText => T("Toolbox.Gacha.DrawOnce", "Draw once");
+
+    public string GachaDrawTenText => T("Toolbox.Gacha.DrawTen", "Draw ten");
+
+    public string PeepTargetFpsText => T("Toolbox.Peep.TargetFps", "Target FPS");
+
+    public string MiniGameNameText => T("Toolbox.MiniGame.Name", "Mini-game");
+
+    public string MiniGameEndingText => T("Toolbox.MiniGame.Ending", "Ending");
+
+    public string MiniGameEventPriorityText => T("Toolbox.MiniGame.EventPriority", "Preferred event chain");
+
+    public string ExecutionReviewTitle => T("Toolbox.Section.ExecutionReview", "Execution Review");
+
+    public string ExecutionReviewResultLabelText => T("Toolbox.ExecutionReview.ResultLabel", "Latest Result");
+
+    public string ExecutionReviewParametersLabelText => T("Toolbox.ExecutionReview.ParametersLabel", "Parameters");
+
+    public string ExecutionReviewHistoryLabelText => T("Toolbox.ExecutionReview.HistoryLabel", "History");
+
     public ObservableCollection<RecruitResultLineViewModel> RecruitResultLines { get; }
 
     public ObservableCollection<OperBoxOperatorItemViewModel> OperBoxHaveList { get; }
@@ -250,18 +352,6 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
 
     public IReadOnlyList<string> MiniGameSecretFrontEndingOptions { get; }
 
-    public StageManagerPageViewModel StageManagerPage { get; }
-
-    public ExternalNotificationProvidersPageViewModel ExternalNotificationProvidersPage { get; }
-
-    public RemoteControlCenterPageViewModel RemoteControlCenterPage { get; }
-
-    public TrayIntegrationPageViewModel TrayIntegrationPage { get; }
-
-    public OverlayAdvancedPageViewModel OverlayPage { get; }
-
-    public WebApiPageViewModel WebApiPage { get; }
-
     public int SelectedTabIndex
     {
         get => _selectedTabIndex;
@@ -270,6 +360,11 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
             var normalized = Math.Clamp(value, 0, Tabs.Count - 1);
             if (SetProperty(ref _selectedTabIndex, normalized))
             {
+                if (normalized == 1)
+                {
+                    Dispatcher.UIThread.Post(EnsureOperBoxListsMaterialized, DispatcherPriority.Background);
+                }
+
                 RefreshCurrentToolParametersPreview();
                 OnPropertyChanged(nameof(IsGachaTabSelected));
             }
@@ -843,8 +938,12 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         LoadMiniGameEntries();
         LoadOperBoxDetails();
         LoadDepotDetails();
+        if (SelectedTabIndex == 1)
+        {
+            EnsureOperBoxListsMaterialized();
+        }
+
         await LoadExecutionHistoryAsync(cancellationToken);
-        await InitializeAdvancedSuiteAsync(cancellationToken);
         RefreshCurrentToolParametersPreview();
         await Runtime.DiagnosticsService.RecordEventAsync("Toolbox", "Toolbox page initialized.", cancellationToken);
     }
@@ -1386,6 +1485,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         _operBoxPotential.Clear();
         OperBoxHaveList.Clear();
         OperBoxNotHaveList.Clear();
+        _operBoxListsMaterialized = false;
         OperBoxSelectedIndex = 1;
     }
 
@@ -1562,31 +1662,53 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
     public void SetLanguage(string language)
     {
         var normalized = UiLanguageCatalog.Normalize(language);
-        if (string.Equals(_currentLanguage, normalized, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(_currentLanguage, normalized, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(_rootTexts.Language, normalized, StringComparison.OrdinalIgnoreCase))
         {
-            ForwardAdvancedPageLanguage(normalized);
             return;
         }
 
         _currentLanguage = normalized;
-        _texts.Language = normalized;
-        _rootTexts.Language = normalized;
-        ForwardAdvancedPageLanguage(normalized);
-        OnPropertyChanged(nameof(RecruitPotentialTip));
-        OnPropertyChanged(nameof(OperBoxNotHaveHeader));
-        OnPropertyChanged(nameof(OperBoxHaveHeader));
-        OnPropertyChanged(nameof(LastDepotSyncTimeText));
-        OnPropertyChanged(nameof(LastDepotSyncDisplayText));
-        OnPropertyChanged(nameof(PeepTip));
-        OnPropertyChanged(nameof(PeepCommandText));
-        OnPropertyChanged(nameof(MiniGameCommandText));
-        OnPropertyChanged(nameof(ShowPeepTip));
-        OnPropertyChanged(nameof(GachaWarningText));
-        OnPropertyChanged(nameof(DialogLanguage));
-        OnPropertyChanged(nameof(OperBoxExportText));
-        OnPropertyChanged(nameof(ArkPlannerResult));
-        OnPropertyChanged(nameof(LoliconResult));
+        _texts = CreateTexts(normalized);
+        _rootTexts = CreateRootTexts(normalized);
+        RefreshLocalizedUiState();
+    }
 
+    private static ToolboxLocalizationTextMap CreateTexts(string language)
+    {
+        return new ToolboxLocalizationTextMap
+        {
+            Language = language,
+        };
+    }
+
+    private static RootLocalizationTextMap CreateRootTexts(string language)
+    {
+        return new RootLocalizationTextMap("Root.Localization.Toolbox")
+        {
+            Language = language,
+        };
+    }
+
+    private void RefreshLocalizedUiState()
+    {
+        RefreshLocalizedBindingProperties();
+        RefreshLocalizedStatusTexts();
+        RefreshLocalizedCollections();
+        OnPropertyChanged(string.Empty);
+    }
+
+    private void RefreshLocalizedBindingProperties()
+    {
+        foreach (var propertyName in LocalizedBindingPropertyNames)
+        {
+            OnPropertyChanged(propertyName);
+        }
+    }
+
+    private void RefreshLocalizedStatusTexts()
+    {
         if (ExecutionState == ToolboxExecutionState.Idle && !IsToolboxBusy)
         {
             ResultText = T("Toolbox.Status.WaitingForExecution", "Waiting to execute tool.");
@@ -1611,9 +1733,16 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             GachaInfo = T("Toolbox.Tip.GachaInit", "Gacha hint.");
         }
+    }
 
+    private void RefreshLocalizedCollections()
+    {
         RebuildMiniGameSecretFrontEventOptions();
-        RebuildOperBoxLists();
+        if (_operBoxListsMaterialized)
+        {
+            RebuildOperBoxLists();
+        }
+
         RelocalizeDepotItems();
         LoadMiniGameEntries();
         OnPropertyChanged(nameof(SelectedMiniGameEntry));
@@ -1623,16 +1752,6 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             ApplyRecruitResult(_lastRecruitResult, cacheResult: false);
         }
-    }
-
-    private void ForwardAdvancedPageLanguage(string language)
-    {
-        StageManagerPage.SetLanguage(language);
-        ExternalNotificationProvidersPage.SetLanguage(language);
-        RemoteControlCenterPage.SetLanguage(language);
-        TrayIntegrationPage.SetLanguage(language);
-        OverlayPage.SetLanguage(language);
-        WebApiPage.SetLanguage(language);
     }
 
     private void RelocalizeDepotItems()
@@ -1920,10 +2039,20 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         _ = PersistOperBoxAsync(CancellationToken.None);
     }
 
+    private void EnsureOperBoxListsMaterialized()
+    {
+        if (_operBoxListsMaterialized || _operBoxOwnedById.Count == 0)
+        {
+            return;
+        }
+
+        RebuildOperBoxLists();
+    }
+
     private void RebuildOperBoxLists()
     {
-        OperBoxHaveList.Clear();
-        OperBoxNotHaveList.Clear();
+        var haveItems = new List<OperBoxOperatorItemViewModel>();
+        var notHaveItems = new List<OperBoxOperatorItemViewModel>();
         var operators = ToolboxAssetCatalog.GetOperators();
         var clientType = ResolveClientType();
         var language = _currentLanguage;
@@ -1949,7 +2078,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 rarity = asset.Rarity;
             }
 
-            OperBoxHaveList.Add(new OperBoxOperatorItemViewModel(
+            haveItems.Add(new OperBoxOperatorItemViewModel(
                 owned.Id,
                 displayName,
                 rarity,
@@ -1966,7 +2095,7 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                      .OrderByDescending(asset => asset.Rarity)
                      .ThenBy(asset => asset.Id, StringComparer.Ordinal))
         {
-            OperBoxNotHaveList.Add(new OperBoxOperatorItemViewModel(
+            notHaveItems.Add(new OperBoxOperatorItemViewModel(
                 asset.Id,
                 ToolboxAssetCatalog.GetLocalizedOperatorName(asset, language),
                 asset.Rarity,
@@ -1978,6 +2107,9 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 notOwnedSubtitleTemplate));
         }
 
+        ReplaceCollectionItems(OperBoxHaveList, haveItems);
+        ReplaceCollectionItems(OperBoxNotHaveList, notHaveItems);
+        _operBoxListsMaterialized = haveItems.Count > 0 || notHaveItems.Count > 0;
         OperBoxSelectedIndex = OperBoxNotHaveList.Count > 0 ? 0 : 1;
     }
 
@@ -2599,10 +2731,10 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         _operBoxPotential.Clear();
         OperBoxHaveList.Clear();
         OperBoxNotHaveList.Clear();
+        _operBoxListsMaterialized = false;
 
         if (!Runtime.ConfigurationService.CurrentConfig.GlobalValues.TryGetValue(LegacyConfigurationKeys.OperBoxData, out var node) || node is null)
         {
-            RebuildOperBoxLists();
             return;
         }
 
@@ -2613,7 +2745,6 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
                 : node.ToJsonString();
             if (string.IsNullOrWhiteSpace(payload))
             {
-                RebuildOperBoxLists();
                 return;
             }
 
@@ -2631,8 +2762,6 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         {
             // Ignore incompatible persisted payloads.
         }
-
-        RebuildOperBoxLists();
     }
 
     private void LoadDepotDetails()
@@ -2761,35 +2890,6 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         MiniGameTaskName = ReadStringSetting(LegacyConfigurationKeys.MiniGameTaskName, "SS@Store@Begin");
         MiniGameSecretFrontEnding = ReadStringSetting(LegacyConfigurationKeys.MiniGameSecretFrontEnding, "A");
         MiniGameSecretFrontEvent = ReadStringSetting(LegacyConfigurationKeys.MiniGameSecretFrontEvent, string.Empty);
-    }
-
-    private async Task InitializeAdvancedSuiteAsync(CancellationToken cancellationToken)
-    {
-        if (_advancedSuiteInitialized)
-        {
-            return;
-        }
-
-        await _advancedSuiteInitGate.WaitAsync(cancellationToken);
-        try
-        {
-            if (_advancedSuiteInitialized)
-            {
-                return;
-            }
-
-            await StageManagerPage.InitializeAsync(cancellationToken);
-            await ExternalNotificationProvidersPage.InitializeAsync(cancellationToken);
-            await RemoteControlCenterPage.InitializeAsync(cancellationToken);
-            await TrayIntegrationPage.InitializeAsync(cancellationToken);
-            await OverlayPage.InitializeAsync(cancellationToken);
-            await WebApiPage.InitializeAsync(cancellationToken);
-            _advancedSuiteInitialized = true;
-        }
-        finally
-        {
-            _advancedSuiteInitGate.Release();
-        }
     }
 
     private int ReadIntSetting(string key, int fallback)
@@ -3321,6 +3421,21 @@ public sealed class ToolboxPageViewModel : PageViewModelBase
         var columns = Math.Clamp(count, 1, 5);
         return columns * itemWidth;
     }
+
+    private static void ReplaceCollectionItems<T>(ObservableCollection<T> collection, IEnumerable<T> items)
+    {
+        if (collection is BatchedObservableCollection<T> batched)
+        {
+            batched.ReplaceAll(items);
+            return;
+        }
+
+        collection.Clear();
+        foreach (var item in items)
+        {
+            collection.Add(item);
+        }
+    }
 }
 
 public sealed record ToolExecutionRecord(
@@ -3515,6 +3630,23 @@ public sealed class OperBoxOperatorItemViewModel : ObservableObject
             3 => Brushes.LightGreen,
             _ => Brushes.LightGray,
         };
+    }
+}
+
+internal sealed class BatchedObservableCollection<T> : ObservableCollection<T>
+{
+    public void ReplaceAll(IEnumerable<T> items)
+    {
+        CheckReentrancy();
+        Items.Clear();
+        foreach (var item in items)
+        {
+            Items.Add(item);
+        }
+
+        OnPropertyChanged(new PropertyChangedEventArgs(nameof(Count)));
+        OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
+        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
     }
 }
 

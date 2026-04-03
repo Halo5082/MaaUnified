@@ -16,7 +16,8 @@
                                 Tip="{Binding Texts[Infrast.ModeRotationToolTip]}" />
         </Grid>
         <ComboBox ItemsSource="{Binding ModeOptions}"
-                  SelectedItem="{Binding SelectedModeOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding Mode}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:InfrastModuleViewModel+IntOption">
               <TextBlock Text="{Binding DisplayName}" />
@@ -32,7 +33,9 @@
                                   Tip="{Binding Texts[Infrast.CustomPlanToolTip]}" />
           </Grid>
           <Grid ColumnDefinitions="*,Auto">
-            <ComboBox ItemsSource="{Binding PlanOptions}" SelectedItem="{Binding SelectedPlan}">
+            <ComboBox ItemsSource="{Binding PlanOptions}"
+                      SelectedValueBinding="{Binding Index}"
+                      SelectedValue="{Binding SelectedPlanIndex}">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:InfrastModuleViewModel+PlanOption">
                   <TextBlock Text="{Binding Display}" />
@@ -49,7 +52,8 @@
           <TextBlock Text="{Binding Texts[Infrast.DefaultPreset]}" />
           <Grid ColumnDefinitions="*,Auto">
             <ComboBox ItemsSource="{Binding DefaultInfrastOptions}"
-                      SelectedItem="{Binding SelectedDefaultInfrastOption}">
+                      SelectedValueBinding="{Binding Value}"
+                      SelectedValue="{Binding DefaultInfrast}">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:InfrastModuleViewModel+StringOption">
                   <TextBlock Text="{Binding DisplayName}" />
@@ -75,7 +79,8 @@
         <TextBlock Text="{Binding Texts[Infrast.Drones]}" />
         <ComboBox ItemsSource="{Binding DroneOptions}"
                   IsEnabled="{Binding CanEditDrones}"
-                  SelectedItem="{Binding SelectedDroneOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding Drones}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:InfrastModuleViewModel+StringOption">
               <TextBlock Text="{Binding DisplayName}" />

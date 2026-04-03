@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -11,6 +12,7 @@ namespace MAAUnified.App.Features.Root;
 
 public partial class SettingsView : UserControl
 {
+    private const int BackgroundSectionWarmupIntervalMs = 45;
     private static readonly string[] SectionOrder =
     [
         "ConfigurationManager",
@@ -29,6 +31,11 @@ public partial class SettingsView : UserControl
         "IssueReport",
         "About",
     ];
+    private static readonly object BackgroundSectionWarmupGate = new();
+    private static readonly Dictionary<string, Control> PrewarmedSectionContentCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> PrewarmedSectionKeys = new(StringComparer.OrdinalIgnoreCase);
+    private static DispatcherTimer? _backgroundSectionWarmupTimer;
+    private static int _backgroundSectionWarmupIndex;
 
     private readonly Dictionary<string, Border> _sectionAnchors = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _materializedSections = new(StringComparer.OrdinalIgnoreCase);
@@ -41,21 +48,22 @@ public partial class SettingsView : UserControl
     private double _lastKnownExtentHeight = -1d;
     private double _lastKnownViewportHeight = -1d;
     private DispatcherTimer? _progressiveMaterializationTimer;
+    private bool _sectionMaterializationInitialized;
+    private SettingsPageViewModel? _observedViewModel;
+    private bool _viewCompositionActive;
+    private SettingsPageViewModel? _viewCompositionOwner;
 
     public SettingsView()
     {
         InitializeComponent();
         AttachedToVisualTree += (_, _) =>
         {
-            _sectionScrollViewer = this.FindControl<ScrollViewer>("SectionScrollViewer");
-            _sectionContentPanel = this.FindControl<StackPanel>("SectionContentPanel");
-            if (_sectionContentPanel is not null)
-            {
-                _sectionContentPanel.SizeChanged += OnSectionContentPanelSizeChanged;
-            }
+            BindViewModelNotifications();
+            RefreshSectionLayoutReferences();
 
+            BeginViewComposition();
             RebuildSectionAnchors();
-            ResetSectionMaterialization();
+            EnsureSectionMaterializationInitialized();
             EnsureCurrentSectionMaterialized();
             Dispatcher.UIThread.Post(ScrollToSelectedSection, DispatcherPriority.Loaded);
             StartProgressiveSectionMaterialization();
@@ -63,13 +71,37 @@ public partial class SettingsView : UserControl
         DetachedFromVisualTree += (_, _) =>
         {
             CancelProgressiveSectionMaterialization();
+            CompleteViewComposition();
+            if (_sectionContentPanel is not null)
+            {
+                _sectionContentPanel.SizeChanged -= OnSectionContentPanelSizeChanged;
+                _sectionContentPanel = null;
+            }
+
+            _sectionScrollViewer = null;
+            if (_observedViewModel is not null)
+            {
+                _observedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+                _observedViewModel = null;
+            }
         };
         DataContextChanged += (_, _) =>
         {
+            CancelProgressiveSectionMaterialization();
+            CompleteViewComposition();
+            BindViewModelNotifications();
+            _sectionMaterializationInitialized = false;
             Dispatcher.UIThread.Post(() =>
             {
+                if (VisualRoot is null)
+                {
+                    return;
+                }
+
+                RefreshSectionLayoutReferences();
+                BeginViewComposition();
                 RebuildSectionAnchors();
-                ResetSectionMaterialization();
+                EnsureSectionMaterializationInitialized(forceReset: true);
                 EnsureCurrentSectionMaterialized();
                 ScrollToSelectedSection();
                 StartProgressiveSectionMaterialization();
@@ -78,6 +110,147 @@ public partial class SettingsView : UserControl
     }
 
     private SettingsPageViewModel? VM => DataContext as SettingsPageViewModel;
+
+    public void StartBackgroundWarmup()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(StartBackgroundWarmup, DispatcherPriority.Background);
+            return;
+        }
+
+        if (VM is null)
+        {
+            return;
+        }
+
+        BindViewModelNotifications();
+        RefreshSectionLayoutReferences();
+        BeginViewComposition();
+        RebuildSectionAnchors();
+        EnsureSectionMaterializationInitialized();
+        EnsureCurrentSectionMaterialized();
+        StartProgressiveSectionMaterialization();
+    }
+
+    public static void StartBackgroundSectionWarmup()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(StartBackgroundSectionWarmup, DispatcherPriority.Background);
+            return;
+        }
+
+        lock (BackgroundSectionWarmupGate)
+        {
+            if (_backgroundSectionWarmupTimer is not null || PrewarmedSectionKeys.Count >= SectionOrder.Length)
+            {
+                return;
+            }
+
+            _backgroundSectionWarmupIndex = 0;
+            var timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(BackgroundSectionWarmupIntervalMs),
+            };
+            timer.Tick += OnBackgroundSectionWarmupTick;
+            _backgroundSectionWarmupTimer = timer;
+            timer.Start();
+        }
+    }
+
+    private void BindViewModelNotifications()
+    {
+        if (ReferenceEquals(_observedViewModel, VM))
+        {
+            return;
+        }
+
+        if (_observedViewModel is not null)
+        {
+            _observedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+
+        _observedViewModel = VM;
+        if (_observedViewModel is not null)
+        {
+            _observedViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.Equals(e.PropertyName, nameof(SettingsPageViewModel.RootTexts), StringComparison.Ordinal)
+            && !string.Equals(e.PropertyName, nameof(SettingsPageViewModel.Language), StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        Dispatcher.UIThread.Post(RefreshLocalizedSections, DispatcherPriority.Loaded);
+    }
+
+    private void RefreshLocalizedSections()
+    {
+        if (VM is null || _sectionAnchors.Count == 0)
+        {
+            return;
+        }
+
+        CancelProgressiveSectionMaterialization();
+        BeginViewComposition();
+        EnsureSectionMaterializationInitialized(forceReset: true);
+        EnsureCurrentSectionMaterialized();
+        Dispatcher.UIThread.Post(ScrollToSelectedSection, DispatcherPriority.Loaded);
+        StartProgressiveSectionMaterialization();
+    }
+
+    private void RefreshSectionLayoutReferences()
+    {
+        _sectionScrollViewer = this.FindControl<ScrollViewer>("SectionScrollViewer");
+        var contentPanel = this.FindControl<StackPanel>("SectionContentPanel");
+        if (ReferenceEquals(_sectionContentPanel, contentPanel))
+        {
+            return;
+        }
+
+        if (_sectionContentPanel is not null)
+        {
+            _sectionContentPanel.SizeChanged -= OnSectionContentPanelSizeChanged;
+        }
+
+        _sectionContentPanel = contentPanel;
+        if (_sectionContentPanel is not null)
+        {
+            _sectionContentPanel.SizeChanged += OnSectionContentPanelSizeChanged;
+        }
+    }
+
+    private void BeginViewComposition()
+    {
+        var vm = VM;
+        if (_viewCompositionActive && ReferenceEquals(_viewCompositionOwner, vm))
+        {
+            return;
+        }
+
+        CompleteViewComposition();
+        _viewCompositionActive = true;
+        _viewCompositionOwner = vm;
+        vm?.BeginViewComposition();
+    }
+
+    private void CompleteViewComposition()
+    {
+        if (!_viewCompositionActive)
+        {
+            return;
+        }
+
+        var owner = _viewCompositionOwner;
+        _viewCompositionActive = false;
+        _viewCompositionOwner = null;
+        owner?.EndViewComposition();
+    }
 
     private void OnSectionSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
@@ -147,6 +320,17 @@ public partial class SettingsView : UserControl
         InvalidateSectionTopCache();
     }
 
+    private void EnsureSectionMaterializationInitialized(bool forceReset = false)
+    {
+        if (_sectionMaterializationInitialized && !forceReset)
+        {
+            return;
+        }
+
+        ResetSectionMaterialization();
+        _sectionMaterializationInitialized = true;
+    }
+
     private void EnsureCurrentSectionMaterialized()
     {
         var selectedKey = VM?.SelectedSection?.Key;
@@ -192,6 +376,8 @@ public partial class SettingsView : UserControl
             return false;
         }
 
+        ApplySectionDataContext(key, content);
+        MarkSectionWarmupPrepared(key);
         anchor.Child = content;
         _materializedSections.Add(key);
         InvalidateSectionTopCache();
@@ -205,13 +391,23 @@ public partial class SettingsView : UserControl
 
     private Control? CreateSectionContent(string key)
     {
+        if (TryTakePrewarmedSectionContent(key, out var prewarmedContent))
+        {
+            return prewarmedContent;
+        }
+
+        return CreateSectionContentCore(key);
+    }
+
+    private static Control? CreateSectionContentCore(string key)
+    {
         return key switch
         {
             "ConfigurationManager" => new settingsViews.ConfigurationManagerView(),
             "Timer" => new settingsViews.TimerSettingsView(),
             "Performance" => new settingsViews.PerformanceSettingsView(),
             "Game" => new settingsViews.GameSettingsView(),
-            "Connect" => BuildConnectSettingsView(),
+            "Connect" => new settingsViews.ConnectSettingsView(),
             "Start" => new settingsViews.StartSettingsView(),
             "RemoteControl" => new settingsViews.RemoteControlSettingsView(),
             "GUI" => new settingsViews.GuiSettingsView(),
@@ -226,15 +422,16 @@ public partial class SettingsView : UserControl
         };
     }
 
-    private Control BuildConnectSettingsView()
+    private void ApplySectionDataContext(string key, Control content)
     {
-        var view = new settingsViews.ConnectSettingsView();
-        if (VM is { } vm)
+        if (VM is not { } vm)
         {
-            view.DataContext = vm.ConnectionGameSharedState;
+            return;
         }
 
-        return view;
+        content.DataContext = string.Equals(key, "Connect", StringComparison.OrdinalIgnoreCase)
+            ? vm.ConnectionGameSharedState
+            : vm;
     }
 
     private void InvalidateSectionTopCache()
@@ -324,6 +521,7 @@ public partial class SettingsView : UserControl
         CancelProgressiveSectionMaterialization();
         if (!TryMaterializeNextSectionInOrder())
         {
+            CompleteViewComposition();
             return;
         }
 
@@ -357,6 +555,80 @@ public partial class SettingsView : UserControl
         }
 
         CancelProgressiveSectionMaterialization();
+        CompleteViewComposition();
+    }
+
+    private static void OnBackgroundSectionWarmupTick(object? sender, EventArgs e)
+    {
+        if (TryPrewarmNextSectionInOrder())
+        {
+            return;
+        }
+
+        CancelBackgroundSectionWarmup();
+    }
+
+    private static bool TryPrewarmNextSectionInOrder()
+    {
+        while (_backgroundSectionWarmupIndex < SectionOrder.Length)
+        {
+            var sectionKey = SectionOrder[_backgroundSectionWarmupIndex++];
+            if (PrewarmedSectionKeys.Contains(sectionKey))
+            {
+                continue;
+            }
+
+            var content = CreateSectionContentCore(sectionKey);
+            if (content is null)
+            {
+                continue;
+            }
+
+            PrewarmedSectionContentCache[sectionKey] = content;
+            PrewarmedSectionKeys.Add(sectionKey);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryTakePrewarmedSectionContent(string key, out Control? content)
+    {
+        lock (BackgroundSectionWarmupGate)
+        {
+            if (PrewarmedSectionContentCache.Remove(key, out var cachedContent))
+            {
+                content = cachedContent;
+                return true;
+            }
+        }
+
+        content = null;
+        return false;
+    }
+
+    private static void MarkSectionWarmupPrepared(string key)
+    {
+        lock (BackgroundSectionWarmupGate)
+        {
+            PrewarmedSectionKeys.Add(key);
+        }
+    }
+
+    private static void CancelBackgroundSectionWarmup()
+    {
+        lock (BackgroundSectionWarmupGate)
+        {
+            var timer = _backgroundSectionWarmupTimer;
+            _backgroundSectionWarmupTimer = null;
+            if (timer is null)
+            {
+                return;
+            }
+
+            timer.Stop();
+            timer.Tick -= OnBackgroundSectionWarmupTick;
+        }
     }
 
     private void ScrollToSelectedSection()

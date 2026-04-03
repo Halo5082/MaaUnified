@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     private readonly ShellCloseConfirmationService _closeConfirmationService;
     private OverlayHostWindow? _overlayHostWindow;
     private RuntimeLogWindow? _runtimeLogWindow;
+    private RootPageHostViewModel? _settingsWarmupRootPage;
+    private bool _settingsWarmupStarted;
 
     public MainWindow()
     {
@@ -92,6 +94,7 @@ public partial class MainWindow : Window
     private async void OnWindowOpened(object? sender, EventArgs e)
     {
         Program.RecordStartupStage("MainWindow.Opened", "Main window opened.");
+        FitToCurrentScreenWorkingArea();
         UpdateAchievementToastVisibility();
         StartDialogErrorPumpIfNeeded();
         var vm = VM;
@@ -110,6 +113,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        BindSettingsWarmup(vm);
+
         Program.RecordStartupStage("MainWindow.PlatformInit.Begin", "Initializing tray, hotkeys, and overlay host.");
         vm.PlatformCapabilityService.TrayCommandInvoked += OnTrayCommandInvoked;
         vm.PlatformCapabilityService.GlobalHotkeyTriggered += OnGlobalHotkeyTriggered;
@@ -122,7 +127,7 @@ public partial class MainWindow : Window
 
         var trayInit = await vm.PlatformCapabilityService.InitializeTrayAsync(
             "MaaAssistantArknights",
-            PlatformCapabilityTextMap.CreateTrayMenuText(vm.SettingsPage.Language, vm.ReportLocalizationFallback));
+            PlatformCapabilityTextMap.CreateTrayMenuText(vm.CurrentShellLanguage, vm.ReportLocalizationFallback));
         await HandlePlatformResultAsync("PlatformCapability.Tray.Initialize", trayInit);
 
         var trayVisible = await vm.PlatformCapabilityService.SetTrayVisibleAsync(vm.SettingsPage.UseTray);
@@ -141,6 +146,7 @@ public partial class MainWindow : Window
                 ex);
         }
 
+        await vm.ExecuteStartupLaunchBehaviorAsync(minimizeWindowAsync: MinimizeFromStartupAsync);
         Program.RecordStartupStage("MainWindow.PlatformInit.End", "Platform initialization completed.");
     }
 
@@ -161,6 +167,7 @@ public partial class MainWindow : Window
         }
 
         VM?.CancelStartupInitialization();
+        UnbindSettingsWarmup();
 
         if (VM is not null && _platformBound)
         {
@@ -203,6 +210,89 @@ public partial class MainWindow : Window
     private void UpdateAchievementToastVisibility()
     {
         VM?.SetAchievementToastWindowVisible(IsVisible && WindowState != WindowState.Minimized);
+    }
+
+    private void BindSettingsWarmup(MainShellViewModel vm)
+    {
+        if (ReferenceEquals(_settingsWarmupRootPage, vm.SettingsRootPage))
+        {
+            TryStartSettingsWarmup(vm);
+            return;
+        }
+
+        UnbindSettingsWarmup();
+        _settingsWarmupRootPage = vm.SettingsRootPage;
+        _settingsWarmupRootPage.PropertyChanged += OnSettingsWarmupRootPagePropertyChanged;
+        TryStartSettingsWarmup(vm);
+    }
+
+    private void UnbindSettingsWarmup()
+    {
+        if (_settingsWarmupRootPage is null)
+        {
+            return;
+        }
+
+        _settingsWarmupRootPage.PropertyChanged -= OnSettingsWarmupRootPagePropertyChanged;
+        _settingsWarmupRootPage = null;
+    }
+
+    private void OnSettingsWarmupRootPagePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.Equals(e.PropertyName, nameof(RootPageHostViewModel.LoadState), StringComparison.Ordinal)
+            && !string.Equals(e.PropertyName, nameof(RootPageHostViewModel.IsLoaded), StringComparison.Ordinal)
+            && !string.Equals(e.PropertyName, nameof(RootPageHostViewModel.PageContent), StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (VM is { } vm)
+        {
+            TryStartSettingsWarmup(vm);
+        }
+    }
+
+    private void TryStartSettingsWarmup(MainShellViewModel vm)
+    {
+        if (_settingsWarmupStarted || _settingsWarmupRootPage?.IsLoaded != true)
+        {
+            return;
+        }
+
+        _settingsWarmupStarted = true;
+        _ = WarmupSettingsPageAsync(vm);
+    }
+
+    private static async Task WarmupSettingsPageAsync(MainShellViewModel vm)
+    {
+        try
+        {
+            await vm.SettingsPage.WarmupDeferredSectionDataAsync();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            await App.Runtime.DiagnosticsService.RecordErrorAsync(
+                "App.Settings.Warmup",
+                "Settings page background warmup failed.",
+                ex);
+        }
+    }
+
+    private Task MinimizeFromStartupAsync(CancellationToken cancellationToken)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            WindowState = WindowState.Minimized;
+            return Task.CompletedTask;
+        }
+
+        return Dispatcher.UIThread.InvokeAsync(
+            () => WindowState = WindowState.Minimized,
+            DispatcherPriority.Background,
+            cancellationToken).GetTask();
     }
 
     private async void OnConnectClick(object? sender, RoutedEventArgs e)
@@ -288,7 +378,7 @@ public partial class MainWindow : Window
         }
 
         e.Handled = true;
-        await VM.SettingsPage.CheckVersionUpdateWithDialogAsync();
+        await VM.SettingsPage.ShowSoftwareUpdateNotImplementedAsync();
     }
 
     private void OnManualUpdateResourceClick(object? sender, PointerPressedEventArgs e)
@@ -369,7 +459,7 @@ public partial class MainWindow : Window
         if (handle == nint.Zero)
         {
             VM.PushGrowl(PlatformCapabilityTextMap.GetUiText(
-                VM.SettingsPage.Language,
+                VM.CurrentShellLanguage,
                 "Ui.OverlayHostUnavailable",
                 "Overlay host handle unavailable.",
                 VM.ReportLocalizationFallback));
@@ -558,7 +648,44 @@ public partial class MainWindow : Window
             WindowState = WindowState.Normal;
         }
 
+        FitToCurrentScreenWorkingArea();
         Activate();
+    }
+
+    private void FitToCurrentScreenWorkingArea()
+    {
+        try
+        {
+            var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+            if (screen is null)
+            {
+                return;
+            }
+
+            var scale = Math.Max(0.01d, RenderScaling);
+            var workingArea = screen.WorkingArea;
+            var availableWidth = Math.Max(320d, workingArea.Width / scale);
+            var availableHeight = Math.Max(320d, workingArea.Height / scale);
+
+            MinWidth = Math.Min(MinWidth, availableWidth);
+            MinHeight = Math.Min(MinHeight, availableHeight);
+            Width = Math.Min(Width, availableWidth);
+            Height = Math.Min(Height, availableHeight);
+
+            var widthPx = (int)Math.Round(Width * scale);
+            var heightPx = (int)Math.Round(Height * scale);
+            var minX = workingArea.X;
+            var minY = workingArea.Y;
+            var maxX = workingArea.X + Math.Max(0, workingArea.Width - widthPx);
+            var maxY = workingArea.Y + Math.Max(0, workingArea.Height - heightPx);
+            Position = new PixelPoint(
+                Math.Clamp(Position.X, minX, maxX),
+                Math.Clamp(Position.Y, minY, maxY));
+        }
+        catch (ObjectDisposedException)
+        {
+            // Ignore late window size adjustments while the shell is shutting down.
+        }
     }
 
     private void OnWindowKeyDown(object? sender, KeyEventArgs e)
@@ -614,7 +741,7 @@ public partial class MainWindow : Window
 
         return _closeConfirmationService.ConfirmCloseAsync(
             vm.RootTexts,
-            vm.SettingsPage.Language,
+            vm.CurrentShellLanguage,
             vm.TaskQueuePage.IsRunning,
             vm.SettingsPage.IsVersionUpdateActionRunning,
             sourceScope,
@@ -744,7 +871,7 @@ public partial class MainWindow : Window
 
     private async Task ShowErrorDialogAsync(DialogErrorRaisedEvent dialogError)
     {
-        var language = VM?.SettingsPage.Language ?? UiLanguageCatalog.FallbackLanguage;
+        var language = VM?.CurrentShellLanguage ?? UiLanguageCatalog.FallbackLanguage;
         App.Runtime.AchievementTrackerService.SetCurrentLanguage(language);
         _ = App.Runtime.AchievementTrackerService.Unlock("CongratulationError");
         var localizedResult = DialogTextCatalog.LocalizeErrorResult(language, dialogError.Result);
@@ -787,7 +914,7 @@ public partial class MainWindow : Window
     private string Localize(UiOperationResult result)
     {
         var vm = VM;
-        var language = vm?.SettingsPage.Language ?? "en-us";
+        var language = vm?.CurrentShellLanguage ?? "en-us";
         Action<LocalizationFallbackInfo>? reporter = vm is null ? null : vm.ReportLocalizationFallback;
         return PlatformCapabilityTextMap.FormatErrorCode(
             language,

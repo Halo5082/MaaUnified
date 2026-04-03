@@ -64,16 +64,16 @@
                     Spacing="{DynamicResource MAA.Spacing.Small}">
           <TabControl SelectedIndex="{Binding CopilotTabIndex}"
                       IsEnabled="{Binding CanEdit}">
-            <TabItem Header="{Binding Texts[Copilot.Tab.Main]}" />
-            <TabItem Header="{Binding Texts[Copilot.Tab.Security]}" />
-            <TabItem Header="{Binding Texts[Copilot.Tab.Paradox]}" />
-            <TabItem Header="{Binding Texts[Copilot.Tab.Other]}" />
+            <TabItem Header="{Binding MainTabTitle}" />
+            <TabItem Header="{Binding SecurityTabTitle}" />
+            <TabItem Header="{Binding ParadoxTabTitle}" />
+            <TabItem Header="{Binding OtherTabTitle}" />
           </TabControl>
 
           <Grid ColumnDefinitions="*,Auto,Auto,Auto">
             <Grid Grid.Column="0">
               <controls:CheckComboBox Text="{Binding DisplayFilename}"
-                                      Watermark="{Binding Texts[Copilot.Input.PathOrCodeWatermark]}"
+                                      Watermark="{Binding PathOrCodeWatermark}"
                                       IsEditable="True"
                                       IsEnabled="{Binding CanEdit}"
                                       IsTreeMode="True"
@@ -86,22 +86,22 @@
             <Button Grid.Column="1"
                     Classes="wpf-button wpf-button-secondary copilot-icon"
                     Margin="6,0,0,0"
-                    Content="{Binding Texts[Copilot.Button.File]}"
-                    ToolTip.Tip="{Binding Texts[Copilot.Tip.File]}"
+                    Content="{Binding FileButtonText}"
+                    ToolTip.Tip="{Binding FileButtonTip}"
                     Click="OnSelectFileClick"
                     IsEnabled="{Binding CanEdit}" />
             <Button Grid.Column="2"
                     Classes="wpf-button wpf-button-secondary copilot-icon"
                     Margin="6,0,0,0"
-                    Content="{Binding Texts[Copilot.Button.Paste]}"
-                    ToolTip.Tip="{Binding Texts[Copilot.Tip.Paste]}"
+                    Content="{Binding PasteButtonText}"
+                    ToolTip.Tip="{Binding PasteButtonTip}"
                     Click="OnPasteClipboardClick"
                     IsEnabled="{Binding CanEdit}" />
             <Button Grid.Column="3"
                     Classes="wpf-button wpf-button-secondary copilot-icon"
                     Margin="6,0,0,0"
-                    Content="{Binding Texts[Copilot.Button.PasteSet]}"
-                    ToolTip.Tip="{Binding Texts[Copilot.Tip.PasteSet]}"
+                    Content="{Binding PasteSetButtonText}"
+                    ToolTip.Tip="{Binding PasteSetButtonTip}"
                     Click="OnPasteClipboardSetClick"
                     IsVisible="{Binding ShowClipboardSetButton}"
                     IsEnabled="{Binding CanEdit}" />
@@ -116,14 +116,14 @@
               <Button Width="120"
                       Height="48"
                       Classes="wpf-button wpf-button-primary"
-                      Content="{Binding Texts[Copilot.Action.Start]}"
+                      Content="{Binding StartButtonText}"
                       Click="OnStartClick"
                       IsVisible="{Binding CanEdit}"
                       IsEnabled="{Binding CanStart}" />
               <Button Width="120"
                       Height="48"
                       Classes="wpf-button wpf-button-secondary"
-                      Content="{Binding Texts[Copilot.Action.Stop]}"
+                      Content="{Binding StopButtonText}"
                       Click="OnStopClick"
                       IsVisible="{Binding CanStop}"
                       IsEnabled="{Binding CanStop}" />
@@ -136,22 +136,23 @@
                         IsEnabled="{Binding CanEdit}">
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowFormationGroup}">
-                <CheckBox Content="{Binding Texts[Copilot.Option.AutoSquad]}"
+                <CheckBox Content="{Binding AutoSquadText}"
                           IsChecked="{Binding Form}" />
                 <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                      Tip="{Binding Texts[Copilot.Tip.AutoSquad]}" />
+                                      Tip="{Binding AutoSquadTip}" />
               </StackPanel>
 
               <StackPanel Orientation="Horizontal"
                           Margin="24,0,0,0"
                           IsVisible="{Binding ShowUseFormation}">
-                <CheckBox Content="{Binding Texts[Copilot.Option.UseFormation]}"
+                <CheckBox Content="{Binding UseFormationText}"
                           IsChecked="{Binding UseFormation}" />
                 <ComboBox Width="100"
                           Margin="8,0,0,0"
                           IsVisible="{Binding UseFormation}"
                           ItemsSource="{Binding FormationOptions}"
-                          SelectedItem="{Binding SelectedFormationOption}">
+                          SelectedValueBinding="{Binding Value}"
+                          SelectedValue="{Binding FormationIndex}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate>
                       <TextBlock Text="{Binding DisplayName}" />
@@ -162,25 +163,26 @@
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowIgnoreRequirements}">
-                <CheckBox Content="{Binding Texts[Copilot.Option.IgnoreRequirements]}"
+                <CheckBox Content="{Binding IgnoreRequirementsText}"
                           IsChecked="{Binding IgnoreRequirements}" />
                 <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                      Tip="{Binding Texts[Copilot.Tip.IgnoreRequirements]}" />
+                                      Tip="{Binding IgnoreRequirementsTip}" />
               </StackPanel>
 
               <StackPanel Spacing="{DynamicResource MAA.Spacing.Tight}"
                           IsVisible="{Binding ShowSupportUnitUsage}">
                 <StackPanel Orientation="Horizontal">
-                  <CheckBox Content="{Binding Texts[Copilot.Option.UseSupportUnit]}"
+                  <CheckBox Content="{Binding UseSupportUnitText}"
                             IsChecked="{Binding UseSupportUnitUsage}" />
                   <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                        Tip="{Binding Texts[Copilot.Tip.UseSupportUnit]}" />
+                                        Tip="{Binding UseSupportUnitTip}" />
                 </StackPanel>
                 <ComboBox Width="120"
                           Margin="24,0,0,0"
                           IsVisible="{Binding UseSupportUnitUsage}"
                           ItemsSource="{Binding SupportUnitUsageOptions}"
-                          SelectedItem="{Binding SelectedSupportUnitUsageOption}">
+                          SelectedValueBinding="{Binding Value}"
+                          SelectedValue="{Binding SupportUnitUsage}">
                   <ComboBox.ItemTemplate>
                     <DataTemplate>
                       <TextBlock Text="{Binding DisplayName}" />
@@ -189,22 +191,22 @@
                 </ComboBox>
               </StackPanel>
 
-              <CheckBox Content="{Binding Texts[Copilot.Option.AddTrust]}"
+              <CheckBox Content="{Binding AddTrustText}"
                         IsChecked="{Binding AddTrust}"
                         IsVisible="{Binding ShowAddTrust}" />
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowAddUserAdditional}">
-                <CheckBox Content="{Binding Texts[Copilot.Option.AddUserAdditional]}"
+                <CheckBox Content="{Binding AddUserAdditionalText}"
                           IsChecked="{Binding AddUserAdditional}" />
                 <Button x:Name="UserAdditionalButton"
                         Classes="wpf-button wpf-button-secondary copilot-icon"
                         Margin="8,0,0,0"
                         Padding="8,0"
-                        Content="{Binding Texts[Copilot.Button.Edit]}"
+                        Content="{Binding EditButtonText}"
                         Click="OnOpenUserAdditionalPopupClick" />
                 <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                      Tip="{Binding Texts[Copilot.Tip.UserAdditionalFormat]}" />
+                                      Tip="{Binding UserAdditionalFormatTip}" />
                 <Popup IsOpen="{Binding IsUserAdditionalPopupOpen}"
                        Placement="Bottom"
                        PlacementTarget="{Binding ElementName=UserAdditionalButton}"
@@ -214,7 +216,7 @@
                           Padding="12"
                           Classes="wpf-panel">
                     <Grid RowDefinitions="Auto,*,Auto">
-                      <TextBlock Text="{Binding Texts[Copilot.Popup.UserAdditionalTitle]}" />
+                      <TextBlock Text="{Binding UserAdditionalPopupTitle}" />
                       <ScrollViewer Grid.Row="1"
                                     Margin="0,8,0,8"
                                     MaxHeight="320">
@@ -224,7 +226,7 @@
                               <Grid ColumnDefinitions="*,72,120,Auto"
                                     Margin="0,0,0,6">
                                 <TextBox Text="{Binding Name}"
-                                         Watermark="{Binding DataContext.Texts[Copilot.Input.OperatorNameWatermark], RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                         Watermark="{Binding DataContext.OperatorNameWatermark, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                 <controls:VerticalSpinNumberBox Grid.Column="1"
                                                                 Margin="8,0,0,0"
                                                                 Minimum="1"
@@ -243,7 +245,7 @@
                                 <Button Grid.Column="3"
                                         Classes="wpf-button wpf-button-secondary copilot-list-action"
                                         Margin="8,0,0,0"
-                                        Content="{Binding DataContext.Texts[Copilot.Button.Delete], RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        Content="{Binding DataContext.DeleteButtonText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         Tag="{Binding}"
                                         Click="OnRemoveUserAdditionalItemClick" />
                               </Grid>
@@ -254,18 +256,18 @@
                       <Grid Grid.Row="2"
                             ColumnDefinitions="*,Auto,Auto">
                         <Button Classes="wpf-button wpf-button-secondary"
-                                Content="{Binding Texts[Copilot.Button.Add]}"
+                                Content="{Binding AddButtonText}"
                                 HorizontalAlignment="Left"
                                 Click="OnAddUserAdditionalItemClick" />
                         <Button Grid.Column="1"
                                 Classes="wpf-button"
                                 Margin="8,0,0,0"
-                                Content="{Binding Texts[Copilot.Button.Confirm]}"
+                                Content="{Binding ConfirmButtonText}"
                                 Click="OnSaveUserAdditionalClick" />
                         <Button Grid.Column="2"
                                 Classes="wpf-button wpf-button-secondary"
                                 Margin="8,0,0,0"
-                                Content="{Binding Texts[Copilot.Button.Cancel]}"
+                                Content="{Binding CancelButtonText}"
                                 Click="OnCancelUserAdditionalClick" />
                       </Grid>
                     </Grid>
@@ -275,19 +277,19 @@
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowUseCopilotList}">
-                <CheckBox Content="{Binding Texts[Copilot.Option.BattleList]}"
+                <CheckBox Content="{Binding BattleListText}"
                           IsChecked="{Binding UseCopilotList}" />
                 <controls:TooltipHint Margin="{DynamicResource MAA.Thickness.MarginLeftTooltip}"
-                                      Tip="{Binding Texts[Copilot.Tip.BattleList]}" />
+                                      Tip="{Binding BattleListTip}" />
               </StackPanel>
 
-              <CheckBox Content="{Binding Texts[Copilot.Option.UseSanityPotion]}"
+              <CheckBox Content="{Binding UseSanityPotionText}"
                         IsChecked="{Binding UseSanityPotion}"
                         IsVisible="{Binding ShowUseSanityPotion}" />
 
               <StackPanel Orientation="Horizontal"
                           IsVisible="{Binding ShowLoopSetting}">
-                <CheckBox Content="{Binding Texts[Copilot.Option.LoopTimes]}"
+                <CheckBox Content="{Binding LoopTimesText}"
                           IsChecked="{Binding Loop}" />
                 <controls:VerticalSpinNumberBox Margin="8,0,0,0"
                                                 Minimum="1"
@@ -318,14 +320,14 @@
                         <Button Grid.Column="1"
                                 Classes="wpf-button wpf-button-secondary copilot-list-action"
                                 Margin="8,0,0,0"
-                                Content="{Binding DataContext.Texts[Copilot.Button.Load], RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                Content="{Binding DataContext.LoadButtonText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 Tag="{Binding}"
                                 Click="OnLoadListItemClick"
                                 PointerPressed="OnLoadListItemPointerPressed" />
                         <Button Grid.Column="2"
                                 Classes="wpf-button wpf-button-secondary copilot-list-action"
                                 Margin="8,0,0,0"
-                                Content="{Binding DataContext.Texts[Copilot.Button.Delete], RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                Content="{Binding DataContext.DeleteButtonText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 Tag="{Binding}"
                                 Click="OnDeleteListItemClick" />
                       </Grid>
@@ -338,22 +340,22 @@
             <Button Grid.Row="1"
                     Grid.Column="0"
                     Classes="wpf-button wpf-button-secondary copilot-list-action"
-                    Content="{Binding Texts[Copilot.Button.ImportBatch]}"
-                    ToolTip.Tip="{Binding Texts[Copilot.Tip.ImportBatch]}"
+                    Content="{Binding ImportBatchButtonText}"
+                    ToolTip.Tip="{Binding ImportBatchButtonTip}"
                     Click="OnImportFilesClick"
                     IsEnabled="{Binding CanEdit}" />
             <TextBox Grid.Row="1"
                      Grid.Column="1"
                      Margin="8,0,0,0"
                      Text="{Binding CopilotTaskName}"
-                     Watermark="{Binding Texts[Copilot.Input.StageNameWatermark]}"
-                     ToolTip.Tip="{Binding Texts[Copilot.Tip.StageName]}" />
+                     Watermark="{Binding StageNameWatermark}"
+                     ToolTip.Tip="{Binding StageNameTip}" />
             <Button Grid.Row="1"
                     Grid.Column="2"
                     Classes="wpf-button wpf-button-secondary copilot-list-action"
                     Margin="8,0,0,0"
-                    Content="{Binding Texts[Copilot.Button.Add]}"
-                    ToolTip.Tip="{Binding Texts[Copilot.Tip.AddList]}"
+                    Content="{Binding AddListButtonText}"
+                    ToolTip.Tip="{Binding AddListButtonTip}"
                     Click="OnAddCurrentToListClick"
                     PointerPressed="OnAddCurrentToListPointerPressed"
                     IsEnabled="{Binding CanEdit}" />
@@ -361,8 +363,8 @@
                     Grid.Column="3"
                     Classes="wpf-button wpf-button-secondary copilot-list-action"
                     Margin="8,0,0,0"
-                    Content="{Binding Texts[Copilot.Button.Clear]}"
-                    ToolTip.Tip="{Binding Texts[Copilot.Tip.ClearList]}"
+                    Content="{Binding ClearButtonText}"
+                    ToolTip.Tip="{Binding ClearButtonTip}"
                     Click="OnClearListClick"
                     PointerPressed="OnClearListPointerPressed"
                     IsEnabled="{Binding CanEdit}" />
@@ -416,17 +418,17 @@
               IsVisible="{Binding CouldLikeWebJson}">
           <TextBlock Margin="0,10,0,0"
                      VerticalAlignment="Center"
-                     Text="{Binding Texts[Copilot.Rating.Prompt]}"
+                     Text="{Binding RatingPromptText}"
                      TextWrapping="Wrap" />
           <Button Grid.Column="1"
                   Classes="wpf-button wpf-button-secondary"
                   Margin="8,10,0,0"
-                  Content="{Binding Texts[Copilot.Button.Like]}"
+                  Content="{Binding LikeButtonText}"
                   Click="OnLikeLoadedClick" />
           <Button Grid.Column="2"
                   Classes="wpf-button wpf-button-secondary"
                   Margin="8,10,0,0"
-                  Content="{Binding Texts[Copilot.Button.Dislike]}"
+                  Content="{Binding DislikeButtonText}"
                   Click="OnDislikeLoadedClick" />
         </Grid>
 

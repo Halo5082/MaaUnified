@@ -963,6 +963,47 @@ public sealed class ConfigurationImportTests
         Assert.NotEmpty(report.Errors);
     }
 
+    [Fact]
+    public async Task AvaloniaJsonConfigStore_SaveAsync_ShouldSucceedWhileExistingConfigIsOpenForRead()
+    {
+        var root = CreateTempRoot();
+        var configDirectory = Path.Combine(root, "config");
+        Directory.CreateDirectory(configDirectory);
+        var configPath = Path.Combine(configDirectory, "avalonia.json");
+        await File.WriteAllTextAsync(
+            configPath,
+            """
+            {
+              "SchemaVersion": 2,
+              "CurrentProfile": "Default",
+              "Profiles": {
+                "Default": { "Values": {}, "TaskQueue": [] }
+              },
+              "GlobalValues": {
+                "GUI.Localization": "zh-cn"
+              },
+              "Migration": {}
+            }
+            """);
+
+        var store = new AvaloniaJsonConfigStore(root);
+        var config = new UnifiedConfig();
+        config.GlobalValues["GUI.Localization"] = "en-us";
+
+        await using var reader = new FileStream(
+            configPath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete,
+            bufferSize: 1,
+            FileOptions.None);
+
+        await store.SaveAsync(config);
+
+        var saved = await File.ReadAllTextAsync(configPath);
+        Assert.Contains("\"GUI.Localization\": \"en-us\"", saved, StringComparison.Ordinal);
+    }
+
     private static UnifiedConfigurationService CreateService(string baseDirectory)
     {
         var store = new AvaloniaJsonConfigStore(baseDirectory);

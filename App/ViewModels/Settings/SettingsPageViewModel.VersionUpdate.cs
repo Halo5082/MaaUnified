@@ -11,6 +11,7 @@ using MAAUnified.App.Features.Dialogs;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Configuration;
 using MAAUnified.Application.Models;
+using MAAUnified.Application.Orchestration;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.Localization;
 using MAAUnified.Compat.Constants;
@@ -90,7 +91,7 @@ public sealed partial class SettingsPageViewModel
         VersionUpdateErrorMessage = string.Empty;
     }
 
-    public async Task CheckVersionUpdateAsync(CancellationToken cancellationToken = default)
+    public async Task ShowSoftwareUpdateNotImplementedAsync(CancellationToken cancellationToken = default)
     {
         if (IsVersionUpdateActionRunning)
         {
@@ -98,117 +99,66 @@ public sealed partial class SettingsPageViewModel
         }
 
         IsVersionUpdateActionRunning = true;
-        VersionUpdateStatusMessage = string.Empty;
         VersionUpdateErrorMessage = string.Empty;
 
         try
         {
-            var checkOperation = await ExecuteVersionUpdateCheckAsync("Settings.VersionUpdate.Check", cancellationToken);
-            var checkResult = await ApplyResultNoDialogAsync(checkOperation, "Settings.VersionUpdate.Check", cancellationToken);
-            if (checkResult is null)
-            {
-                VersionUpdateStatusMessage = RootTexts.GetOrDefault(
-                    "Settings.VersionUpdate.Status.CheckFailed",
-                    "Update check failed.");
-                VersionUpdateErrorMessage = checkOperation.Message;
-                return;
-            }
-
-            await ApplyVersionUpdateCheckResultAsync(checkResult, cancellationToken);
-            if (!HasVersionUpdateErrorMessage)
-            {
-                VersionUpdateStatusMessage = checkOperation.Message;
-                VersionUpdateErrorMessage = string.Empty;
-            }
+            SetPendingVersionUpdateAvailability(false);
+            var chrome = CreateSettingsDialogChrome(
+                texts => new DialogChromeSnapshot(
+                    title: texts.GetOrDefault("Settings.VersionUpdate.SoftwarePlaceholder.Title", "Software Update"),
+                    confirmText: texts.GetOrDefault("Settings.VersionUpdate.SoftwarePlaceholder.Confirm", "OK"),
+                    cancelText: texts.GetOrDefault("Settings.VersionUpdate.SoftwarePlaceholder.Cancel", "Close")));
+            var chromeSnapshot = chrome.GetSnapshot();
+            var request = new WarningConfirmDialogRequest(
+                Title: chromeSnapshot.Title,
+                Message: RootTexts.GetOrDefault(
+                    "Settings.VersionUpdate.SoftwarePlaceholder.Message",
+                    "Software update is not available in MAA Unified yet. Please use the WPF version for software updates."),
+                ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.SoftwarePlaceholder.Confirm", "OK"),
+                CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.SoftwarePlaceholder.Cancel", "Close"),
+                Language: Language,
+                Chrome: chrome);
+            await _dialogService.ShowWarningConfirmAsync(
+                request,
+                "Settings.VersionUpdate.SoftwarePlaceholder",
+                cancellationToken);
+            VersionUpdateStatusMessage = RootTexts.GetOrDefault(
+                "Settings.VersionUpdate.SoftwarePlaceholder.Status",
+                "Software update is not available in MAA Unified yet.");
         }
         finally
         {
             IsVersionUpdateActionRunning = false;
         }
+    }
+
+    public async Task CheckVersionUpdateAsync(CancellationToken cancellationToken = default)
+    {
+        await ShowSoftwareUpdateNotImplementedAsync(cancellationToken);
     }
 
     public async Task CheckVersionUpdateWithDialogAsync(CancellationToken cancellationToken = default)
     {
-        if (IsVersionUpdateActionRunning)
-        {
-            return;
-        }
-
-        IsVersionUpdateActionRunning = true;
-        VersionUpdateStatusMessage = string.Empty;
-        VersionUpdateErrorMessage = string.Empty;
-
-        try
-        {
-            var checkOperation = await ExecuteVersionUpdateCheckAsync("Settings.VersionUpdate.Check", cancellationToken);
-            var checkResult = await ApplyResultNoDialogAsync(checkOperation, "Settings.VersionUpdate.Check", cancellationToken);
-            if (checkResult is null)
-            {
-                VersionUpdateStatusMessage = RootTexts.GetOrDefault(
-                    "Settings.VersionUpdate.Status.CheckFailed",
-                    "Update check failed.");
-                VersionUpdateErrorMessage = checkOperation.Message;
-                return;
-            }
-
-            await ApplyVersionUpdateCheckResultAsync(checkResult, cancellationToken);
-            var chrome = CreateSettingsDialogChrome(
-                texts => new DialogChromeSnapshot(
-                    title: texts.GetOrDefault("Settings.VersionUpdate.Dialog.Title", "Version Update"),
-                    confirmText: texts.GetOrDefault("Settings.VersionUpdate.Dialog.Confirm", "Confirm"),
-                    cancelText: texts.GetOrDefault("Settings.VersionUpdate.Dialog.Cancel", "Later")));
-            var chromeSnapshot = chrome.GetSnapshot();
-            var request = new VersionUpdateDialogRequest(
-                Title: chromeSnapshot.Title,
-                CurrentVersion: checkResult.CurrentVersion,
-                TargetVersion: string.IsNullOrWhiteSpace(checkResult.ReleaseName)
-                    ? checkResult.TargetVersion
-                    : checkResult.ReleaseName,
-                Summary: checkResult.Summary,
-                Body: checkResult.Body,
-                ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.Dialog.Confirm", "Confirm"),
-                CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.Dialog.Cancel", "Later"),
-                Chrome: chrome);
-            var dialogResult = await _dialogService.ShowVersionUpdateAsync(request, "Settings.VersionUpdate.Dialog", cancellationToken);
-            VersionUpdateStatusMessage = dialogResult.Return switch
-            {
-                DialogReturnSemantic.Confirm => RootTexts.GetOrDefault(
-                    "Settings.VersionUpdate.Status.DialogConfirmed",
-                    "Version update dialog confirmed."),
-                DialogReturnSemantic.Cancel => RootTexts.GetOrDefault(
-                    "Settings.VersionUpdate.Status.DialogCancelled",
-                    "Version update dialog cancelled."),
-                _ => RootTexts.GetOrDefault(
-                    "Settings.VersionUpdate.Status.DialogClosed",
-                    "Version update dialog closed."),
-            };
-            VersionUpdateErrorMessage = string.Empty;
-        }
-        finally
-        {
-            IsVersionUpdateActionRunning = false;
-        }
+        await ShowSoftwareUpdateNotImplementedAsync(cancellationToken);
     }
 
     public async Task RunStartupVersionUpdateCheckAsync(CancellationToken cancellationToken = default)
     {
-        if (_versionUpdateStartupCheckTriggered || !VersionUpdateStartupCheck)
+        if (_versionUpdateStartupCheckTriggered)
         {
             return;
         }
 
         _versionUpdateStartupCheckTriggered = true;
-        await RunVersionUpdateCheckInternalAsync("Settings.VersionUpdate.StartupCheck", cancellationToken);
+        SetPendingVersionUpdateAvailability(false);
+        await Task.CompletedTask;
     }
 
     public async Task RunScheduledVersionUpdateCheckAsync(CancellationToken cancellationToken = default)
     {
-        if (!VersionUpdateScheduledCheck)
-        {
-            return;
-        }
-
-        await RunVersionUpdateCheckInternalAsync("Settings.VersionUpdate.ScheduledCheck", cancellationToken);
+        SetPendingVersionUpdateAvailability(false);
+        await Task.CompletedTask;
     }
 
     public async Task ManualUpdateResourceAsync(CancellationToken cancellationToken = default)
@@ -225,6 +175,40 @@ public sealed partial class SettingsPageViewModel
         try
         {
             var policy = BuildVersionUpdatePolicy();
+            var checkOperation = await Runtime.VersionUpdateFeatureService.CheckResourceUpdateAsync(
+                policy,
+                ConnectionGameSharedState.ClientType,
+                cancellationToken);
+            var availability = await ApplyResultNoDialogAsync(
+                checkOperation,
+                "Settings.VersionUpdate.Resource.Check",
+                cancellationToken);
+            if (availability is null)
+            {
+                VersionUpdateErrorMessage = checkOperation.Message;
+                VersionUpdateStatusMessage = RootTexts.GetOrDefault(
+                    "Settings.VersionUpdate.Status.ResourceUpdateFailed",
+                    "Resource update failed.");
+                return;
+            }
+
+            SetPendingResourceUpdateAvailability(availability.IsUpdateAvailable);
+            if (!availability.IsUpdateAvailable)
+            {
+                VersionUpdateStatusMessage = checkOperation.Message;
+                VersionUpdateErrorMessage = string.Empty;
+                return;
+            }
+
+            if (availability.RequiresMirrorChyanCdk
+                && string.Equals(policy.ResourceUpdateSource, "MirrorChyan", StringComparison.OrdinalIgnoreCase)
+                && string.IsNullOrWhiteSpace(policy.MirrorChyanCdk))
+            {
+                VersionUpdateStatusMessage = checkOperation.Message;
+                VersionUpdateErrorMessage = "MirrorChyan source requires a CDK.";
+                return;
+            }
+
             var updateResult = await Runtime.VersionUpdateFeatureService.UpdateResourceAsync(
                 policy,
                 ConnectionGameSharedState.ClientType,
@@ -241,6 +225,7 @@ public sealed partial class SettingsPageViewModel
 
             VersionUpdateStatusMessage = payload;
             VersionUpdateErrorMessage = string.Empty;
+            SetPendingResourceUpdateAvailability(false);
             await RefreshVersionUpdateResourceInfoAsync(cancellationToken);
             ResourceVersionUpdated?.Invoke(this, EventArgs.Empty);
         }
@@ -404,6 +389,7 @@ public sealed partial class SettingsPageViewModel
             VersionUpdatePackage = policy.VersionPackage;
             VersionUpdateDoNotShow = policy.DoNotShowUpdate;
         });
+        SyncVersionUpdateAvailabilityFromState();
     }
 
     private async Task RunVersionUpdateCheckInternalAsync(string scope, CancellationToken cancellationToken)
@@ -431,7 +417,15 @@ public sealed partial class SettingsPageViewModel
             }
 
             await ApplyVersionUpdateCheckResultAsync(checkResult, cancellationToken);
-            if (!HasVersionUpdateErrorMessage)
+            await RefreshResourceUpdateAvailabilityAsync(
+                $"{scope}.Resource",
+                cancellationToken);
+            await HandlePreparedVersionUpdatePackageAsync(
+                checkResult,
+                $"{scope}.Package",
+                cancellationToken);
+            if (!HasVersionUpdateErrorMessage
+                && string.IsNullOrWhiteSpace(checkResult.PreparedPackagePath))
             {
                 VersionUpdateStatusMessage = checkOperation.Message;
             }
@@ -462,9 +456,10 @@ public sealed partial class SettingsPageViewModel
             : checkResult.ReleaseName;
         VersionUpdateName = resolvedName;
         VersionUpdateBody = checkResult.Body;
-        VersionUpdatePackage = checkResult.PackageName ?? string.Empty;
+        VersionUpdatePackage = checkResult.PreparedPackagePath ?? string.Empty;
         VersionUpdateDoNotShow = !checkResult.IsNewVersion;
         VersionUpdateIsFirstBoot = false;
+        SetPendingVersionUpdateAvailability(checkResult.IsNewVersion);
 
         var persistResult = await Runtime.VersionUpdateFeatureService.SavePolicyAsync(
             BuildVersionUpdatePolicy(),
@@ -478,6 +473,147 @@ public sealed partial class SettingsPageViewModel
                 : $"{VersionUpdateStatusMessage} ({RootTexts.GetOrDefault("Settings.VersionUpdate.Status.PersistFailedSuffix", "failed to save result")})";
             VersionUpdateErrorMessage = persistResult.Message;
         }
+    }
+
+    private async Task RefreshResourceUpdateAvailabilityAsync(
+        string scope,
+        CancellationToken cancellationToken)
+    {
+        var checkOperation = await Runtime.VersionUpdateFeatureService.CheckResourceUpdateAsync(
+            BuildVersionUpdatePolicy(),
+            ConnectionGameSharedState.ClientType,
+            cancellationToken);
+        var availability = await ApplyResultNoDialogAsync(checkOperation, scope, cancellationToken);
+        if (availability is null)
+        {
+            return;
+        }
+
+        SetPendingResourceUpdateAvailability(availability.IsUpdateAvailable);
+    }
+
+    private async Task HandlePreparedVersionUpdatePackageAsync(
+        VersionUpdateCheckResult checkResult,
+        string scope,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(checkResult.PreparedPackagePath))
+        {
+            return;
+        }
+
+        if (Runtime.SessionService.CurrentState is SessionState.Running or SessionState.Stopping)
+        {
+            VersionUpdateStatusMessage = LocalizeSettingsText(
+                "Settings.VersionUpdate.RestartPendingWhileRunning",
+                "更新包已下载完成。当前任务仍在运行，请在空闲时重启 MAA 以应用更新。");
+            VersionUpdateErrorMessage = string.Empty;
+            return;
+        }
+
+        if (VersionUpdateAutoInstall)
+        {
+            await RestartForPreparedVersionUpdatePackageAsync(scope, cancellationToken);
+            return;
+        }
+
+        await PromptForPreparedVersionUpdateRestartAsync(scope, cancellationToken);
+    }
+
+    private async Task PromptForPreparedVersionUpdateRestartAsync(
+        string scope,
+        CancellationToken cancellationToken)
+    {
+        var chrome = CreateSettingsDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: texts.GetOrDefault("Settings.VersionUpdate.RestartDialog.Title", "Update Package Ready"),
+                confirmText: texts.GetOrDefault("Settings.VersionUpdate.RestartDialog.Confirm", "Restart Now"),
+                cancelText: texts.GetOrDefault("Settings.VersionUpdate.RestartDialog.Cancel", "Later")));
+        var chromeSnapshot = chrome.GetSnapshot();
+        var request = new WarningConfirmDialogRequest(
+            Title: chromeSnapshot.Title,
+            Message: RootTexts.GetOrDefault(
+                "Settings.VersionUpdate.RestartDialog.Message",
+                "The software update package has finished downloading. Restart MAA now to apply the update?"),
+            ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.RestartDialog.Confirm", "Restart Now"),
+            CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("Settings.VersionUpdate.RestartDialog.Cancel", "Later"),
+            Language: Language,
+            Chrome: chrome);
+        var dialogResult = await _dialogService.ShowWarningConfirmAsync(
+            request,
+            $"{scope}.Prompt",
+            cancellationToken);
+        if (dialogResult.Return != DialogReturnSemantic.Confirm)
+        {
+            VersionUpdateStatusMessage = RootTexts.GetOrDefault(
+                "Settings.VersionUpdate.RestartPending",
+                "The update package is ready. Restart MAA later to apply it.");
+            VersionUpdateErrorMessage = string.Empty;
+            return;
+        }
+
+        await RestartForPreparedVersionUpdatePackageAsync(scope, cancellationToken);
+    }
+
+    private async Task RestartForPreparedVersionUpdatePackageAsync(
+        string scope,
+        CancellationToken cancellationToken)
+    {
+        Runtime.LogService.Info("[update] Restart requested to apply the downloaded software update package.");
+        var restartResult = await Runtime.AppLifecycleService.RestartAsync(cancellationToken);
+        if (!await ApplyResultAsync(restartResult, scope, cancellationToken))
+        {
+            VersionUpdateErrorMessage = restartResult.Message;
+            return;
+        }
+
+        VersionUpdateStatusMessage = RootTexts.GetOrDefault(
+            "Settings.VersionUpdate.RestartLaunched",
+            "Restart has started to apply the software update.");
+        VersionUpdateErrorMessage = string.Empty;
+
+        if (!Runtime.AppLifecycleService.SupportsExit)
+        {
+            VersionUpdateStatusMessage = RootTexts.GetOrDefault(
+                "Settings.VersionUpdate.RestartManualClose",
+                "A new instance has started. Close the current instance to continue applying the update.");
+            return;
+        }
+
+        await ApplyResultAsync(
+            Runtime.AppLifecycleService.ExitAsync,
+            $"{scope}.Exit",
+            UiErrorCode.AppExitFailed,
+            cancellationToken);
+    }
+
+    private void SyncVersionUpdateAvailabilityFromState()
+    {
+        SetPendingVersionUpdateAvailability(false);
+    }
+
+    private void SetPendingVersionUpdateAvailability(bool available)
+    {
+        if (_hasPendingVersionUpdateAvailability == available)
+        {
+            return;
+        }
+
+        _hasPendingVersionUpdateAvailability = available;
+        OnPropertyChanged(nameof(HasPendingVersionUpdateAvailability));
+        UpdateAvailabilityChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void SetPendingResourceUpdateAvailability(bool available)
+    {
+        if (_hasPendingResourceUpdateAvailability == available)
+        {
+            return;
+        }
+
+        _hasPendingResourceUpdateAvailability = available;
+        OnPropertyChanged(nameof(HasPendingResourceUpdateAvailability));
+        UpdateAvailabilityChanged?.Invoke(this, EventArgs.Empty);
     }
 
 }

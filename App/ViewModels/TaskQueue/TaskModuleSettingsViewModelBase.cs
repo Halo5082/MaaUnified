@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.ComponentModel;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Services;
 
@@ -20,6 +21,7 @@ public abstract class TaskModuleSettingsViewModelBase : ObservableObject
         Runtime = runtime;
         Texts = texts;
         ModuleType = moduleType;
+        Texts.PropertyChanged += OnTextsPropertyChanged;
     }
 
     protected MAAUnifiedRuntime Runtime { get; }
@@ -27,6 +29,20 @@ public abstract class TaskModuleSettingsViewModelBase : ObservableObject
     public LocalizedTextMap Texts { get; }
 
     protected string ModuleType { get; }
+
+    private void OnTextsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.PropertyName)
+            && !string.Equals(e.PropertyName, nameof(LocalizedTextMap.Language), StringComparison.Ordinal)
+            && !string.Equals(e.PropertyName, "Item[]", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        OnPropertyChanged(nameof(Texts));
+        // Some task panels expose localized labels through derived properties instead of direct indexer bindings.
+        OnPropertyChanged(string.Empty);
+    }
 
     public bool IsTaskBound
     {

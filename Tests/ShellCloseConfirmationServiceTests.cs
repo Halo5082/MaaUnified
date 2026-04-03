@@ -80,6 +80,46 @@ public sealed class ShellCloseConfirmationServiceTests
         Assert.Equal("Cancel", dialogService.LastWarningConfirmRequest?.CancelText);
     }
 
+    [Fact]
+    public void BuildRequest_JapaneseTaskPrompt_ShouldUseJapaneseTexts()
+    {
+        var texts = new RootLocalizationTextMap
+        {
+            Language = "ja-jp",
+        };
+
+        var request = ShellCloseConfirmationService.BuildRequest(
+            texts,
+            "ja-jp",
+            isVersionUpdateRunning: false);
+
+        Assert.Equal("MAAがタスクを実行しています", request.Title);
+        Assert.Equal("終了しますか？", request.Message);
+        Assert.Equal("終了", request.ConfirmText);
+        Assert.Equal("キャンセル", request.CancelText);
+    }
+
+    [Fact]
+    public void BuildRequest_KoreanUpdatePrompt_ShouldUseKoreanTexts()
+    {
+        var texts = new RootLocalizationTextMap
+        {
+            Language = "ko-kr",
+        };
+
+        var request = ShellCloseConfirmationService.BuildRequest(
+            texts,
+            "ko-kr",
+            isVersionUpdateRunning: true);
+
+        Assert.Equal("MAA가 업데이트 중입니다", request.Title);
+        Assert.Equal(
+            "업데이트를 실행 중입니다. 지금 MAA를 종료하면 리소스가 손상될 수 있습니다.\n정말로 종료하시겠습니까?",
+            request.Message);
+        Assert.Equal("종료", request.ConfirmText);
+        Assert.Equal("취소", request.CancelText);
+    }
+
     private sealed class RecordingDialogService : IAppDialogService
     {
         private readonly DialogReturnSemantic _warningConfirmReturn;

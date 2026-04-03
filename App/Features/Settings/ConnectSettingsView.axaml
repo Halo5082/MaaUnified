@@ -31,7 +31,7 @@
           <controls:CheckComboBox Width="{DynamicResource MAA.Size.Settings.FieldInputWidth}"
                                   HeaderText="{Binding SelectedConnectConfigOption.DisplayName}"
                                   ItemsSource="{Binding ConnectConfigOptions}"
-                                  SelectedItem="{Binding SelectedConnectConfigOption}">
+                                  SelectedItem="{Binding SelectedConnectConfigOption, Mode=TwoWay}">
             <controls:CheckComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:ConnectionGameOptionItem">
                 <TextBlock Text="{Binding DisplayName}" />
@@ -135,7 +135,7 @@
             <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Connect.ScreencapMethod]}" />
             <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldInputWidth}"
                       ItemsSource="{Binding AttachWindowScreencapOptions}"
-                      SelectedItem="{Binding SelectedAttachWindowScreencapOption}">
+                      SelectedItem="{Binding SelectedAttachWindowScreencapOption, Mode=TwoWay}">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ConnectionGameOptionItem">
                   <TextBlock Text="{Binding DisplayName}" />
@@ -148,7 +148,7 @@
             <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Connect.MouseInput]}" />
             <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldInputWidth}"
                       ItemsSource="{Binding AttachWindowInputOptions}"
-                      SelectedItem="{Binding SelectedAttachWindowMouseOption}">
+                      SelectedItem="{Binding SelectedAttachWindowMouseOption, Mode=TwoWay}">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ConnectionGameOptionItem">
                   <TextBlock Text="{Binding DisplayName}" />
@@ -161,7 +161,7 @@
             <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Connect.KeyboardInput]}" />
             <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldInputWidth}"
                       ItemsSource="{Binding AttachWindowInputOptions}"
-                      SelectedItem="{Binding SelectedAttachWindowKeyboardOption}">
+                      SelectedItem="{Binding SelectedAttachWindowKeyboardOption, Mode=TwoWay}">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ConnectionGameOptionItem">
                   <TextBlock Text="{Binding DisplayName}" />
@@ -211,7 +211,7 @@
             <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                       IsEnabled="{Binding CanEditAdbConnectionFields}"
                       ItemsSource="{Binding TouchModeOptions}"
-                      SelectedItem="{Binding SelectedTouchModeOption}">
+                      SelectedItem="{Binding SelectedTouchModeOption, Mode=TwoWay}">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ConnectionGameOptionItem">
                   <TextBlock Text="{Binding DisplayName}" />

@@ -198,6 +198,35 @@ public sealed class TaskQueueG2FeatureTests
     }
 
     [Fact]
+    public async Task LanguageSwitch_AfterFightSanitySnapshot_ShouldUseCurrentLanguageForFutureLogs()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Fight", "Fight")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SetLanguage("zh-cn");
+
+        await InvokeCallbackAsync(vm, new CoreCallbackEvent(
+            10010,
+            "SubTaskExtraInfo",
+            """{"what":"SanityBeforeStage","details":{"current_sanity":96,"max_sanity":135,"report_time":"2026-04-03 12:00:00.000"}}""",
+            DateTimeOffset.UtcNow));
+
+        vm.SetLanguage("en-us");
+
+        await InvokeCallbackAsync(vm, new CoreCallbackEvent(
+            10011,
+            "TaskChainCompleted",
+            """{"task_chain":"Fight","task_index":0,"run_id":"run-g2-sanity-language"}""",
+            DateTimeOffset.UtcNow));
+
+        var content = Assert.Single(vm.LogCards).PrimaryContent;
+        Assert.Contains("Sanity:", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("理智:", content, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Callback_StageDrops_ShouldAppendToCurrentCardAndAttachThumbnail()
     {
         await using var fixture = await TestFixture.CreateAsync();

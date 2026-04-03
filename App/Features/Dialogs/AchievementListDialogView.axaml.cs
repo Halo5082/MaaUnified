@@ -36,6 +36,7 @@ public partial class AchievementListDialogView : Window, IDialogChromeAware
         _allItems = request.Items;
         _filterWatermarkSnapshot = request.FilterWatermark;
         _progressFormat = Text("Settings.Achievement.Dialog.ProgressFormat", "Progress: {0}");
+        _newBadgeText = Text("Achievement.NewBadgeText", "NEW");
         FilterInput.Watermark = _filterWatermarkSnapshot;
         FilterInput.Text = request.InitialFilter ?? string.Empty;
         ApplyFilter(FilterInput.Text ?? string.Empty, preserveSelection: false);
@@ -61,7 +62,7 @@ public partial class AchievementListDialogView : Window, IDialogChromeAware
         _progressFormat = chrome.GetNamedTextOrDefault(
             ProgressFormatKey,
             Text("Settings.Achievement.Dialog.ProgressFormat", "Progress: {0}"));
-        _newBadgeText = chrome.GetNamedTextOrDefault(NewBadgeTextKey, "NEW");
+        _newBadgeText = chrome.GetNamedTextOrDefault(NewBadgeTextKey, Text("Achievement.NewBadgeText", "NEW"));
         ApplyFilter(FilterInput.Text ?? string.Empty, preserveSelection: true);
     }
 

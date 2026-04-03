@@ -89,7 +89,7 @@
             <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldTimerConfigWidth}"
                       HorizontalAlignment="Center"
                       ItemsSource="{Binding DataContext.ConfigurationProfiles, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                      SelectedItem="{Binding Profile}"
+                      SelectedItem="{Binding Profile, Mode=TwoWay}"
                       IsEnabled="{Binding Enabled}"
                       IsVisible="{Binding DataContext.CustomTimerConfig, RelativeSource={RelativeSource AncestorType=UserControl}}" />
           </StackPanel>

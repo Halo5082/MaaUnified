@@ -242,6 +242,11 @@ public interface IVersionUpdateFeatureService
         string? clientType,
         CancellationToken cancellationToken = default);
 
+    Task<UiOperationResult<ResourceUpdateCheckResult>> CheckResourceUpdateAsync(
+        VersionUpdatePolicy policy,
+        string? clientType,
+        CancellationToken cancellationToken = default);
+
     Task<UiOperationResult<VersionUpdateCheckResult>> CheckForUpdatesAsync(
         VersionUpdatePolicy policy,
         string currentVersion,

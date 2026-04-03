@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Models;
@@ -25,6 +26,7 @@ public abstract class TypedTaskModuleViewModelBase<TDto> : ObservableObject
         Runtime = runtime;
         Texts = texts;
         Scope = scope;
+        Texts.PropertyChanged += OnTextsPropertyChanged;
     }
 
     protected MAAUnifiedRuntime Runtime { get; }
@@ -38,6 +40,20 @@ public abstract class TypedTaskModuleViewModelBase<TDto> : ObservableObject
     protected bool IsApplyingDto => _isApplyingDto;
 
     public ObservableCollection<string> ValidationMessages { get; } = [];
+
+    private void OnTextsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.PropertyName)
+            && !string.Equals(e.PropertyName, nameof(LocalizedTextMap.Language), StringComparison.Ordinal)
+            && !string.Equals(e.PropertyName, "Item[]", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        OnPropertyChanged(nameof(Texts));
+        // Re-raise all module projections so selected-task views can update without recreating the VM.
+        OnPropertyChanged(string.Empty);
+    }
 
     public bool IsAdvancedMode
     {

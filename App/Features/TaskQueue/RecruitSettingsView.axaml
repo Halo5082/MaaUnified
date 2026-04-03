@@ -8,12 +8,7 @@
 
     <StackPanel Grid.Row="1" Spacing="{DynamicResource MAA.Spacing.Small}">
       <StackPanel IsVisible="{Binding IsGeneralMode}" Spacing="{DynamicResource MAA.Spacing.Small}">
-      <Grid ColumnDefinitions="Auto,Auto">
         <CheckBox Content="{Binding Texts[Recruit.UseExpedited]}" IsChecked="{Binding UseExpedited}" />
-        <controls:TooltipHint Grid.Column="1"
-                              Margin="{DynamicResource MAA.Thickness.MarginLeftSmall}"
-                              Tip="{Binding Texts[Recruit.UseExpeditedTip]}" />
-      </Grid>
 
         <TextBlock Text="{Binding Texts[Recruit.Times]}" />
         <controls:VerticalSpinNumberBox Minimum="0" Maximum="99" Value="{Binding Times}" />
@@ -22,7 +17,8 @@
       <StackPanel IsVisible="{Binding IsAdvancedMode}" Spacing="{DynamicResource MAA.Spacing.Small}">
         <TextBlock Text="{Binding Texts[Recruit.SelectStrategy]}" />
         <ComboBox ItemsSource="{Binding ExtraTagsModeOptions}"
-                  SelectedItem="{Binding SelectedExtraTagsModeOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding ExtraTagsMode}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:RecruitTaskModuleViewModel+ExtraTagsModeOption">
               <TextBlock Text="{Binding DisplayName}" />
@@ -30,12 +26,7 @@
           </ComboBox.ItemTemplate>
         </ComboBox>
 
-      <Grid ColumnDefinitions="Auto,Auto">
         <TextBlock Text="{Binding Texts[Recruit.FirstTags]}" />
-        <controls:TooltipHint Grid.Column="1"
-                              Margin="{DynamicResource MAA.Thickness.MarginLeftSmall}"
-                              Tip="{Binding Texts[Recruit.HighPriorityTip]}" />
-      </Grid>
         <controls:CheckComboBox HeaderText="{Binding FirstTagsSummary}">
           <controls:CheckComboBox.DropDownContent>
             <ListBox Classes="wpf-list-no-highlight"

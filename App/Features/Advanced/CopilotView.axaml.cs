@@ -50,7 +50,7 @@ public partial class CopilotView : UserControl
         var files = await storageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
-                Title = VM.Texts["Copilot.FilePicker.SelectTask.Title"],
+                Title = VM.SelectTaskFilePickerTitle,
                 AllowMultiple = false,
                 FileTypeFilter = [JsonFileType],
             });
@@ -77,7 +77,7 @@ public partial class CopilotView : UserControl
         var files = await storageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions
             {
-                Title = VM.Texts["Copilot.FilePicker.ImportBatch.Title"],
+                Title = VM.ImportBatchFilePickerTitle,
                 AllowMultiple = true,
                 FileTypeFilter = [JsonFileType],
             });

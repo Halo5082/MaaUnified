@@ -12,7 +12,7 @@
       <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.Game.ClientType]}" />
       <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldCenteredWidth}"
                 ItemsSource="{Binding ConnectionGameSharedState.ClientTypeOptions}"
-                SelectedItem="{Binding ConnectionGameSharedState.SelectedClientTypeOption}">
+                SelectedItem="{Binding ConnectionGameSharedState.SelectedClientTypeOption, Mode=TwoWay}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="vm:ConnectionGameOptionItem">
             <TextBlock Text="{Binding DisplayName}" />

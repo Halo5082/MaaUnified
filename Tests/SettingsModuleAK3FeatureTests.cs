@@ -131,6 +131,65 @@ public sealed class SettingsModuleAK3FeatureTests
     }
 
     [Fact]
+    public async Task Timer_SaveDisabledSlotWithoutProfileWhenCustomConfig_AllowsSave()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        vm.CustomTimerConfig = true;
+        vm.Timers[3].Enabled = false;
+        vm.Timers[3].Time = "10:15";
+        vm.Timers[3].Profile = string.Empty;
+
+        await vm.SaveTimerSettingsAsync();
+
+        Assert.False(vm.HasPendingTimerChanges, vm.TimerValidationMessage);
+        Assert.Equal("False", ReadGlobalString(fixture.Config, TimerEnabledKey(4)));
+        Assert.Equal(string.Empty, ReadGlobalString(fixture.Config, TimerProfileKey(4)));
+    }
+
+    [Fact]
+    public async Task Timer_ViewCompositionTransientEmptyProfile_IsRepairedBeforeAutoSaveResumes()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Config.CurrentConfig.Profiles["Alpha"] = new UnifiedProfile();
+        fixture.Config.CurrentConfig.Profiles["Beta"] = new UnifiedProfile();
+        fixture.Config.CurrentConfig.GlobalValues[LegacyConfigurationKeys.CustomConfig] = JsonValue.Create(true);
+        fixture.Config.CurrentConfig.GlobalValues[TimerEnabledKey(1)] = JsonValue.Create(true);
+        fixture.Config.CurrentConfig.GlobalValues[TimerHourKey(1)] = JsonValue.Create(7);
+        fixture.Config.CurrentConfig.GlobalValues[TimerMinuteKey(1)] = JsonValue.Create(30);
+        fixture.Config.CurrentConfig.GlobalValues[TimerProfileKey(1)] = JsonValue.Create("Alpha");
+        fixture.Config.CurrentConfig.GlobalValues[TimerEnabledKey(3)] = JsonValue.Create(true);
+        fixture.Config.CurrentConfig.GlobalValues[TimerHourKey(3)] = JsonValue.Create(8);
+        fixture.Config.CurrentConfig.GlobalValues[TimerMinuteKey(3)] = JsonValue.Create(45);
+        fixture.Config.CurrentConfig.GlobalValues[TimerProfileKey(3)] = JsonValue.Create("Beta");
+        await fixture.Config.SaveAsync();
+
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        vm.BeginViewComposition();
+        vm.Timers[0].Profile = string.Empty;
+        vm.Timers[2].Profile = string.Empty;
+
+        Assert.False(vm.HasPendingTimerChanges);
+        Assert.Equal(string.Empty, vm.Timers[0].Profile);
+        Assert.Equal(string.Empty, vm.Timers[2].Profile);
+
+        vm.EndViewComposition();
+
+        Assert.False(vm.HasPendingTimerChanges, vm.TimerValidationMessage);
+        Assert.Equal("Alpha", vm.Timers[0].Profile);
+        Assert.Equal("Beta", vm.Timers[2].Profile);
+
+        var errorLog = File.Exists(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            ? await File.ReadAllTextAsync(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            : string.Empty;
+        Assert.DoesNotContain(UiErrorCode.TimerProfileMissing, errorLog, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Timer_LoadLegacyKeys_NormalizesAndWarns()
     {
         await using var fixture = await RuntimeFixture.CreateAsync();

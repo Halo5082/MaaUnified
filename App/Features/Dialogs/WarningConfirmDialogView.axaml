@@ -27,7 +27,7 @@
                Grid.Column="1"
                Classes="section-title"
                VerticalAlignment="Center"
-               Text="警告" />
+               Text="" />
 
     <Border Grid.Row="1"
             Grid.ColumnSpan="2"
@@ -35,7 +35,7 @@
             Margin="0,12,0,0">
       <TextBlock x:Name="PromptText"
                  Classes="long-wrap"
-                 Text="确认执行危险操作？" />
+                 Text="" />
     </Border>
 
     <StackPanel Grid.Row="2"
@@ -46,11 +46,11 @@
                 Spacing="8">
       <Button x:Name="CancelButton"
               Classes="wpf-button wpf-button-secondary"
-              Content="取消"
+              Content=""
               Click="OnCancelClick" />
       <Button x:Name="ConfirmButton"
               Classes="wpf-button"
-              Content="确认"
+              Content=""
               Click="OnConfirmClick" />
     </StackPanel>
   </Grid>

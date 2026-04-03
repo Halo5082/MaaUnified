@@ -675,6 +675,54 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         $"{RootTexts.GetOrDefault("TaskQueue.Root.Rename", "Rename")} / " +
         $"{RootTexts.GetOrDefault("TaskQueue.Root.Delete", "Delete")}";
 
+    public string TaskListTitleText => RootTexts.GetOrDefault("TaskQueue.Root.TaskListTitle", "Task list");
+
+    public string TaskConfigTitleText => RootTexts.GetOrDefault("TaskQueue.Root.TaskConfigTitle", "Task config");
+
+    public string LogsTitleText => RootTexts.GetOrDefault("TaskQueue.Root.LogsTitle", "Logs");
+
+    public string OverlayButtonText => RootTexts.GetOrDefault("TaskQueue.Root.OverlayButton", "Overlay");
+
+    public string TaskMenuMoveUpText => RootTexts.GetOrDefault("TaskQueue.Root.MoveUp", "Move up");
+
+    public string TaskMenuMoveDownText => RootTexts.GetOrDefault("TaskQueue.Root.MoveDown", "Move down");
+
+    public string TaskMenuRenameText => RootTexts.GetOrDefault("TaskQueue.Root.Rename", "Rename");
+
+    public string TaskMenuDeleteText => RootTexts.GetOrDefault("TaskQueue.Root.Delete", "Delete");
+
+    public string TaskMenuIconText => RootTexts.GetOrDefault("TaskQueue.Root.TaskMenuIcon", "...");
+
+    public string AddTaskButtonText => RootTexts.GetOrDefault("TaskQueue.Root.AddTaskIcon", "+");
+
+    public string SelectAllButtonText => RootTexts.GetOrDefault("TaskQueue.Root.SelectAll", "Select all");
+
+    public string GeneralSettingsButtonText => RootTexts.GetOrDefault("TaskQueue.Root.GeneralSettings", "General settings");
+
+    public string AdvancedSettingsButtonText => RootTexts.GetOrDefault("TaskQueue.Root.AdvancedSettings", "Advanced settings");
+
+    public string DailyStageLabelText => RootTexts.GetOrDefault("TaskQueue.Root.DailyStageLabel", "Daily stage");
+
+    public string DailyStageTooltipText => RootTexts.GetOrDefault("TaskQueue.Root.DailyStageTooltip", "Daily stage tooltip");
+
+    public string AddTaskMenuStartUpText => ResolveModuleDisplayName(TaskModuleTypes.StartUp);
+
+    public string AddTaskMenuFightText => ResolveModuleDisplayName(TaskModuleTypes.Fight);
+
+    public string AddTaskMenuInfrastText => ResolveModuleDisplayName(TaskModuleTypes.Infrast);
+
+    public string AddTaskMenuRecruitText => ResolveModuleDisplayName(TaskModuleTypes.Recruit);
+
+    public string AddTaskMenuMallText => ResolveModuleDisplayName(TaskModuleTypes.Mall);
+
+    public string AddTaskMenuAwardText => ResolveModuleDisplayName(TaskModuleTypes.Award);
+
+    public string AddTaskMenuRoguelikeText => ResolveModuleDisplayName(TaskModuleTypes.Roguelike);
+
+    public string AddTaskMenuReclamationText => ResolveModuleDisplayName(TaskModuleTypes.Reclamation);
+
+    public string AddTaskMenuCustomText => ResolveModuleDisplayName(TaskModuleTypes.Custom);
+
     public bool IsGeneralSettingsSelected
     {
         get => !_isAdvancedSettingsSelected;
@@ -954,6 +1002,8 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         RefreshTaskItemsLocalization();
         UpdatePostActionSummary();
         RefreshSelectedTaskValidationSummaryLocalization();
+        NotifyRootChromeTextChanged();
+        RaiseSelectedTaskProjectionChanged();
         OnPropertyChanged(nameof(RunButtonText));
         OnPropertyChanged(nameof(WaitAndStopButtonText));
         OnPropertyChanged(nameof(BatchActionText));
@@ -965,7 +1015,36 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         OnPropertyChanged(nameof(IsOverlayNativeMode));
         OnPropertyChanged(nameof(OverlayTargetSummaryText));
         OnPropertyChanged(nameof(OverlayButtonToolTip));
+        OnPropertyChanged(string.Empty);
         _ = RefreshOverlayStatusTextAsync();
+    }
+
+    private void NotifyRootChromeTextChanged()
+    {
+        OnPropertyChanged(nameof(TaskListTitleText));
+        OnPropertyChanged(nameof(TaskConfigTitleText));
+        OnPropertyChanged(nameof(LogsTitleText));
+        OnPropertyChanged(nameof(OverlayButtonText));
+        OnPropertyChanged(nameof(TaskMenuMoveUpText));
+        OnPropertyChanged(nameof(TaskMenuMoveDownText));
+        OnPropertyChanged(nameof(TaskMenuRenameText));
+        OnPropertyChanged(nameof(TaskMenuDeleteText));
+        OnPropertyChanged(nameof(TaskMenuIconText));
+        OnPropertyChanged(nameof(AddTaskButtonText));
+        OnPropertyChanged(nameof(SelectAllButtonText));
+        OnPropertyChanged(nameof(GeneralSettingsButtonText));
+        OnPropertyChanged(nameof(AdvancedSettingsButtonText));
+        OnPropertyChanged(nameof(DailyStageLabelText));
+        OnPropertyChanged(nameof(DailyStageTooltipText));
+        OnPropertyChanged(nameof(AddTaskMenuStartUpText));
+        OnPropertyChanged(nameof(AddTaskMenuFightText));
+        OnPropertyChanged(nameof(AddTaskMenuInfrastText));
+        OnPropertyChanged(nameof(AddTaskMenuRecruitText));
+        OnPropertyChanged(nameof(AddTaskMenuMallText));
+        OnPropertyChanged(nameof(AddTaskMenuAwardText));
+        OnPropertyChanged(nameof(AddTaskMenuRoguelikeText));
+        OnPropertyChanged(nameof(AddTaskMenuReclamationText));
+        OnPropertyChanged(nameof(AddTaskMenuCustomText));
     }
 
     private DialogChromeCatalog CreateTaskQueueDialogChrome(Func<RootLocalizationTextMap, DialogChromeSnapshot> snapshotFactory)
@@ -2123,7 +2202,13 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         return await TryRestartAdbServerAsync(adbExecutable, cancellationToken);
     }
 
-    private async Task<bool> TryStartEmulatorForReconnectAsync(CancellationToken cancellationToken)
+    internal Task<bool> TryStartEmulatorOnStartupAsync(CancellationToken cancellationToken = default)
+        => TryStartEmulatorAsync("startup", cancellationToken);
+
+    private Task<bool> TryStartEmulatorForReconnectAsync(CancellationToken cancellationToken)
+        => TryStartEmulatorAsync("reconnect", cancellationToken);
+
+    private async Task<bool> TryStartEmulatorAsync(string source, CancellationToken cancellationToken)
     {
         var config = Runtime.ConfigurationService.CurrentConfig;
         var startEnabled = TryReadProfileBool(config, ConfigurationKeys.StartEmulator, false);
@@ -2148,6 +2233,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
                 UseShellExecute = true,
             };
 
+            Runtime.LogService.Debug($"Auto start emulator triggered from {source}: `{emulatorPath}`");
             _ = Process.Start(startInfo);
 
             var waitSeconds = Math.Clamp(
@@ -2163,7 +2249,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         }
         catch (Exception ex)
         {
-            Runtime.LogService.Warn($"Auto start emulator failed: {ex.Message}");
+            Runtime.LogService.Warn($"Auto start emulator failed during {source}: {ex.Message}");
             return false;
         }
     }
@@ -3302,12 +3388,18 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
 
     private void UpdateDownloadLog(DateTimeOffset timestamp, string level, string message)
     {
-        if (message.Contains("download", StringComparison.OrdinalIgnoreCase)
+        const string updatePrefix = "[update]";
+        var isExplicitUpdateLog = message.StartsWith(updatePrefix, StringComparison.OrdinalIgnoreCase);
+        if (isExplicitUpdateLog
+            || message.Contains("download", StringComparison.OrdinalIgnoreCase)
             || message.Contains("下载", StringComparison.Ordinal))
         {
+            var content = isExplicitUpdateLog
+                ? message[updatePrefix.Length..].TrimStart()
+                : message;
             DownloadLogEntry = new TaskQueueLogEntryViewModel(
                 FormatLogTimestamp(timestamp),
-                message,
+                content,
                 NormalizeLogLevel(level));
         }
     }

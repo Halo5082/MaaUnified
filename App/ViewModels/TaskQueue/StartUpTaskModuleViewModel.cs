@@ -111,6 +111,12 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
         set => ClientType = value?.Type ?? string.Empty;
     }
 
+    public string SelectedClientTypeValue
+    {
+        get => NormalizeClientTypeAlias(ClientType);
+        set => ClientType = value ?? string.Empty;
+    }
+
     public TaskModuleOption? SelectedConnectConfigOption
     {
         get
@@ -127,10 +133,22 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
         set => ConnectConfig = value?.Type ?? string.Empty;
     }
 
+    public string SelectedConnectConfigValue
+    {
+        get => NormalizeConnectConfigAlias(ConnectConfig);
+        set => ConnectConfig = value ?? string.Empty;
+    }
+
     public TaskModuleOption? SelectedTouchModeOption
     {
         get => ResolveSelectedOption(TouchModeOptions, TouchMode);
         set => TouchMode = value?.Type ?? string.Empty;
+    }
+
+    public string SelectedTouchModeValue
+    {
+        get => TouchMode;
+        set => TouchMode = value ?? string.Empty;
     }
 
     public TaskModuleOption? SelectedAttachWindowScreencapOption
@@ -181,6 +199,7 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
             MarkDirty();
             OnPropertyChanged();
             OnPropertyChanged(nameof(SelectedClientTypeOption));
+            OnPropertyChanged(nameof(SelectedClientTypeValue));
             OnPropertyChanged(nameof(ShowAccountSwitch));
             OnPropertyChanged(nameof(CanRunAccountSwitchNow));
             if (!IsAccountSwitchSupportedClient(normalized))
@@ -222,6 +241,7 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
             MarkDirty();
             OnPropertyChanged();
             OnPropertyChanged(nameof(SelectedConnectConfigOption));
+            OnPropertyChanged(nameof(SelectedConnectConfigValue));
         }
     }
 
@@ -271,6 +291,7 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
             MarkDirty();
             OnPropertyChanged();
             OnPropertyChanged(nameof(SelectedTouchModeOption));
+            OnPropertyChanged(nameof(SelectedTouchModeValue));
         }
     }
 
@@ -426,6 +447,7 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
             case nameof(ConnectionGameSharedStateViewModel.ConnectConfig):
                 OnPropertyChanged(nameof(ConnectConfig));
                 OnPropertyChanged(nameof(SelectedConnectConfigOption));
+                OnPropertyChanged(nameof(SelectedConnectConfigValue));
                 OnPropertyChanged(nameof(CanEditStartGameEnabled));
                 break;
             case nameof(ConnectionGameSharedStateViewModel.ConnectAddress):
@@ -437,6 +459,7 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
             case nameof(ConnectionGameSharedStateViewModel.ClientType):
                 OnPropertyChanged(nameof(ClientType));
                 OnPropertyChanged(nameof(SelectedClientTypeOption));
+                OnPropertyChanged(nameof(SelectedClientTypeValue));
                 OnPropertyChanged(nameof(ShowAccountSwitch));
                 OnPropertyChanged(nameof(CanRunAccountSwitchNow));
                 break;
@@ -446,6 +469,7 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
             case nameof(ConnectionGameSharedStateViewModel.TouchMode):
                 OnPropertyChanged(nameof(TouchMode));
                 OnPropertyChanged(nameof(SelectedTouchModeOption));
+                OnPropertyChanged(nameof(SelectedTouchModeValue));
                 break;
             case nameof(ConnectionGameSharedStateViewModel.AutoDetect):
                 OnPropertyChanged(nameof(AutoDetectConnection));
@@ -499,8 +523,11 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
         OnPropertyChanged(nameof(AttachWindowScreencapOptions));
         OnPropertyChanged(nameof(AttachWindowInputOptions));
         OnPropertyChanged(nameof(SelectedClientTypeOption));
+        OnPropertyChanged(nameof(SelectedClientTypeValue));
         OnPropertyChanged(nameof(SelectedConnectConfigOption));
+        OnPropertyChanged(nameof(SelectedConnectConfigValue));
         OnPropertyChanged(nameof(SelectedTouchModeOption));
+        OnPropertyChanged(nameof(SelectedTouchModeValue));
         OnPropertyChanged(nameof(SelectedAttachWindowScreencapOption));
         OnPropertyChanged(nameof(SelectedAttachWindowMouseOption));
         OnPropertyChanged(nameof(SelectedAttachWindowKeyboardOption));
@@ -532,7 +559,27 @@ public sealed class StartUpTaskModuleViewModel : TypedTaskModuleViewModelBase<St
             }
         }
 
-        return new TaskModuleOption(normalized, normalized);
+        return options.FirstOrDefault();
+    }
+
+    private static string NormalizeConnectConfigAlias(string value)
+    {
+        if (string.Equals(value, "Mumu", StringComparison.OrdinalIgnoreCase))
+        {
+            return "MuMuEmulator12";
+        }
+
+        return value?.Trim() ?? string.Empty;
+    }
+
+    private static string NormalizeClientTypeAlias(string value)
+    {
+        if (string.Equals(value, "Txwy", StringComparison.OrdinalIgnoreCase))
+        {
+            return "txwy";
+        }
+
+        return value?.Trim() ?? string.Empty;
     }
 
     private static bool IsAccountSwitchSupportedClient(string? clientType)

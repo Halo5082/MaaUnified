@@ -82,9 +82,9 @@ public static class AchievementTextCatalog
         return language switch
         {
             "zh-cn" => ["zh-cn"],
-            "zh-tw" => ["zh-cn", "zh-tw"],
-            "en-us" => ["zh-cn", "en-us"],
-            _ => ["zh-cn", "en-us", language],
+            "zh-tw" => ["zh-tw", "zh-cn", "en-us"],
+            "en-us" => ["en-us", "zh-cn"],
+            _ => [language, "en-us", "zh-cn"],
         };
     }
 

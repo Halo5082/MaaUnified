@@ -30,7 +30,8 @@
             <ComboBox Grid.Column="1"
                       Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
                       ItemsSource="{Binding FormationOptions}"
-                      SelectedItem="{Binding SelectedFormationOption}">
+                      SelectedValueBinding="{Binding Value}"
+                      SelectedValue="{Binding FormationIndex}">
               <ComboBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:MallModuleViewModel+IntOption">
                   <TextBlock Text="{Binding DisplayName}" />

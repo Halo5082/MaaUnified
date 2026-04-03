@@ -72,17 +72,84 @@ public sealed class TaskQueueG1FeatureTests
         await using var fixture = await TestFixture.CreateAsync();
         Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Fight, "理智作战")).Success);
         Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Recruit, "公開招募")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Reclamation, "生息演算")).Success);
 
         var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
         await vm.InitializeAsync();
 
         Assert.Equal("理智作战", vm.Tasks[0].DisplayName);
         Assert.Equal("自动公招", vm.Tasks[1].DisplayName);
+        Assert.Equal("生息演算", vm.Tasks[2].DisplayName);
 
         vm.SetLanguage("en-us");
 
         Assert.Equal("Combat", vm.Tasks[0].DisplayName);
         Assert.Equal("Recruit", vm.Tasks[1].DisplayName);
+        Assert.Equal("Reclamation", vm.Tasks[2].DisplayName);
+    }
+
+    [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldNotifySelectedModuleTextsForImmediateRefresh()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Reclamation, "生息演算")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = Assert.Single(vm.Tasks);
+        await vm.WaitForPendingBindingAsync();
+
+        var changedProperties = new List<string>();
+        vm.ReclamationModule.PropertyChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.PropertyName))
+            {
+                changedProperties.Add(e.PropertyName);
+            }
+        };
+
+        vm.SetLanguage("en-us");
+
+        Assert.Contains(nameof(ReclamationModuleViewModel.Texts), changedProperties);
+        Assert.Equal("Reclamation", vm.ReclamationModule.Texts["Reclamation.Title"]);
+    }
+
+    [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldRefreshSelectedTaskHostProjection()
+    {
+        await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Fight, "fight")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = Assert.Single(vm.Tasks);
+        await vm.WaitForPendingBindingAsync();
+
+        var changedProperties = new List<string?>();
+        vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName);
+
+        vm.SetLanguage("en-us");
+
+        Assert.Contains(nameof(TaskQueuePageViewModel.SelectedTaskSettingsViewModel), changedProperties);
+        Assert.Contains(string.Empty, changedProperties);
+    }
+
+    [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldRefreshRootChromeTextProperties()
+    {
+        await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        var zhSelectAll = vm.SelectAllButtonText;
+        var zhReclamation = vm.AddTaskMenuReclamationText;
+
+        vm.SetLanguage("en-us");
+
+        Assert.NotEqual(zhSelectAll, vm.SelectAllButtonText);
+        Assert.NotEqual(zhReclamation, vm.AddTaskMenuReclamationText);
+        Assert.Equal("Select all", vm.SelectAllButtonText);
+        Assert.Equal("Reclamation", vm.AddTaskMenuReclamationText);
     }
 
     [Fact]

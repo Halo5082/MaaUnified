@@ -13,4 +13,5 @@ public sealed record VersionUpdateCheckResult(
     Uri? PackageDownloadUrl,
     long? PackageSize,
     bool IsNewVersion,
-    bool HasPackage);
+    bool HasPackage,
+    string? PreparedPackagePath = null);

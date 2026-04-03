@@ -100,6 +100,20 @@ public sealed class SessionStateUiProjectionTests
     }
 
     [Fact]
+    public async Task TaskQueuePage_ShouldProjectExplicitUpdateLogs_ToDownloadPanel()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+
+        typeof(TaskQueuePageViewModel)
+            .GetMethod("UpdateDownloadLog", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(vm, [DateTimeOffset.UtcNow, "INFO", "[update] Version update available: v2.0.0"]);
+
+        Assert.Contains("Version update available: v2.0.0", vm.DownloadLogEntry.Content, StringComparison.Ordinal);
+        Assert.DoesNotContain("[update]", vm.DownloadLogEntry.Content, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task TaskQueuePage_Start_WhenConnectFails_ShouldShowConciseGuidanceWithoutIdleNoise()
     {
         await using var fixture = await TestFixture.CreateAsync(bridge: new FailingConnectBridge());

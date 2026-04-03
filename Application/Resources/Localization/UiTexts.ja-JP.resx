@@ -1,0 +1,3985 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AsYourHeartDesires" xml:space="preserve">
+    <value>自由自在（ランダム）</value>
+  </data>
+  <data name="Award.Award" xml:space="preserve">
+    <value>デイリー/ウィークリー報酬を受取</value>
+  </data>
+  <data name="Award.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Award.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Award.FreeGachaTip" xml:space="preserve">
+    <value>無料スカウトがない場合はスカウトしない</value>
+  </data>
+  <data name="Award.GachaWarning" xml:space="preserve">
+    <value>これは危険な機能であり、誤用につながる可能性があります
+「{key=Confirm}」ボタンを押すことで、起こりうる危険を理解し、それを引き受ける意思があるとみなされます</value>
+  </data>
+  <data name="Award.Mail" xml:space="preserve">
+    <value>メール報酬を受取</value>
+  </data>
+  <data name="Award.Mining" xml:space="preserve">
+    <value>期間限定の採掘許可で毎日合成玉の報酬を受け取る</value>
+  </data>
+  <data name="Award.Orundum" xml:space="preserve">
+    <value>ラッキーウォールから毎日合成玉の報酬を受け取る</value>
+  </data>
+  <data name="Award.Recruit" xml:space="preserve">
+    <value>無料単発を実行</value>
+  </data>
+  <data name="Award.RecruitTip" xml:space="preserve">
+    <value>この機能は危険で、誤ったスカウトにつながる可能性があります。</value>
+  </data>
+  <data name="Award.Special" xml:space="preserve">
+    <value>スペシャルアクセス特典を集める</value>
+  </data>
+  <data name="Award.Title" xml:space="preserve">
+    <value>報酬受取</value>
+  </data>
+  <data name="Common.ErrorPrefix" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="Common.LoadingTaskHint" xml:space="preserve">
+    <value>左側のタスクリストから対象タスクを選択してください。</value>
+  </data>
+  <data name="Common.ValidationIssues" xml:space="preserve">
+    <value>検証メッセージ</value>
+  </data>
+  <data name="Common.WarningPrefix" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="Copilot.Action.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="Copilot.Action.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Copilot.Button.Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="Copilot.Button.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Copilot.Button.Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="Copilot.Button.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Copilot.Button.Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Copilot.Button.Dislike" xml:space="preserve">
+    <value>低評価</value>
+  </data>
+  <data name="Copilot.Button.Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="Copilot.Button.File" xml:space="preserve">
+    <value>ファイル</value>
+  </data>
+  <data name="Copilot.Button.ImportBatch" xml:space="preserve">
+    <value>一括インポート</value>
+  </data>
+  <data name="Copilot.Button.Like" xml:space="preserve">
+    <value>高評価</value>
+  </data>
+  <data name="Copilot.Button.Load" xml:space="preserve">
+    <value>読み込み</value>
+  </data>
+  <data name="Copilot.Button.Paste" xml:space="preserve">
+    <value>貼り付け</value>
+  </data>
+  <data name="Copilot.Button.PasteSet" xml:space="preserve">
+    <value>作業セット</value>
+  </data>
+  <data name="Copilot.List.InlineJsonHint" xml:space="preserve">
+    <value>埋め込み JSON</value>
+  </data>
+  <data name="Copilot.List.RaidLabel" xml:space="preserve">
+    <value>強襲</value>
+  </data>
+  <data name="Copilot.FilePicker.ImportBatch.Title" xml:space="preserve">
+    <value>作業を一括インポート</value>
+  </data>
+  <data name="Copilot.FilePicker.SelectTask.Title" xml:space="preserve">
+    <value>作業を選択</value>
+  </data>
+  <data name="Copilot.Input.OperatorNameWatermark" xml:space="preserve">
+    <value>オペレーター名</value>
+  </data>
+  <data name="Copilot.Input.PathOrCodeWatermark" xml:space="preserve">
+    <value>作業パス/シークレットコード</value>
+  </data>
+  <data name="Copilot.Input.StageNameWatermark" xml:space="preserve">
+    <value>ステージ名</value>
+  </data>
+  <data name="Copilot.Option.AddTrust" xml:space="preserve">
+    <value>低信頼オペレーターを補充</value>
+  </data>
+  <data name="Copilot.Option.AddUserAdditional" xml:space="preserve">
+    <value>カスタムオペレーター追加</value>
+  </data>
+  <data name="Copilot.Option.AutoSquad" xml:space="preserve">
+    <value>自動編成</value>
+  </data>
+  <data name="Copilot.Option.BattleList" xml:space="preserve">
+    <value>戦闘リスト</value>
+  </data>
+  <data name="Copilot.Option.IgnoreRequirements" xml:space="preserve">
+    <value>オペレーター条件を無視</value>
+  </data>
+  <data name="Copilot.Option.LoopTimes" xml:space="preserve">
+    <value>ループ回数</value>
+  </data>
+  <data name="Copilot.Option.UseFormation" xml:space="preserve">
+    <value>編成を使用</value>
+  </data>
+  <data name="Copilot.Option.UseSanityPotion" xml:space="preserve">
+    <value>理性剤を使用</value>
+  </data>
+  <data name="Copilot.Option.UseSupportUnit" xml:space="preserve">
+    <value>サポートを使用</value>
+  </data>
+  <data name="Copilot.Tab.Display.Main" xml:space="preserve">
+    <value>メイン/ストーリー/SideStory</value>
+  </data>
+  <data name="Copilot.Tab.Display.Other" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="Copilot.Tab.Display.Paradox" xml:space="preserve">
+    <value>逆理演算</value>
+  </data>
+  <data name="Copilot.Tab.Display.Security" xml:space="preserve">
+    <value>保全駐在</value>
+  </data>
+  <data name="Copilot.Tab.Main" xml:space="preserve">
+    <value>メイン/ストーリー/SideStory</value>
+  </data>
+  <data name="Copilot.Tab.Other" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="Copilot.Tab.Paradox" xml:space="preserve">
+    <value>逆理演算</value>
+  </data>
+  <data name="Copilot.Tab.Security" xml:space="preserve">
+    <value>保全駐在</value>
+  </data>
+  <data name="CurrentSanity" xml:space="preserve">
+    <value>理性: {0}/{1}  </value>
+  </data>
+  <data name="Custom.TaskNames" xml:space="preserve">
+    <value>タスク名リスト</value>
+  </data>
+  <data name="Custom.TaskNamesPreview" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="Custom.Title" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="Dialog.Common.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Dialog.Common.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Dialog.Common.Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Dialog.Common.Refreshing" xml:space="preserve">
+    <value>更新中...</value>
+  </data>
+  <data name="Dialog.TextDialog.SectionTitle" xml:space="preserve">
+    <value>テキストダイアログ</value>
+  </data>
+  <data name="Fight.AllowUseStoneSave" xml:space="preserve">
+    <value>源石の数を割る保存状態を許可</value>
+  </data>
+  <data name="Fight.AllowUseStoneSaveWarning" xml:space="preserve">
+    <value>この機能は危険な機能と見なされます。「{key=Confirm}」ボタンを押すと、リスクを理解し、受け入れることに同意したと見なされます。</value>
+  </data>
+  <data name="Fight.Annihilation.Chernobog" xml:space="preserve">
+    <value>チェルノボーグ</value>
+  </data>
+  <data name="Fight.Annihilation.Current" xml:space="preserve">
+    <value>今期の殲滅作戦</value>
+  </data>
+  <data name="Fight.Annihilation.LungmenDowntown" xml:space="preserve">
+    <value>龍門市街</value>
+  </data>
+  <data name="Fight.Annihilation.LungmenOutskirts" xml:space="preserve">
+    <value>龍門郊外</value>
+  </data>
+  <data name="Fight.AnnihilationStage" xml:space="preserve">
+    <value>殲滅ステージ</value>
+  </data>
+  <data name="Fight.AssignedMaterial" xml:space="preserve">
+    <value>素材の指定</value>
+  </data>
+  <data name="Fight.DefaultStage" xml:space="preserve">
+    <value>現在/前回</value>
+  </data>
+  <data name="Fight.DrGrandet" xml:space="preserve">
+    <value>DrGrandet モード</value>
+  </data>
+  <data name="Fight.DrGrandetTip" xml:space="preserve">
+    <value>理性の回復画面で、現在の待機中の回復が完了するまで待ってから、理性剤などを使用します。</value>
+  </data>
+  <data name="Fight.Drop.NotSelected" xml:space="preserve">
+    <value>選ばない</value>
+  </data>
+  <data name="Fight.DropCount" xml:space="preserve">
+    <value>目標数</value>
+  </data>
+  <data name="Fight.DropId" xml:space="preserve">
+    <value>ドロップ ID</value>
+  </data>
+  <data name="Fight.EnableTargetDrop" xml:space="preserve">
+    <value>目標ドロップ</value>
+  </data>
+  <data name="Fight.EnableTimesLimit" xml:space="preserve">
+    <value>回数制限</value>
+  </data>
+  <data name="Fight.HideSeries" xml:space="preserve">
+    <value>連戦回数を隠します</value>
+  </data>
+  <data name="Fight.HideUnavailableStage" xml:space="preserve">
+    <value>未開放ステージを非表示</value>
+  </data>
+  <data name="Fight.Medicine" xml:space="preserve">
+    <value>理性剤数</value>
+  </data>
+  <data name="Fight.NotSwitch" xml:space="preserve">
+    <value>切り替えない</value>
+  </data>
+  <data name="Fight.PerformBattles" xml:space="preserve">
+    <value>周回数指定</value>
+  </data>
+  <data name="Fight.Series" xml:space="preserve">
+    <value>連戦</value>
+  </data>
+  <data name="Fight.SeriesTip" xml:space="preserve">
+    <value>• 自動:
+レベルの最大代理乗数を自動で判別し、最大代理乗数を維持し、正気ポーション使用後に正気度オーバーフローが発生しないようにします。
+
+• 値 (1～6):
+設定された乗数に従って代理を実行します。
+現在の正気度が設定された乗数を満たしていない場合（例えば、5回分しか残っていないのに6回に設定している場合）、バトルに参加できません。
+または
+バトル回数が設定された乗数を満たしていない場合（例えば、5回分しか残っていないのに6回に設定している場合）、バトルに参加できません。
+
+• {key=NotSwitch}:
+ゲーム内で代理乗数の設定を調整しません。</value>
+  </data>
+  <data name="Fight.SpecifiedDropsTip" xml:space="preserve">
+    <value>この機能では最適なステージを自動的に計算しません</value>
+  </data>
+  <data name="Fight.Stage" xml:space="preserve">
+    <value>ステージ</value>
+  </data>
+  <data name="Fight.StageReset.Current" xml:space="preserve">
+    <value>現在/前回</value>
+  </data>
+  <data name="Fight.StageReset.Ignore" xml:space="preserve">
+    <value>切り替えない</value>
+  </data>
+  <data name="Fight.StageResetMode" xml:space="preserve">
+    <value>日替わりリセット</value>
+  </data>
+  <data name="Fight.StageSelect" xml:space="preserve">
+    <value>ステージ</value>
+  </data>
+  <data name="Fight.Stone" xml:space="preserve">
+    <value>源石数</value>
+  </data>
+  <data name="Fight.Times" xml:space="preserve">
+    <value>回数</value>
+  </data>
+  <data name="Fight.Title" xml:space="preserve">
+    <value>作戦</value>
+  </data>
+  <data name="Fight.UseAlternateStage" xml:space="preserve">
+    <value>代替ステージ</value>
+  </data>
+  <data name="Fight.UseCustomAnnihilation" xml:space="preserve">
+    <value>殲滅カスタム</value>
+  </data>
+  <data name="Fight.UseExpiringMedicine" xml:space="preserve">
+    <value>期限切れ間近理性剤</value>
+  </data>
+  <data name="Fight.UseMedicine" xml:space="preserve">
+    <value>理性剤を使う</value>
+  </data>
+  <data name="Fight.UseStone" xml:space="preserve">
+    <value>源石を使う</value>
+  </data>
+  <data name="Fight.UseStoneDisplay" xml:space="preserve">
+    <value>余剰理性の消費</value>
+  </data>
+  <data name="FirstMoveAdvantage" xml:space="preserve">
+    <value>先手必勝（先鋒、狙撃、特殊）</value>
+  </data>
+  <data name="FlexibleDeployment" xml:space="preserve">
+    <value>柔軟配置（先鋒、補助、特殊）</value>
+  </data>
+  <data name="Infrast.Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="Infrast.Default.153Time3" xml:space="preserve">
+    <value>153 3周/日</value>
+  </data>
+  <data name="Infrast.Default.153Time4" xml:space="preserve">
+    <value>153 4周/日</value>
+  </data>
+  <data name="Infrast.Default.243Time3" xml:space="preserve">
+    <value>243 3周/日</value>
+  </data>
+  <data name="Infrast.Default.243Time4" xml:space="preserve">
+    <value>243 4周/日</value>
+  </data>
+  <data name="Infrast.Default.333Time3" xml:space="preserve">
+    <value>333 3周/日</value>
+  </data>
+  <data name="Infrast.Default.UserDefined" xml:space="preserve">
+    <value>ユーザー定義</value>
+  </data>
+  <data name="Infrast.DefaultPreset" xml:space="preserve">
+    <value>標準設定</value>
+  </data>
+  <data name="Infrast.Drone.Chip" xml:space="preserve">
+    <value>製造所-中級SoC</value>
+  </data>
+  <data name="Infrast.Drone.CombatRecord" xml:space="preserve">
+    <value>製造所-作戦記録</value>
+  </data>
+  <data name="Infrast.Drone.Money" xml:space="preserve">
+    <value>貿易所-龍門幣</value>
+  </data>
+  <data name="Infrast.Drone.NotUse" xml:space="preserve">
+    <value>ドローンを使わない</value>
+  </data>
+  <data name="Infrast.Drone.OriginStone" xml:space="preserve">
+    <value>製造所-源石の欠片</value>
+  </data>
+  <data name="Infrast.Drone.PureGold" xml:space="preserve">
+    <value>製造所-純金</value>
+  </data>
+  <data name="Infrast.Drone.SyntheticJade" xml:space="preserve">
+    <value>貿易所-合成玉</value>
+  </data>
+  <data name="Infrast.Drones" xml:space="preserve">
+    <value>ドローン戦略</value>
+  </data>
+  <data name="Infrast.Error.CustomFileNotFound" xml:space="preserve">
+    <value>カスタム基地構成ファイルが見つかりません：{0}</value>
+  </data>
+  <data name="Infrast.Error.ParseFailed" xml:space="preserve">
+    <value>基地構成ファイルのパースエラー！</value>
+  </data>
+  <data name="Infrast.Error.PlanOutOfRange" xml:space="preserve">
+    <value>カスタム基地構成の選択がインデックスを超えています（{0}/{1}）。</value>
+  </data>
+  <data name="Infrast.Mode" xml:space="preserve">
+    <value>基地モード</value>
+  </data>
+  <data name="Infrast.Mode.Custom" xml:space="preserve">
+    <value>カスタムされた基地構成</value>
+  </data>
+  <data name="Infrast.Mode.Normal" xml:space="preserve">
+    <value>通常モード</value>
+  </data>
+  <data name="Infrast.Mode.Rotation" xml:space="preserve">
+    <value>一括シフト休暇</value>
+  </data>
+  <data name="Infrast.ModeRotationTip" xml:space="preserve">
+    <value>一括シフト休暇を使用する前に、ゲーム内で{key=Operator}のシフト編成を手動で設定してください</value>
+  </data>
+  <data name="Infrast.ModeRotationToolTip" xml:space="preserve">
+    <value>「{key=InfrastModeRotation}」の交代ロジックは、ゲーム内の基地右下にある「{key=InfrastModeRotation}」と全く同じです。
+現在の班にいるオペレーターの中で、いずれかの士気が0になると、班全体が次の班に交代します。
+交代スケジュールをカスタマイズする場合は「{key=InfrastModeCustom}」をご利用ください。</value>
+  </data>
+  <data name="Infrast.Plan" xml:space="preserve">
+    <value>計画インデックス</value>
+  </data>
+  <data name="Infrast.Plan.Auto" xml:space="preserve">
+    <value>自動（時間ローテーション）</value>
+  </data>
+  <data name="Infrast.Plan.AutoCurrent" xml:space="preserve">
+    <value>时间轮换 ({0})</value>
+  </data>
+  <data name="Infrast.Plan.DefaultName" xml:space="preserve">
+    <value>基地計画 {0}</value>
+  </data>
+  <data name="Infrast.Plan.Display" xml:space="preserve">
+    <value>{0}（{1} 時間帯）</value>
+  </data>
+  <data name="Infrast.Plan.Refresh" xml:space="preserve">
+    <value>計画を再読み込み</value>
+  </data>
+  <data name="Infrast.SelectAll" xml:space="preserve">
+    <value>すべて選択</value>
+  </data>
+  <data name="Infrast.Status.LoadedPlans" xml:space="preserve">
+    <value>{0} 件の計画を読み込みました。</value>
+  </data>
+  <data name="Infrast.Title" xml:space="preserve">
+    <value>基地</value>
+  </data>
+  <data name="Issue.ClientTypeMissing" xml:space="preserve">
+    <value>クライアント種別は必須です。</value>
+  </data>
+  <data name="Issue.CustomTaskNameInvalid" xml:space="preserve">
+    <value>カスタムタスク名に解析不能な構造化トークンがあります。</value>
+  </data>
+  <data name="Issue.CustomTaskNameUnknown" xml:space="preserve">
+    <value>カスタムタスク名が未認識です。</value>
+  </data>
+  <data name="Issue.CustomTaskNamesEmpty" xml:space="preserve">
+    <value>カスタムタスク名リストが空です。</value>
+  </data>
+  <data name="Issue.CustomTaskNamesNormalized" xml:space="preserve">
+    <value>カスタムタスク名を正規化・重複排除しました。</value>
+  </data>
+  <data name="Issue.DelimitedInputParseFailed" xml:space="preserve">
+    <value>構造化データ風の入力です。区切り文字付きテキストで入力してください。</value>
+  </data>
+  <data name="Issue.FightDropMissing" xml:space="preserve">
+    <value>目標ドロップを有効にした場合はドロップ ID が必要です。</value>
+  </data>
+  <data name="Issue.FightSeriesOutOfRange" xml:space="preserve">
+    <value>連戦は -1 から 6 の範囲で指定してください。</value>
+  </data>
+  <data name="Issue.FightStageMissing" xml:space="preserve">
+    <value>戦闘ステージは必須です。</value>
+  </data>
+  <data name="Issue.FightTimesMayNotExhausted" xml:space="preserve">
+    <value>現在の回数と連戦設定では回数を使い切れない可能性があります。</value>
+  </data>
+  <data name="Issue.FightTimesOutOfRange" xml:space="preserve">
+    <value>戦闘回数は 0 以上である必要があります。</value>
+  </data>
+  <data name="Issue.ReclamationClearStoreIgnoredInArchive" xml:space="preserve">
+    <value>有存档モードでは清倉が無効のためオフにしました。</value>
+  </data>
+  <data name="Issue.ReclamationIncrementModeOutOfRange" xml:space="preserve">
+    <value>増分モードは 0/1 のみ対応で自動補正されました。</value>
+  </data>
+  <data name="Issue.ReclamationModeInvalid" xml:space="preserve">
+    <value>生息演算モードが未対応です。</value>
+  </data>
+  <data name="Issue.ReclamationNumCraftBatchesOutOfRange" xml:space="preserve">
+    <value>クラフト回数は 0..99999 に自動補正されました。</value>
+  </data>
+  <data name="Issue.ReclamationThemeUnknown" xml:space="preserve">
+    <value>生息演算テーマが不明のため Tales にフォールバックしました。</value>
+  </data>
+  <data name="Issue.ReclamationToolNameInvalid" xml:space="preserve">
+    <value>クラフト対象に解析不能な構造化トークンが含まれています。</value>
+  </data>
+  <data name="Issue.ReclamationToolsIgnoredInNoArchive" xml:space="preserve">
+    <value>無存档モードではクラフト対象を無視するため削除しました。</value>
+  </data>
+  <data name="Issue.RecruitTimeOutOfRange" xml:space="preserve">
+    <value>公開求人時間は 60..540 かつ 10 分刻みで指定してください。</value>
+  </data>
+  <data name="Issue.RecruitTimesOutOfRange" xml:space="preserve">
+    <value>公開求人回数は 0 以上である必要があります。</value>
+  </data>
+  <data name="Issue.RoguelikeDifficultyOutOfRange" xml:space="preserve">
+    <value>難易度は -1 以上である必要があり、自動補正されました。</value>
+  </data>
+  <data name="Issue.RoguelikeEliteTwoModeMismatch" xml:space="preserve">
+    <value>現在のモード/テーマ/分隊では初手昇進2を無効化しました。</value>
+  </data>
+  <data name="Issue.RoguelikeEliteTwoSupportConflict" xml:space="preserve">
+    <value>サポート使用と初手昇進2が競合したため昇進2を無効化しました。</value>
+  </data>
+  <data name="Issue.RoguelikeFindPlaytimeTargetOutOfRange" xml:space="preserve">
+    <value>FindPlaytime 目標は 1..3 の範囲で自動補正されました。</value>
+  </data>
+  <data name="Issue.RoguelikeFindPlaytimeThemeMismatch" xml:space="preserve">
+    <value>FindPlaytime は JieGarden 必須のためフォールバックしました。</value>
+  </data>
+  <data name="Issue.RoguelikeInvestmentsCountOutOfRange" xml:space="preserve">
+    <value>投資回数は 0 以上である必要があり、自動補正されました。</value>
+  </data>
+  <data name="Issue.RoguelikeModeInvalid" xml:space="preserve">
+    <value>ローグライクモードが未対応です。</value>
+  </data>
+  <data name="Issue.RoguelikeOnlyEliteTwoRequiresEliteTwo" xml:space="preserve">
+    <value>初手昇進2のみは初手昇進2有効時のみ有効です。</value>
+  </data>
+  <data name="Issue.RoguelikeRefreshTraderThemeMismatch" xml:space="preserve">
+    <value>サイコロ更新は Mizuki のみ対応のため無効化しました。</value>
+  </data>
+  <data name="Issue.RoguelikeStartFoldartalListTrimmed" xml:space="preserve">
+    <value>開始フォルダータルは 3 件までのため切り詰めました。</value>
+  </data>
+  <data name="Issue.RoguelikeStartWithSeedInvalid" xml:space="preserve">
+    <value>シード形式が不正です。`&lt;英数字&gt;,rogue_&lt;id&gt;,&lt;step&gt;` を使用してください。</value>
+  </data>
+  <data name="Issue.RoguelikeStartsCountOutOfRange" xml:space="preserve">
+    <value>開始回数は 0 以上である必要があり、自動補正されました。</value>
+  </data>
+  <data name="Issue.RoguelikeThemeUnknown" xml:space="preserve">
+    <value>テーマが不明のため JieGarden にフォールバックしました。</value>
+  </data>
+  <data name="Issue.TaskFieldMissing" xml:space="preserve">
+    <value>設定に必須フィールドが不足しています。</value>
+  </data>
+  <data name="Issue.TaskFieldTypeInvalid" xml:space="preserve">
+    <value>フィールド型が不正で解析できません。</value>
+  </data>
+  <data name="Main.CloseConfirm.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Main.CloseConfirm.Confirm" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="Main.CloseConfirm.Message" xml:space="preserve">
+    <value>終了しますか？</value>
+  </data>
+  <data name="Main.CloseConfirm.Title" xml:space="preserve">
+    <value>MAAがタスクを実行しています</value>
+  </data>
+  <data name="Main.CloseConfirm.Update.Message" xml:space="preserve">
+    <value>更新を実行中です。この時点でMAAを終了するとリソースが損傷する可能性があります。
+終了しますか？</value>
+  </data>
+  <data name="Main.CloseConfirm.Update.Title" xml:space="preserve">
+    <value>MAAが更新中です</value>
+  </data>
+  <data name="Main.RootPage.Failed.Copilot.Message" xml:space="preserve">
+    <value>Copilot ページの初期化を完了できませんでした。</value>
+  </data>
+  <data name="Main.RootPage.Failed.Copilot.Title" xml:space="preserve">
+    <value>Copilot の初期化に失敗しました</value>
+  </data>
+  <data name="Main.RootPage.Failed.FirstScreen.Message" xml:space="preserve">
+    <value>TaskQueue の初期画面を初期化できませんでした。</value>
+  </data>
+  <data name="Main.RootPage.Failed.FirstScreen.Title" xml:space="preserve">
+    <value>初期画面の初期化に失敗しました</value>
+  </data>
+  <data name="Main.RootPage.Failed.Settings.Message" xml:space="preserve">
+    <value>Settings ページの初期化を完了できませんでした。</value>
+  </data>
+  <data name="Main.RootPage.Failed.Settings.Title" xml:space="preserve">
+    <value>Settings の初期化に失敗しました</value>
+  </data>
+  <data name="Main.RootPage.Failed.Toolbox.Message" xml:space="preserve">
+    <value>Toolbox ページの初期化を完了できませんでした。</value>
+  </data>
+  <data name="Main.RootPage.Failed.Toolbox.Title" xml:space="preserve">
+    <value>Toolbox の初期化に失敗しました</value>
+  </data>
+  <data name="Main.RootPage.Loading.Copilot.Message" xml:space="preserve">
+    <value>Copilot ページをバックグラウンドで初期化しています。</value>
+  </data>
+  <data name="Main.RootPage.Loading.Copilot.Title" xml:space="preserve">
+    <value>Copilot をバックグラウンドで初期化中</value>
+  </data>
+  <data name="Main.RootPage.Loading.FirstScreen.Message" xml:space="preserve">
+    <value>TaskQueue ページを読み込み中です。</value>
+  </data>
+  <data name="Main.RootPage.Loading.FirstScreen.Title" xml:space="preserve">
+    <value>初期画面を準備中</value>
+  </data>
+  <data name="Main.RootPage.Loading.Settings.Message" xml:space="preserve">
+    <value>Settings ページをバックグラウンドで初期化しています。</value>
+  </data>
+  <data name="Main.RootPage.Loading.Settings.Title" xml:space="preserve">
+    <value>Settings をバックグラウンドで初期化中</value>
+  </data>
+  <data name="Main.RootPage.Loading.Toolbox.Message" xml:space="preserve">
+    <value>Toolbox ページをバックグラウンドで初期化しています。</value>
+  </data>
+  <data name="Main.RootPage.Loading.Toolbox.Title" xml:space="preserve">
+    <value>Toolbox をバックグラウンドで初期化中</value>
+  </data>
+  <data name="Main.RootPage.Pending.Background.Title" xml:space="preserve">
+    <value>ページをバックグラウンドで初期化中</value>
+  </data>
+  <data name="Main.RootPage.Pending.Copilot.Message" xml:space="preserve">
+    <value>Copilot ページは初期画面の準備完了後に続けて読み込まれます。</value>
+  </data>
+  <data name="Main.RootPage.Pending.FirstScreen.Message" xml:space="preserve">
+    <value>TaskQueue ページを読み込み中です。</value>
+  </data>
+  <data name="Main.RootPage.Pending.FirstScreen.Title" xml:space="preserve">
+    <value>初期画面を準備中</value>
+  </data>
+  <data name="Main.RootPage.Pending.Settings.Message" xml:space="preserve">
+    <value>Settings ページは初期画面の準備完了後に続けて読み込まれます。</value>
+  </data>
+  <data name="Main.RootPage.Pending.Toolbox.Message" xml:space="preserve">
+    <value>Toolbox ページは初期画面の準備完了後に続けて読み込まれます。</value>
+  </data>
+  <data name="Main.Tab.Copilot" xml:space="preserve">
+    <value>自動戦闘</value>
+  </data>
+  <data name="Main.Tab.Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="Main.Tab.TaskQueue" xml:space="preserve">
+    <value>一括実行</value>
+  </data>
+  <data name="Main.Tab.Toolbox" xml:space="preserve">
+    <value>ツール</value>
+  </data>
+  <data name="Mall.Blacklist" xml:space="preserve">
+    <value>ブラックリスト（セミコロンで区切）</value>
+  </data>
+  <data name="Mall.BuyFirst" xml:space="preserve">
+    <value>優先購入（セミコロンで区切）</value>
+  </data>
+  <data name="Mall.CreditFight" xml:space="preserve">
+    <value>信用作戦</value>
+  </data>
+  <data name="Mall.CreditFightOnce" xml:space="preserve">
+    <value>信用作戦は一日一回</value>
+  </data>
+  <data name="Mall.CreditFightTip" xml:space="preserve">
+    <value>基地訪問後、OF-1でサポートを使用すると、30FP獲得できます。
+この機能は、ステージを「{key=DefaultStage}」に選択している場合は無効です。
+ステージOF-1がアンロックされていない場合は、チェックしないでください。</value>
+  </data>
+  <data name="Mall.Drink" xml:space="preserve">
+    <value>飲み物はいかがですか🍷？ドクター</value>
+  </data>
+  <data name="Mall.ForceShopping" xml:space="preserve">
+    <value>FPがあふれた際はブラックリストを無視する</value>
+  </data>
+  <data name="Mall.Formation" xml:space="preserve">
+    <value>編成</value>
+  </data>
+  <data name="Mall.Formation.Current" xml:space="preserve">
+    <value>現在</value>
+  </data>
+  <data name="Mall.OnlyDiscount" xml:space="preserve">
+    <value>割引されたFPアイテムのみ購入します</value>
+  </data>
+  <data name="Mall.OnlyDiscountTip" xml:space="preserve">
+    <value>⚠ 注意: FPのオーバーフローのリスクがあります！ホワイトリストに登録されたアイテムは通常価格で購入される可能性があります！</value>
+  </data>
+  <data name="Mall.OnlyOnceADay" xml:space="preserve">
+    <value>一日一回だけ</value>
+  </data>
+  <data name="Mall.Reserve" xml:space="preserve">
+    <value>FPが300未満になった場合、アイテムの購入を停止します</value>
+  </data>
+  <data name="Mall.ReserveTip" xml:space="preserve">
+    <value>FPが300未満でも、ホワイトリストに登録されたアイテムは引き続き購入されます！</value>
+  </data>
+  <data name="Mall.Shopping" xml:space="preserve">
+    <value>信用交換所自動購入</value>
+  </data>
+  <data name="Mall.Title" xml:space="preserve">
+    <value>FP獲得と交換</value>
+  </data>
+  <data name="Mall.UseFormation" xml:space="preserve">
+    <value>編成を使用</value>
+  </data>
+  <data name="Mall.VisitFriends" xml:space="preserve">
+    <value>フレンド訪問</value>
+  </data>
+  <data name="Mall.VisitOnce" xml:space="preserve">
+    <value>フレンド訪問は一日一回</value>
+  </data>
+  <data name="MissionStart.FightTask" xml:space="preserve">
+    <value>行動開始しました {0} 回 (-{1}理性)</value>
+  </data>
+  <data name="NotSwitch" xml:space="preserve">
+    <value>切り替えない</value>
+  </data>
+  <data name="OvercomingYourWeaknesses" xml:space="preserve">
+    <value>前線支援（前衛、補助、医療）</value>
+  </data>
+  <data name="PostAction.BackToHome" xml:space="preserve">
+    <value>エミュレータのホーム画面に戻る</value>
+  </data>
+  <data name="PostAction.Cmd.BackToHome" xml:space="preserve">
+    <value>ホーム画面へ戻るコマンド</value>
+  </data>
+  <data name="PostAction.Cmd.ExitArknights" xml:space="preserve">
+    <value>ゲーム終了コマンド</value>
+  </data>
+  <data name="PostAction.Cmd.ExitEmulator" xml:space="preserve">
+    <value>エミュレータ終了コマンド</value>
+  </data>
+  <data name="PostAction.Cmd.ExitSelf" xml:space="preserve">
+    <value>MAA終了コマンド</value>
+  </data>
+  <data name="PostAction.Cmd.Watermark" xml:space="preserve">
+    <value>空欄の場合は降格ログのみ記録します</value>
+  </data>
+  <data name="PostAction.ExitArknights" xml:space="preserve">
+    <value>アークナイツを終了する</value>
+  </data>
+  <data name="PostAction.ExitEmulator" xml:space="preserve">
+    <value>エミュレータを終了する</value>
+  </data>
+  <data name="PostAction.ExitSelf" xml:space="preserve">
+    <value>MAAを終了する</value>
+  </data>
+  <data name="PostAction.Hibernate" xml:space="preserve">
+    <value>休止状態にする</value>
+  </data>
+  <data name="PostAction.HibernateTip" xml:space="preserve">
+    <value>Windows の電源オプションで休止状態を有効にする必要があります。そうしないと、この機能は無効になります。</value>
+  </data>
+  <data name="PostAction.IfNoOther" xml:space="preserve">
+    <value>他のMAAがない場合</value>
+  </data>
+  <data name="PostAction.Once" xml:space="preserve">
+    <value>今回のみ*</value>
+  </data>
+  <data name="PostAction.OnceTip" xml:space="preserve">
+    <value>チェックすると、オプションの変更が保存されず、次回 MAA 起動時または {key=LinkStart} 後に復元されます
+このオプションのチェックを解除すると、他のオプションの状態は正常に保存されます
+他のオプションを右クリックすると、このオプションも同時にチェック/チェック解除されます</value>
+  </data>
+  <data name="PostAction.Shutdown" xml:space="preserve">
+    <value>シャットダウン</value>
+  </data>
+  <data name="PostAction.Sleep" xml:space="preserve">
+    <value>スリープ</value>
+  </data>
+  <data name="PostAction.Title" xml:space="preserve">
+    <value>完了後</value>
+  </data>
+  <data name="PostAction.Unsupported" xml:space="preserve">
+    <value>このアクションは現在のプラットフォームでは未対応のため、ログ記録にフォールバックします。</value>
+  </data>
+  <data name="PostAction.Warn.IfNoOtherNeedsSystemAction" xml:space="preserve">
+    <value>「他のMAAがない場合」を使うには、システムアクション（スリープ/休止/シャットダウン）を少なくとも1つ選択してください。</value>
+  </data>
+  <data name="PostAction.Warn.UnsupportedDowngrade" xml:space="preserve">
+    <value>選択した完了後アクションの一部は実行できないため、ログ記録にフォールバックします。</value>
+  </data>
+  <data name="Reclamation.ClearStore" xml:space="preserve">
+    <value>倉庫整理</value>
+  </data>
+  <data name="Reclamation.EarlyTip" xml:space="preserve">
+    <value>生息演算のサポートはまだ初期段階にありますので、ご利用の際は以下の点にご注意ください：
+
+ 初期設定でポイントを稼ぐ：（既存のセーブデータが削除されることに注意してください）
+  0.ポイントがいっぱいになると「タスク完了」が出力され、タスクは自動的に停止します
+  1. 理論的には、タスクは、セーブデータの有無に関係なく、ポイント獲得のためのどの時点からでもタスクを開始できる。
+  2. 生息演算の編成に{key=Operator}を入れることができるが、テストしていないのでお勧めしない。
+  3. ナビゲーションがまだ書かれていないので、生息演算の画面以外の場所からタスクを開始することはできない。
+  4. タスク中にエラーが出たり、ポイントが満杯なかたでタスクが完了した場合は、GitHubにissueを提出してください。
+
+ セーブデータあり、支援道具組立でポイントを稼ぐ（高度な設定）：
+  1. 条件は、決算後初日と、その後3日間、敵襲がないこと。
+  2. 大地図のインターフェースに入った後に開始する必要があります（駐屯地を見ることができるページ）
+  3. 作れる数字がちょうど99の倍数の場合、スタックしてしまうので、セーブする前に少し使い切り、後で修正することができる。</value>
+  </data>
+  <data name="Reclamation.IncrementMode" xml:space="preserve">
+    <value>増分モード</value>
+  </data>
+  <data name="Reclamation.Mode" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="Reclamation.NumCraftBatches" xml:space="preserve">
+    <value>クラフト回数</value>
+  </data>
+  <data name="Reclamation.Option.IncrementMode.Click" xml:space="preserve">
+    <value>連打</value>
+  </data>
+  <data name="Reclamation.Option.IncrementMode.Hold" xml:space="preserve">
+    <value>長押し</value>
+  </data>
+  <data name="Reclamation.Option.Mode.Archive" xml:space="preserve">
+    <value>セーブしながら、支援アイテムを組み立てて生息ポイントを稼ぐ</value>
+  </data>
+  <data name="Reclamation.Option.Mode.NoArchive" xml:space="preserve">
+    <value>セーブせずに、出入りを繰り返して生息ポイントを稼ぐ</value>
+  </data>
+  <data name="Reclamation.Option.Theme.FireClosed" xml:space="preserve">
+    <value>砂中の火 (イベント未開催)</value>
+  </data>
+  <data name="Reclamation.Option.Theme.Tales" xml:space="preserve">
+    <value>熱砂秘聞</value>
+  </data>
+  <data name="Reclamation.Theme" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="Reclamation.Title" xml:space="preserve">
+    <value>生息演算</value>
+  </data>
+  <data name="Reclamation.ToolToCraftPlaceholder" xml:space="preserve">
+    <value>ケミカルライト</value>
+  </data>
+  <data name="Reclamation.ToolToCraftTip" xml:space="preserve">
+    <value>支援道具名</value>
+  </data>
+  <data name="Reclamation.ToolsToCraft" xml:space="preserve">
+    <value>クラフト対象</value>
+  </data>
+  <data name="Recruit.AutoSelectLevel6" xml:space="preserve">
+    <value>6★を自動選択</value>
+  </data>
+  <data name="Recruit.AutoSelectLevel6FixedTime" xml:space="preserve">
+    <value>09:00 固定（6★確定）</value>
+  </data>
+  <data name="Recruit.ChooseLevel3" xml:space="preserve">
+    <value>3★を選択</value>
+  </data>
+  <data name="Recruit.ChooseLevel4" xml:space="preserve">
+    <value>4★を選択</value>
+  </data>
+  <data name="Recruit.ChooseLevel5" xml:space="preserve">
+    <value>5★を選択</value>
+  </data>
+  <data name="Recruit.ExtraTagsMode" xml:space="preserve">
+    <value>追加タグモード</value>
+  </data>
+  <data name="Recruit.FirstTags" xml:space="preserve">
+    <value>優先タグ</value>
+  </data>
+  <data name="Recruit.ForceRefresh" xml:space="preserve">
+    <value>強制更新</value>
+  </data>
+  <data name="Recruit.Level3Time" xml:space="preserve">
+    <value>3★時間</value>
+  </data>
+  <data name="Recruit.Level4Time" xml:space="preserve">
+    <value>4★時間</value>
+  </data>
+  <data name="Recruit.Level5Time" xml:space="preserve">
+    <value>5★時間</value>
+  </data>
+  <data name="Recruit.Option.ExtraTags.Default" xml:space="preserve">
+    <value>追加のタグを選択しない</value>
+  </data>
+  <data name="Recruit.Option.ExtraTags.RareOnly" xml:space="preserve">
+    <value>可能な限りタグを選択し、かつ高い星のタグのみを選択する</value>
+  </data>
+  <data name="Recruit.Option.ExtraTags.SelectAll" xml:space="preserve">
+    <value>常に 3 つのタグを選択する</value>
+  </data>
+  <data name="Recruit.Refresh" xml:space="preserve">
+    <value>自動更新</value>
+  </data>
+  <data name="Recruit.SetTime" xml:space="preserve">
+    <value>時間を設定</value>
+  </data>
+  <data name="Recruit.SkipRobot" xml:space="preserve">
+    <value>ロボタグをスキップ</value>
+  </data>
+  <data name="Recruit.Times" xml:space="preserve">
+    <value>回数</value>
+  </data>
+  <data name="Recruit.Title" xml:space="preserve">
+    <value>公開求人</value>
+  </data>
+  <data name="Recruit.UseExpedited" xml:space="preserve">
+    <value>即時完了を使用</value>
+  </data>
+  <data name="Roguelike.Collectible.Dice" xml:space="preserve">
+    <value>サイコロ</value>
+  </data>
+  <data name="Roguelike.Collectible.Hope" xml:space="preserve">
+    <value>希望</value>
+  </data>
+  <data name="Roguelike.Collectible.HotWater" xml:space="preserve">
+    <value>お湯</value>
+  </data>
+  <data name="Roguelike.Collectible.Ideas" xml:space="preserve">
+    <value>発想</value>
+  </data>
+  <data name="Roguelike.Collectible.Ingot" xml:space="preserve">
+    <value>インゴット</value>
+  </data>
+  <data name="Roguelike.Collectible.Key" xml:space="preserve">
+    <value>鍵</value>
+  </data>
+  <data name="Roguelike.Collectible.Random" xml:space="preserve">
+    <value>ランダム</value>
+  </data>
+  <data name="Roguelike.Collectible.Shield" xml:space="preserve">
+    <value>シールド</value>
+  </data>
+  <data name="Roguelike.Collectible.Ticket" xml:space="preserve">
+    <value>チケット</value>
+  </data>
+  <data name="Roguelike.CollectibleModeShopping" xml:space="preserve">
+    <value>支援選択を得るモードで、ショッピング有効化</value>
+  </data>
+  <data name="Roguelike.CollectibleModeSquad" xml:space="preserve">
+    <value>支援選択を得るモードの分隊</value>
+  </data>
+  <data name="Roguelike.CoreChar" xml:space="preserve">
+    <value>中核オペ</value>
+  </data>
+  <data name="Roguelike.CoreCharTip" xml:space="preserve">
+    <value>記入がない場合はデフォルトの方針を使用します。</value>
+  </data>
+  <data name="Roguelike.DeepExplorationAutoIterate" xml:space="preserve">
+    <value>多面調査自動切替</value>
+  </data>
+  <data name="Roguelike.DelayAbortUntilCombatComplete" xml:space="preserve">
+    <value>自動ローグ 戦闘終了まえに「{key=Stop}」を遅らせる</value>
+  </data>
+  <data name="Roguelike.Difficulty" xml:space="preserve">
+    <value>難易度</value>
+  </data>
+  <data name="Roguelike.ExpectedCollapsalParadigms" xml:space="preserve">
+    <value>崩壊パラダイムリスト</value>
+  </data>
+  <data name="Roguelike.ExpectedCollapsalParadigmsTip" xml:space="preserve">
+    <value>英語のセミコロン「;」で区切る、空白のままにするとデフォルトリストが使用されます。</value>
+  </data>
+  <data name="Roguelike.FindPlayTimeTarget" xml:space="preserve">
+    <value>目標プレイ時間</value>
+  </data>
+  <data name="Roguelike.FirstFloorFoldartal" xml:space="preserve">
+    <value>第一層遠見で指定された啓示板を取得し、戦闘を行わない</value>
+  </data>
+  <data name="Roguelike.InvestmentEnabled" xml:space="preserve">
+    <value>投資を有効化</value>
+  </data>
+  <data name="Roguelike.InvestmentWithMoreScore" xml:space="preserve">
+    <value>投資で得点優先</value>
+  </data>
+  <data name="Roguelike.InvestmentsCount" xml:space="preserve">
+    <value>投資回数</value>
+  </data>
+  <data name="Roguelike.JieGardenDifficultyTip" xml:space="preserve">
+    <value>｢{key=RoguelikeThemeJieGarden}｣に関連する知識を解放すると、{key=LeaderSquad}で N3 以上の難易度を探索する際に「時の果て」を追加で携帯し、「一戦一跳」の貯蓄戦術を行えます。
+まだ解放していない場合は、N3 以上の難易度（「MAX」を含む）を選択しないでください。
+この機能を有効にするには、難易度を N3 以上に設定してください（「{key=NotSwitch} (-1)」を除く）。</value>
+  </data>
+  <data name="Roguelike.Mode" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="Roguelike.MonthlySquadAutoIterate" xml:space="preserve">
+    <value>月次小隊自動切替</value>
+  </data>
+  <data name="Roguelike.MonthlySquadCheckComms" xml:space="preserve">
+    <value>月次小隊通信</value>
+  </data>
+  <data name="Roguelike.MultiTaskSharedTip" xml:space="preserve">
+    <value>以下のオプションは複数タスクで共有されます</value>
+  </data>
+  <data name="Roguelike.OnlyStartWithEliteTwo" xml:space="preserve">
+    <value>「{key=StartingCoreChar}」の昇進招集までリセマラし、戦闘を行わない</value>
+  </data>
+  <data name="Roguelike.RefreshTraderWithDice" xml:space="preserve">
+    <value>サイコロで商人更新</value>
+  </data>
+  <data name="Roguelike.Roles" xml:space="preserve">
+    <value>職分</value>
+  </data>
+  <data name="Roguelike.Squad" xml:space="preserve">
+    <value>分隊</value>
+  </data>
+  <data name="Roguelike.StartFoldartalList" xml:space="preserve">
+    <value>生活重視分隊で開始、指定された啓示板を取得する</value>
+  </data>
+  <data name="Roguelike.StartFoldartalTip" xml:space="preserve">
+    <value>最大3つ書き込み、半角セミコロン;で区切る</value>
+  </data>
+  <data name="Roguelike.StartWithEliteTwo" xml:space="preserve">
+    <value>「{key=StartingCoreChar}」直接昇進</value>
+  </data>
+  <data name="Roguelike.StartWithSeed" xml:space="preserve">
+    <value>シードから始める</value>
+  </data>
+  <data name="Roguelike.StartWithSelectList" xml:space="preserve">
+    <value>支援選択の期待される報酬</value>
+  </data>
+  <data name="Roguelike.StartsCount" xml:space="preserve">
+    <value>開始回数</value>
+  </data>
+  <data name="Roguelike.StopAtFinalBoss" xml:space="preserve">
+    <value>第5階層のボスの手前で一時停止する</value>
+  </data>
+  <data name="Roguelike.StopAtMaxLevel" xml:space="preserve">
+    <value>最大レベル達成時に停止</value>
+  </data>
+  <data name="Roguelike.StopWhenInvestmentFull" xml:space="preserve">
+    <value>投資満了で停止</value>
+  </data>
+  <data name="Roguelike.Theme" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="Roguelike.Title" xml:space="preserve">
+    <value>自動ローグ</value>
+  </data>
+  <data name="Roguelike.UseNonfriendSupport" xml:space="preserve">
+    <value>非フレサポート使用</value>
+  </data>
+  <data name="Roguelike.UseSupport" xml:space="preserve">
+    <value>「{key=StartingCoreChar}」をサポートから選択</value>
+  </data>
+  <data name="Roguelike.UseSupportTip" xml:space="preserve">
+    <value>まず「{key=StartingCoreChar}」を入力してください</value>
+  </data>
+  <data name="RoguelikePlaytimeLing" xml:space="preserve">
+    <value>リィン - 地に擲ちて声有り</value>
+  </data>
+  <data name="RoguelikePlaytimeNian" xml:space="preserve">
+    <value>ニェン - 一人足らぬ</value>
+  </data>
+  <data name="RoguelikePlaytimeShu" xml:space="preserve">
+    <value>シュウ - 因を種えて果を得る</value>
+  </data>
+  <data name="RoguelikeStrategyCollapse" xml:space="preserve">
+    <value>パラダイムロストをファーミングして、非レアパラダイムロストに遭遇したらすぐに再起動します</value>
+  </data>
+  <data name="RoguelikeStrategyDeepExploration" xml:space="preserve">
+    <value>深層探索をグラインドし、できるだけ多くの層をクリア</value>
+  </data>
+  <data name="RoguelikeStrategyExp" xml:space="preserve">
+    <value>経験値を取得し、できるだけクリア</value>
+  </data>
+  <data name="RoguelikeStrategyFindPlaytime" xml:space="preserve">
+    <value>常楽スポットをグラインドし、第一層で洞窟に入り、ターゲットスポットが見つからなければ再起動します</value>
+  </data>
+  <data name="RoguelikeStrategyGold" xml:space="preserve">
+    <value>源石錐を収集、投資完了後に自動で終了</value>
+  </data>
+  <data name="RoguelikeStrategyLastReward" xml:space="preserve">
+    <value>支援選択あるいは昇進した{key=Operator}を得るため3層到着後に終了</value>
+  </data>
+  <data name="RoguelikeStrategyMonthlySquad" xml:space="preserve">
+    <value>月間小隊をグラインドし、できるだけ多くの層をクリア</value>
+  </data>
+  <data name="SanityReport" xml:space="preserve">
+    <value>({TimeDiff} 後)、{DateTime} に理性が完全回復します。</value>
+  </data>
+  <data name="Settings.About.Announcement.Dialog" xml:space="preserve">
+    <value>お知らせダイアログ</value>
+  </data>
+  <data name="Settings.About.Announcement.Save" xml:space="preserve">
+    <value>お知らせ状態を保存</value>
+  </data>
+  <data name="Settings.About.CheckAnnouncement" xml:space="preserve">
+    <value>お知らせを確認</value>
+  </data>
+  <data name="Settings.About.Dialog.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Settings.About.Dialog.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Settings.About.Dialog.DoNotRemindThisAnnouncementAgain" xml:space="preserve">
+    <value>このお知らせを再通知しない</value>
+  </data>
+  <data name="Settings.About.Dialog.DoNotShowAnnouncement" xml:space="preserve">
+    <value>お知らせを表示しない</value>
+  </data>
+  <data name="Settings.About.Dialog.Title" xml:space="preserve">
+    <value>お知らせ</value>
+  </data>
+  <data name="Settings.About.OpenCommunity" xml:space="preserve">
+    <value>コミュニティ入口を開く</value>
+  </data>
+  <data name="Settings.About.OpenDownload" xml:space="preserve">
+    <value>ダウンロードページを開く</value>
+  </data>
+  <data name="Settings.About.OpenOfficialWebsite" xml:space="preserve">
+    <value>公式サイトを開く</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementDialogCancelled" xml:space="preserve">
+    <value>お知らせダイアログをキャンセルしました。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementDialogClosed" xml:space="preserve">
+    <value>お知らせダイアログを閉じました。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementFlags" xml:space="preserve">
+    <value>再通知しない={0}; 表示しない={1}</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementInfoEmpty" xml:space="preserve">
+    <value>現在お知らせはありません。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementLoadFailed" xml:space="preserve">
+    <value>お知らせの読み込みに失敗しました。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementSaveFailed" xml:space="preserve">
+    <value>お知らせ状態の保存に失敗しました。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementSaveSucceeded" xml:space="preserve">
+    <value>お知らせ状態を保存しました。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementSummary" xml:space="preserve">
+    <value>お知らせ状態: {0}。{1}</value>
+  </data>
+  <data name="Settings.About.Status.OpenCommunitySucceeded" xml:space="preserve">
+    <value>コミュニティ入口を開きました。</value>
+  </data>
+  <data name="Settings.About.Status.OpenDownloadSucceeded" xml:space="preserve">
+    <value>ダウンロードページを開きました。</value>
+  </data>
+  <data name="Settings.About.Status.OpenExternalFailed" xml:space="preserve">
+    <value>外部リンクを開けませんでした。</value>
+  </data>
+  <data name="Settings.About.Status.OpenOfficialWebsiteSucceeded" xml:space="preserve">
+    <value>公式サイトを開きました。</value>
+  </data>
+  <data name="Settings.Achievement.Backup" xml:space="preserve">
+    <value>実績をバックアップ</value>
+  </data>
+  <data name="Settings.Achievement.Dialog" xml:space="preserve">
+    <value>実績ダイアログ</value>
+  </data>
+  <data name="Settings.Achievement.Dialog.FilterWatermark" xml:space="preserve">
+    <value>実績を検索</value>
+  </data>
+  <data name="Settings.Achievement.Dialog.ProgressFormat" xml:space="preserve">
+    <value>進捗: {0}</value>
+  </data>
+  <data name="Settings.Achievement.Dialog.Snapshot" xml:space="preserve">
+    <value>実績ダイアログのスナップショット</value>
+  </data>
+  <data name="Settings.Achievement.Initialize" xml:space="preserve">
+    <value>実績トラッカーを初期化</value>
+  </data>
+  <data name="Settings.Achievement.LockAll" xml:space="preserve">
+    <value>すべての実績をリセット</value>
+  </data>
+  <data name="Settings.Achievement.LockAll.Refresh" xml:space="preserve">
+    <value>実績リセット後に更新</value>
+  </data>
+  <data name="Settings.Achievement.OpenGuide" xml:space="preserve">
+    <value>実績ガイドを開く</value>
+  </data>
+  <data name="Settings.Achievement.PopupAutoClose" xml:space="preserve">
+    <value>実績ポップアップを自動クローズ</value>
+  </data>
+  <data name="Settings.Achievement.PopupDisabled" xml:space="preserve">
+    <value>実績ポップアップを無効化</value>
+  </data>
+  <data name="Settings.Achievement.Refresh" xml:space="preserve">
+    <value>実績を更新</value>
+  </data>
+  <data name="Settings.Achievement.Refresh.Snapshot" xml:space="preserve">
+    <value>実績スナップショットを更新</value>
+  </data>
+  <data name="Settings.Achievement.Restore" xml:space="preserve">
+    <value>バックアップを復元</value>
+  </data>
+  <data name="Settings.Achievement.Restore.Refresh" xml:space="preserve">
+    <value>実績復元後に更新</value>
+  </data>
+  <data name="Settings.Achievement.Save" xml:space="preserve">
+    <value>実績を保存</value>
+  </data>
+  <data name="Settings.Achievement.Save.Refresh" xml:space="preserve">
+    <value>実績保存後に更新</value>
+  </data>
+  <data name="Settings.Achievement.StateChanged" xml:space="preserve">
+    <value>実績状態が変更されました</value>
+  </data>
+  <data name="Settings.Achievement.Status.BackupFailed" xml:space="preserve">
+    <value>実績バックアップに失敗しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogCancelled" xml:space="preserve">
+    <value>実績一覧ダイアログをキャンセルしました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogClosed" xml:space="preserve">
+    <value>実績一覧ダイアログを閉じました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogConfirmed" xml:space="preserve">
+    <value>実績一覧ダイアログを確定しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogOpenFailed" xml:space="preserve">
+    <value>実績一覧ダイアログを開けませんでした。</value>
+  </data>
+  <data name="Settings.Achievement.Status.LockAllFailed" xml:space="preserve">
+    <value>実績の一括リセットに失敗しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.LockAllSucceeded" xml:space="preserve">
+    <value>すべての実績をリセットしました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.OpenGuideFailed" xml:space="preserve">
+    <value>実績ガイドを開けませんでした。</value>
+  </data>
+  <data name="Settings.Achievement.Status.OpenGuideSucceeded" xml:space="preserve">
+    <value>実績ガイドを開きました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.PolicySummary" xml:space="preserve">
+    <value>現在のポリシー: ポップアップ無効={0}; 自動クローズ={1}; 解放済み {2}/{3}</value>
+  </data>
+  <data name="Settings.Achievement.Status.RefreshFailed" xml:space="preserve">
+    <value>実績設定の更新に失敗しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.RefreshSucceeded" xml:space="preserve">
+    <value>実績設定を更新しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.RestoreFailed" xml:space="preserve">
+    <value>実績の復元に失敗しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.SaveFailed" xml:space="preserve">
+    <value>実績設定の保存に失敗しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.SaveSucceeded" xml:space="preserve">
+    <value>実績設定を保存しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.UnlockAllFailed" xml:space="preserve">
+    <value>実績の一括解除に失敗しました。</value>
+  </data>
+  <data name="Settings.Achievement.Status.UnlockAllSucceeded" xml:space="preserve">
+    <value>実績を一括解除しました。</value>
+  </data>
+  <data name="Settings.Achievement.UnlockAll" xml:space="preserve">
+    <value>すべての実績を解除</value>
+  </data>
+  <data name="Settings.Achievement.UnlockAll.Refresh" xml:space="preserve">
+    <value>実績全解除後に更新</value>
+  </data>
+  <data name="Settings.Action.BuildIssueReport" xml:space="preserve">
+    <value>サポートパッケージを生成</value>
+  </data>
+  <data name="Settings.Action.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Settings.Action.CheckAnnouncement" xml:space="preserve">
+    <value>お知らせを確認</value>
+  </data>
+  <data name="Settings.Action.CheckVersionUpdate" xml:space="preserve">
+    <value>更新を確認</value>
+  </data>
+  <data name="Settings.Action.ChooseAgain" xml:space="preserve">
+    <value>再選択</value>
+  </data>
+  <data name="Settings.Action.ClearImageCache" xml:space="preserve">
+    <value>画像キャッシュを削除</value>
+  </data>
+  <data name="Settings.Action.Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Settings.Action.Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Settings.Action.ImportAnyway" xml:space="preserve">
+    <value>強制インポート</value>
+  </data>
+  <data name="Settings.Action.ImportValidContent" xml:space="preserve">
+    <value>有効内容をインポート</value>
+  </data>
+  <data name="Settings.Action.OpenAchievementGuide" xml:space="preserve">
+    <value>実績ガイドを開く</value>
+  </data>
+  <data name="Settings.Action.OpenCommunity" xml:space="preserve">
+    <value>コミュニティ</value>
+  </data>
+  <data name="Settings.Action.OpenDebugDirectory" xml:space="preserve">
+    <value>ログフォルダを開く</value>
+  </data>
+  <data name="Settings.Action.OpenDownload" xml:space="preserve">
+    <value>ダウンロードページ</value>
+  </data>
+  <data name="Settings.Action.OpenOfficial" xml:space="preserve">
+    <value>公式サイト</value>
+  </data>
+  <data name="Settings.Action.RefreshAchievement" xml:space="preserve">
+    <value>実績状態を更新</value>
+  </data>
+  <data name="Settings.Action.RefreshProfiles" xml:space="preserve">
+    <value>設定一覧を更新</value>
+  </data>
+  <data name="Settings.Action.RegisterHotkeys" xml:space="preserve">
+    <value>ホットキーを登録</value>
+  </data>
+  <data name="Settings.Action.SaveAchievement" xml:space="preserve">
+    <value>実績設定を保存</value>
+  </data>
+  <data name="Settings.Action.SaveConnectionGame" xml:space="preserve">
+    <value>接続/ゲームを保存</value>
+  </data>
+  <data name="Settings.Action.SaveGui" xml:space="preserve">
+    <value>GUI 設定を保存</value>
+  </data>
+  <data name="Settings.Action.SaveNotification" xml:space="preserve">
+    <value>通知設定を保存</value>
+  </data>
+  <data name="Settings.Action.SaveRemote" xml:space="preserve">
+    <value>リモート制御を保存</value>
+  </data>
+  <data name="Settings.Action.SaveStartPerformance" xml:space="preserve">
+    <value>起動/パフォーマンスを保存</value>
+  </data>
+  <data name="Settings.Action.SaveTimer" xml:space="preserve">
+    <value>スケジュール設定を保存</value>
+  </data>
+  <data name="Settings.Action.SaveVersionUpdate" xml:space="preserve">
+    <value>更新設定を保存</value>
+  </data>
+  <data name="Settings.Action.ShowAchievement" xml:space="preserve">
+    <value>実績を表示</value>
+  </data>
+  <data name="Settings.Action.TestNotification" xml:space="preserve">
+    <value>通知送信をテスト</value>
+  </data>
+  <data name="Settings.Action.TestRemote" xml:space="preserve">
+    <value>接続テスト</value>
+  </data>
+  <data name="Settings.Action.ValidateNotification" xml:space="preserve">
+    <value>通知パラメータを検証</value>
+  </data>
+  <data name="Settings.Background.BlurRadius" xml:space="preserve">
+    <value>背景ぼかし半径</value>
+  </data>
+  <data name="Settings.Background.Dialog.SelectImage" xml:space="preserve">
+    <value>背景画像を選択</value>
+  </data>
+  <data name="Settings.Background.ImagePath" xml:space="preserve">
+    <value>背景画像</value>
+  </data>
+  <data name="Settings.Background.Note" xml:space="preserve">
+    <value>背景画像とぼかし設定は Windows 互換の設定キー名を使用します。パスが無効な場合、この GUI 保存は中断されます。</value>
+  </data>
+  <data name="Settings.Background.Opacity" xml:space="preserve">
+    <value>背景不透明度</value>
+  </data>
+  <data name="Settings.Background.StretchMode" xml:space="preserve">
+    <value>背景表示モード</value>
+  </data>
+  <data name="Settings.ConfigurationManager.AutoSavedCurrent" xml:space="preserve">
+    <value>現在のプロファイルへの変更は自動保存されます</value>
+  </data>
+  <data name="Settings.ConfigurationManager.DeleteCurrent" xml:space="preserve">
+    <value>現在のプロファイルを削除</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DamagedFiles" xml:space="preserve">
+    <value>次のファイルが破損しています: {0}。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DamagedFilesNoImport" xml:space="preserve">
+    <value>次のファイルが破損しているため、プロファイルはインポートされませんでした: {0}。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DeleteMessage" xml:space="preserve">
+    <value>プロファイル「{0}」を削除しますか？</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DeleteTitle" xml:space="preserve">
+    <value>プロファイル削除</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ExportAllTitle" xml:space="preserve">
+    <value>すべてのプロファイルをエクスポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ExportCurrentTitle" xml:space="preserve">
+    <value>現在のプロファイルをエクスポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ImportConfigTitle" xml:space="preserve">
+    <value>プロファイルをインポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ImportLegacyTitle" xml:space="preserve">
+    <value>旧版プロファイルをインポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ImportTitle" xml:space="preserve">
+    <value>プロファイルをインポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ExportPathEmpty" xml:space="preserve">
+    <value>エクスポート先パスが空です。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportFileNotFound" xml:space="preserve">
+    <value>インポートファイルが存在しません。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportNoUsableEntries" xml:space="preserve">
+    <value>インポートファイルに利用可能な設定項目が見つかりません。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportNoValidProfile" xml:space="preserve">
+    <value>インポートファイルに有効な設定が見つかりません。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportPathEmpty" xml:space="preserve">
+    <value>インポート元パスが空です。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportAll" xml:space="preserve">
+    <value>すべてのプロファイルをエクスポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportAll.FileNamePrefix" xml:space="preserve">
+    <value>全プロファイル</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportCurrent" xml:space="preserve">
+    <value>現在のプロファイルをエクスポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportCurrent.FileNamePrefix" xml:space="preserve">
+    <value>現在のプロファイル</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import" xml:space="preserve">
+    <value>プロファイルをインポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.ContextRefresh" xml:space="preserve">
+    <value>インポート後に一覧を更新</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.LegacyFilenameInvalid" xml:space="preserve">
+    <value>旧版プロファイルのファイル名が正しくありません。gui.json または gui.new.json を選択してください。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.LegacyInvalidFilesOnly" xml:space="preserve">
+    <value>選択内にファイル名が不正な旧版プロファイルがあります。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.LegacyInvalidFilesWithMissing" xml:space="preserve">
+    <value>{0}。また、ファイル名が不正な旧版プロファイルがあります。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.MissingLegacyParts" xml:space="preserve">
+    <value>{0} を同時に選択してください。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.NoFilesSelected" xml:space="preserve">
+    <value>ファイルが選択されていません。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.TooManyFiles" xml:space="preserve">
+    <value>旧版インポートは最大2ファイルです。統合設定 JSON は1ファイルのみ対応しています。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.UnifiedSingleFileOnly" xml:space="preserve">
+    <value>統合設定 JSON は1ファイルのみ対応しています。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.UnrecognizedFiles" xml:space="preserve">
+    <value>インポートファイルを認識できません。エクスポートした設定 JSON、gui.json、または gui.new.json を選択してください。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ImportLegacy" xml:space="preserve">
+    <value>旧版プロファイルをインポート</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ImportLegacy.ContextRefresh" xml:space="preserve">
+    <value>旧版インポート後に一覧を更新</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ImportLegacy.PendingConfirmation" xml:space="preserve">
+    <value>旧版インポートの確認待ち</value>
+  </data>
+  <data name="Settings.ConfigurationManager.NewProfileWatermark" xml:space="preserve">
+    <value>新しいプロファイル名</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ProfileName" xml:space="preserve">
+    <value>現在のプロファイル</value>
+  </data>
+  <data name="Settings.ConfigurationManager.SaveAsNew" xml:space="preserve">
+    <value>新規として保存</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.AddFailed" xml:space="preserve">
+    <value>設定の追加に失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.AddSucceeded" xml:space="preserve">
+    <value>設定 `{0}` を追加しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteFailed" xml:space="preserve">
+    <value>設定の削除に失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteReloadedCurrent" xml:space="preserve">
+    <value>設定 `{0}` を削除し、設定 `{1}` を再読み込みしました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteSucceeded" xml:space="preserve">
+    <value>設定 `{0}` を削除しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteSwitchedCurrent" xml:space="preserve">
+    <value>設定 `{0}` を削除し、設定 `{1}` に切り替えました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportAllFailed" xml:space="preserve">
+    <value>すべての設定のエクスポートに失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportAllSucceeded" xml:space="preserve">
+    <value>すべての設定を `{0}` にエクスポートしました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportCurrentFailed" xml:space="preserve">
+    <value>現在の設定のエクスポートに失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportCurrentSucceeded" xml:space="preserve">
+    <value>現在の設定を `{0}` にエクスポートしました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ImportFailed" xml:space="preserve">
+    <value>設定のインポートに失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ImportSucceeded" xml:space="preserve">
+    <value>{0} 件の設定をインポートしました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ImportSucceededWithRename" xml:space="preserve">
+    <value>{0} 件の設定をインポートしました（競合回避のため {1} 件をリネーム）。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveDownFailed" xml:space="preserve">
+    <value>設定の下移動に失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveDownSucceeded" xml:space="preserve">
+    <value>設定 `{0}` を下へ移動しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveUpFailed" xml:space="preserve">
+    <value>設定の上移動に失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveUpSucceeded" xml:space="preserve">
+    <value>設定 `{0}` を上へ移動しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ProfileListLoadFailed" xml:space="preserve">
+    <value>設定リストの読み込みに失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ProfileListSynced" xml:space="preserve">
+    <value>設定リストを同期しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SaveCurrentFailed" xml:space="preserve">
+    <value>現在の設定の保存に失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SaveCurrentSucceeded" xml:space="preserve">
+    <value>現在の設定を保存しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SwitchFailed" xml:space="preserve">
+    <value>設定の切り替えに失敗しました。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SwitchSucceeded" xml:space="preserve">
+    <value>設定 `{0}` に切り替えました。</value>
+  </data>
+  <data name="Settings.Connect.AdbLiteEnabled" xml:space="preserve">
+    <value>ADB Lite を使用（実験機能）</value>
+  </data>
+  <data name="Settings.Connect.AdbPath" xml:space="preserve">
+    <value>ADB パス</value>
+  </data>
+  <data name="Settings.Connect.Address" xml:space="preserve">
+    <value>接続アドレス</value>
+  </data>
+  <data name="Settings.Connect.AddressTip" xml:space="preserve">
+    <value>形式: IP:port（例: 127.0.0.1:5555）</value>
+  </data>
+  <data name="Settings.Connect.AllowAdbHardRestart" xml:space="preserve">
+    <value>接続失敗後に ADB プロセスの再起動を試行</value>
+  </data>
+  <data name="Settings.Connect.AllowAdbRestart" xml:space="preserve">
+    <value>接続失敗後に ADB サーバーの再起動を試行</value>
+  </data>
+  <data name="Settings.Connect.AlwaysAutoDetect" xml:space="preserve">
+    <value>毎回再検出する</value>
+  </data>
+  <data name="Settings.Connect.AttachWindowWarning" xml:space="preserve">
+    <value>アタッチウィンドウモードはデスクトップウィンドウ接続のみ対応しています。</value>
+  </data>
+  <data name="Settings.Connect.AutoDetect" xml:space="preserve">
+    <value>接続自動認識</value>
+  </data>
+  <data name="Settings.Connect.AutoDetectTip" xml:space="preserve">
+    <value>接続に失敗する場合は自動検出をオフにして手動入力してください</value>
+  </data>
+  <data name="Settings.Connect.Configuration" xml:space="preserve">
+    <value>接続設定</value>
+  </data>
+  <data name="Settings.Connect.Dialog.ScreenshotPreview" xml:space="preserve">
+    <value>スクリーンショットプレビュー</value>
+  </data>
+  <data name="Settings.Connect.Dialog.SelectAdbPath" xml:space="preserve">
+    <value>ADB パスを選択</value>
+  </data>
+  <data name="Settings.Connect.Error.AutoReplaceUnsupported" xml:space="preserve">
+    <value>現在のシステムでは ADB の自動置換をサポートしていません。</value>
+  </data>
+  <data name="Settings.Connect.Error.ConnectFailed" xml:space="preserve">
+    <value>接続に失敗しました: {0}</value>
+  </data>
+  <data name="Settings.Connect.Error.ConnectionFailedShort" xml:space="preserve">
+    <value>接続に失敗しました。</value>
+  </data>
+  <data name="Settings.Connect.Error.Details" xml:space="preserve">
+    <value>詳細: {0}</value>
+  </data>
+  <data name="Settings.Connect.Error.GetImageFailed" xml:space="preserve">
+    <value>スクリーンショットの取得に失敗しました</value>
+  </data>
+  <data name="Settings.Connect.Error.ReplaceAdbExtractedNotFound" xml:space="preserve">
+    <value>ADB 置換に失敗しました: 展開後の adb 実行ファイルが見つかりません。</value>
+  </data>
+  <data name="Settings.Connect.Error.ReplaceAdbFailed" xml:space="preserve">
+    <value>ADB の置換に失敗しました: {0}</value>
+  </data>
+  <data name="Settings.Connect.Error.ScreenshotTestException" xml:space="preserve">
+    <value>スクリーンショットテストで例外が発生しました: {0}</value>
+  </data>
+  <data name="Settings.Connect.Error.ScreenshotTestFailed" xml:space="preserve">
+    <value>スクリーンショットテストに失敗しました: {0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathDirectoryMissingExecutable" xml:space="preserve">
+    <value>ADB パスはディレクトリですが、adb 実行ファイルが見つかりません: {0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathMissingDriveSlash" xml:space="preserve">
+    <value>ADB パス形式が正しくない可能性があります（ドライブ文字の後にスラッシュがありません）: {0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathNotFound" xml:space="preserve">
+    <value>ADB パスが存在しません: {0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathWindowsPathOnNonWindows" xml:space="preserve">
+    <value>現在のシステムは {0} ですが、ADB パスは Windows パスに見えます: {1}</value>
+  </data>
+  <data name="Settings.Connect.Hint.ConnectionAddressEmpty" xml:space="preserve">
+    <value>接続アドレスが空です。"IP:port" を入力してから再試行してください。</value>
+  </data>
+  <data name="Settings.Connect.InstanceId" xml:space="preserve">
+    <value>インスタンス番号</value>
+  </data>
+  <data name="Settings.Connect.KeyboardInput" xml:space="preserve">
+    <value>キーボード入力方式</value>
+  </data>
+  <data name="Settings.Connect.KillAdbOnExit" xml:space="preserve">
+    <value>終了時に ADB を終了</value>
+  </data>
+  <data name="Settings.Connect.LdPlayer.EmulatorPath" xml:space="preserve">
+    <value>LDPlayer エミュレータパス</value>
+  </data>
+  <data name="Settings.Connect.LdPlayer.EnableExtras" xml:space="preserve">
+    <value>LDPlayer Extras を有効化</value>
+  </data>
+  <data name="Settings.Connect.LdPlayer.ManualSetIndex" xml:space="preserve">
+    <value>インスタンス番号を手動設定</value>
+  </data>
+  <data name="Settings.Connect.MouseInput" xml:space="preserve">
+    <value>マウス入力方式</value>
+  </data>
+  <data name="Settings.Connect.MuMu.BridgeConnection" xml:space="preserve">
+    <value>MuMu ネットワークブリッジモード</value>
+  </data>
+  <data name="Settings.Connect.MuMu.EmulatorPath" xml:space="preserve">
+    <value>MuMu12 エミュレータパス</value>
+  </data>
+  <data name="Settings.Connect.MuMu.EnableExtras" xml:space="preserve">
+    <value>MuMu Extras を有効化</value>
+  </data>
+  <data name="Settings.Connect.ReplaceAdb" xml:space="preserve">
+    <value>ADB を強制置換</value>
+  </data>
+  <data name="Settings.Connect.ScreencapMethod" xml:space="preserve">
+    <value>スクリーンショット方式</value>
+  </data>
+  <data name="Settings.Connect.ScreenshotTest" xml:space="preserve">
+    <value>スクリーンショットテスト</value>
+  </data>
+  <data name="Settings.Connect.Status.ConnectingEmulator" xml:space="preserve">
+    <value>エミュレータに接続中...</value>
+  </data>
+  <data name="Settings.Connect.Status.DownloadingAdb" xml:space="preserve">
+    <value>ADB をダウンロード中...</value>
+  </data>
+  <data name="Settings.Connect.Status.ReplacedAdb" xml:space="preserve">
+    <value>ADB を置き換えました: {0}</value>
+  </data>
+  <data name="Settings.Connect.Status.ScreencapCost" xml:space="preserve">
+    <value>スクリーンショット時間 min/avg/max(ms): {0} / {1} / {2} ({3})</value>
+  </data>
+  <data name="Settings.Connect.TouchMode" xml:space="preserve">
+    <value>タッチモード</value>
+  </data>
+  <data name="Settings.ExternalNotification.DefaultMessage" xml:space="preserve">
+    <value>これは MAA の外部通知テストです。このメッセージが見えれば通知送信は成功しています。</value>
+  </data>
+  <data name="Settings.ExternalNotification.DefaultTitle" xml:space="preserve">
+    <value>MAA 外部通知テスト</value>
+  </data>
+  <data name="Settings.ExternalNotification.EnableDetails" xml:space="preserve">
+    <value>詳細情報を出力</value>
+  </data>
+  <data name="Settings.ExternalNotification.Enabled" xml:space="preserve">
+    <value>通知設定を有効化</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.InvalidParameters" xml:space="preserve">
+    <value>外部通知パラメータエラー: {0} ({1})</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.NetworkFailure" xml:space="preserve">
+    <value>外部通知ネットワークエラー: {0} ({1})</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.ParameterFormatLine" xml:space="preserve">
+    <value>パラメータ形式エラー（{0} 行目）。key=value 形式で入力してください: `{1}`</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.ParameterKeyEmpty" xml:space="preserve">
+    <value>パラメータ形式エラー（{0} 行目）。key を空にできません。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.ParseFailed" xml:space="preserve">
+    <value>通知サービスパラメータの解析に失敗しました。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.Unsupported" xml:space="preserve">
+    <value>現在の環境ではこの外部通知機能をサポートしていません: {0} ({1})</value>
+  </data>
+  <data name="Settings.ExternalNotification.OnlyCompleteNote" xml:space="preserve">
+    <value>注: 外部通知機能は現在「すべてのタスク完了」の通知のみ送信します。必要に応じてエラーやタイムアウト通知も有効にできます。</value>
+  </data>
+  <data name="Settings.ExternalNotification.ProviderParameters" xml:space="preserve">
+    <value>通知サービスのパラメータ</value>
+  </data>
+  <data name="Settings.ExternalNotification.ProviderParametersNote" xml:space="preserve">
+    <value>通知サービスの仕様に従って JSON パラメータを入力してください。</value>
+  </data>
+  <data name="Settings.ExternalNotification.SendWhenComplete" xml:space="preserve">
+    <value>タスク完了時に通知を送信</value>
+  </data>
+  <data name="Settings.ExternalNotification.SendWhenError" xml:space="preserve">
+    <value>タスク失敗時に通知を送信</value>
+  </data>
+  <data name="Settings.ExternalNotification.SendWhenTimeout" xml:space="preserve">
+    <value>タスクタイムアウト時に通知を送信</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.OperationFailed" xml:space="preserve">
+    <value>外部通知の操作に失敗しました。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.PreparedUpdates" xml:space="preserve">
+    <value>外部通知プロバイダー更新を準備しました。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.SaveSucceeded" xml:space="preserve">
+    <value>外部通知設定を保存しました。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.TestSucceeded" xml:space="preserve">
+    <value>Provider `{0}` のテスト通知送信に成功しました。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.ValidateSucceeded" xml:space="preserve">
+    <value>Provider `{0}` のパラメータ検証に成功しました。</value>
+  </data>
+  <data name="Settings.ExternalNotification.TestMessage" xml:space="preserve">
+    <value>テスト通知本文</value>
+  </data>
+  <data name="Settings.ExternalNotification.TestSend" xml:space="preserve">
+    <value>テスト送信</value>
+  </data>
+  <data name="Settings.ExternalNotification.TestTitle" xml:space="preserve">
+    <value>テスト通知タイトル</value>
+  </data>
+  <data name="Settings.GUI.InverseClearMode" xml:space="preserve">
+    <value>メイン画面ボタン機能</value>
+  </data>
+  <data name="Settings.GUI.Language" xml:space="preserve">
+    <value>言語</value>
+  </data>
+  <data name="Settings.GUI.LogItemDateFormat" xml:space="preserve">
+    <value>日時フォーマット文字列</value>
+  </data>
+  <data name="Settings.GUI.LogItemDateFormat.PreviewCaption" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
+  <data name="Settings.GUI.MinimizeToTray" xml:space="preserve">
+    <value>最小化時にトレイへ隠す</value>
+  </data>
+  <data name="Settings.GUI.Note" xml:space="preserve">
+    <value>非表示やメニューの挙動は Windows クライアントに合わせています。GUI 自動保存は有効です。</value>
+  </data>
+  <data name="Settings.GUI.OperNameLanguage" xml:space="preserve">
+    <value>オペレーター名の表示言語</value>
+  </data>
+  <data name="Settings.GUI.Theme" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="Settings.GUI.UseSoftwareRendering" xml:space="preserve">
+    <value>ソフトウェアレンダリングを使用</value>
+  </data>
+  <data name="Settings.GUI.UseTray" xml:space="preserve">
+    <value>トレイアイコンを表示</value>
+  </data>
+  <data name="Settings.GUI.WindowTitleScrollable" xml:space="preserve">
+    <value>ウィンドウタイトルをスクロール</value>
+  </data>
+  <data name="Settings.Game.BlockSleep" xml:space="preserve">
+    <value>タスク実行時の休止状態の防止</value>
+  </data>
+  <data name="Settings.Game.BlockSleepWithScreenOn" xml:space="preserve">
+    <value>休止状態を防ぐときは画面をオンのままにします</value>
+  </data>
+  <data name="Settings.Game.ClientType" xml:space="preserve">
+    <value>クライアントバージョン</value>
+  </data>
+  <data name="Settings.Game.DeploymentWithPause" xml:space="preserve">
+    <value>統合戦略/保全駐在でポーズトリックを使用します（ベータ機能のため非推奨です）</value>
+  </data>
+  <data name="Settings.Game.EnablePenguin" xml:space="preserve">
+    <value>Penguin-Statsへ報告</value>
+  </data>
+  <data name="Settings.Game.EnableYituliu" xml:space="preserve">
+    <value>Yituliuへ報告</value>
+  </data>
+  <data name="Settings.Game.EndsWithScript" xml:space="preserve">
+    <value>終了時にスクリプトを使用します</value>
+  </data>
+  <data name="Settings.Game.EndsWithScriptTip" xml:space="preserve">
+    <value>タスク終了後に実行</value>
+  </data>
+  <data name="Settings.Game.PenguinId" xml:space="preserve">
+    <value>Penguin-StatsのレポートのID（デジタル部分のみ）</value>
+  </data>
+  <data name="Settings.Game.ReminderIntervalMinutes" xml:space="preserve">
+    <value>リマインダー間隔時間（分）</value>
+  </data>
+  <data name="Settings.Game.StartsWithScript" xml:space="preserve">
+    <value>スクリプトを使用して始めます</value>
+  </data>
+  <data name="Settings.Game.StartsWithScriptTip" xml:space="preserve">
+    <value>タスク開始前に実行</value>
+  </data>
+  <data name="Settings.Game.TaskTimeoutMinutes" xml:space="preserve">
+    <value>タスクのタイムアウト時間（分）</value>
+  </data>
+  <data name="Settings.Game.UseScriptOnCopilot" xml:space="preserve">
+    <value>自動戦闘時に上記のスクリプトを有効にする</value>
+  </data>
+  <data name="Settings.Game.UseScriptOnManualStop" xml:space="preserve">
+    <value>手動停止時に上記のスクリプトを有効にする</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Capturing" xml:space="preserve">
+    <value>入力待ち...</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Clear" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Error.RequireModifier" xml:space="preserve">
+    <value>少なくとも 1 つの修飾キーが必要です。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Error.UnsupportedKey" xml:space="preserve">
+    <value>このキーはまだサポートされていません: {0}</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Guide" xml:space="preserve">
+    <value>録入規則: 修飾キー 1 つ以上と通常キー 1 つで確定します。Esc で取消、Backspace/Delete で解除します。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Prompt" xml:space="preserve">
+    <value>ショートカットを入力...</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.ReRecord" xml:space="preserve">
+    <value>再録入</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Record" xml:space="preserve">
+    <value>録入</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Status.Cancelled" xml:space="preserve">
+    <value>録入を取り消しました。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Status.ClearedPending" xml:space="preserve">
+    <value>バインドを解除しました。「ホットキー登録」を押すと反映されます。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Status.UpdatedPending" xml:space="preserve">
+    <value>ショートカットを更新しました。「ホットキー登録」を押すと反映されます。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Unbound" xml:space="preserve">
+    <value>未設定</value>
+  </data>
+  <data name="Settings.Hotkey.Error.PersistenceFailed" xml:space="preserve">
+    <value>ホットキーは更新されましたが、保存に失敗しました: {0}</value>
+  </data>
+  <data name="Settings.Hotkey.Scope.Global" xml:space="preserve">
+    <value>Global</value>
+  </data>
+  <data name="Settings.Hotkey.Scope.Unsupported" xml:space="preserve">
+    <value>Unsupported</value>
+  </data>
+  <data name="Settings.Hotkey.Scope.WindowScoped" xml:space="preserve">
+    <value>Window-scoped</value>
+  </data>
+  <data name="Settings.Hotkey.Source.Manual" xml:space="preserve">
+    <value>手動登録</value>
+  </data>
+  <data name="Settings.Hotkey.Source.Startup" xml:space="preserve">
+    <value>起動時自動登録</value>
+  </data>
+  <data name="Settings.Hotkey.Status.AppliedAll" xml:space="preserve">
+    <value>{0}: {1} 個のホットキーを適用しました。</value>
+  </data>
+  <data name="Settings.Hotkey.Status.AppliedPartial" xml:space="preserve">
+    <value>{0}: {1}/{2} 個のホットキーを適用しました。</value>
+  </data>
+  <data name="Settings.Hotkey.Status.PersistenceFailed" xml:space="preserve">
+    <value>{0}: ホットキーは更新されましたが、保存に失敗しました。</value>
+  </data>
+  <data name="Settings.Hotkey.Status.RegisterFailed" xml:space="preserve">
+    <value>{0}: ホットキー登録に失敗しました。</value>
+  </data>
+  <data name="Settings.Hotkey.Title.LinkStart" xml:space="preserve">
+    <value>[ホットキー] Link 開始/停止</value>
+  </data>
+  <data name="Settings.Hotkey.Title.ShowGui" xml:space="preserve">
+    <value>[ホットキー] MAAの表示/最小化</value>
+  </data>
+  <data name="Settings.IssueReport.Build" xml:space="preserve">
+    <value>問題レポートを生成</value>
+  </data>
+  <data name="Settings.IssueReport.ClearImageCache" xml:space="preserve">
+    <value>画像キャッシュを削除</value>
+  </data>
+  <data name="Settings.IssueReport.DeveloperMode" xml:space="preserve">
+    <value>開発者モード</value>
+  </data>
+  <data name="Settings.IssueReport.DeveloperModeNote" xml:space="preserve">
+    <value>有効にするとデバッグ操作が表示されます。トラブルシューティング時のみ使用してください。</value>
+  </data>
+  <data name="Settings.IssueReport.Faq" xml:space="preserve">
+    <value>よくある質問</value>
+  </data>
+  <data name="Settings.IssueReport.IssueEntry" xml:space="preserve">
+    <value>問題報告入口</value>
+  </data>
+  <data name="Settings.IssueReport.OpenDebugDirectory" xml:space="preserve">
+    <value>デバッグディレクトリを開く</value>
+  </data>
+  <data name="Settings.IssueReport.OpenEntry" xml:space="preserve">
+    <value>報告入口を開く</value>
+  </data>
+  <data name="Settings.IssueReport.OpenHelp" xml:space="preserve">
+    <value>ヘルプドキュメントを開く</value>
+  </data>
+  <data name="Settings.IssueReport.OpenRuntimeLogWindow" xml:space="preserve">
+    <value>実行ログウィンドウを開く</value>
+  </data>
+  <data name="Settings.IssueReport.PreflightNote" xml:space="preserve">
+    <value>フィードバック送信前に FAQ を確認してください。ログ圧縮パッケージを添付すると問題特定が早くなります。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.BuildFailed" xml:space="preserve">
+    <value>サポートパッケージの生成に失敗しました。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.BuildSucceeded" xml:space="preserve">
+    <value>サポートパッケージを生成しました: {0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheAlreadyEmpty" xml:space="preserve">
+    <value>画像キャッシュディレクトリは空です: {0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheClearFailed" xml:space="preserve">
+    <value>画像キャッシュの削除に失敗しました。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheClearFailedWithReason" xml:space="preserve">
+    <value>画像キャッシュの削除に失敗しました: {0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheCleared" xml:space="preserve">
+    <value>画像キャッシュを削除しました: ファイル {0} 件、ディレクトリ {1} 件。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenDebugDirectoryFailed" xml:space="preserve">
+    <value>debug ディレクトリを開けませんでした。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenDebugDirectorySucceeded" xml:space="preserve">
+    <value>ディレクトリを開きました: {0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenEntryFailed" xml:space="preserve">
+    <value>Issue 入口を開けませんでした。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenEntrySucceeded" xml:space="preserve">
+    <value>Issue 入口を開きました。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenHelpFailed" xml:space="preserve">
+    <value>ヘルプドキュメントを開けませんでした。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenHelpSucceeded" xml:space="preserve">
+    <value>ヘルプドキュメントを開きました。</value>
+  </data>
+  <data name="Settings.Performance.Gpu.CustomDescription" xml:space="preserve">
+    <value>GPU 説明</value>
+  </data>
+  <data name="Settings.Performance.Gpu.CustomInstancePath" xml:space="preserve">
+    <value>GPU インスタンスパス</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Option.Disabled" xml:space="preserve">
+    <value>使用しない</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartRequired" xml:space="preserve">
+    <value>変更を反映するには通常アプリの再起動が必要です。</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Select" xml:space="preserve">
+    <value>GPU 選択</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Status.Unsupported" xml:space="preserve">
+    <value>現在のプラットフォームでは GPU OCR をサポートしていません。この設定が適用されるのは Windows ビルドのみです。</value>
+  </data>
+  <data name="Settings.RemoteControl.DeviceIdentity" xml:space="preserve">
+    <value>デバイス識別子</value>
+  </data>
+  <data name="Settings.RemoteControl.DeviceIdentityWatermark" xml:space="preserve">
+    <value>例: workstation-a</value>
+  </data>
+  <data name="Settings.RemoteControl.Error.InvalidParameters" xml:space="preserve">
+    <value>リモート制御パラメータエラー: {0} ({1})</value>
+  </data>
+  <data name="Settings.RemoteControl.Error.NetworkFailure" xml:space="preserve">
+    <value>リモート制御の接続確認に失敗しました: {0} ({1})</value>
+  </data>
+  <data name="Settings.RemoteControl.Error.Unsupported" xml:space="preserve">
+    <value>現在の環境ではリモート制御の接続テストをサポートしていません: {0} ({1})</value>
+  </data>
+  <data name="Settings.RemoteControl.GetTaskEndpoint" xml:space="preserve">
+    <value>タスク取得エンドポイント (GET)</value>
+  </data>
+  <data name="Settings.RemoteControl.GetTaskEndpointWatermark" xml:space="preserve">
+    <value>https://example.com/api/task/get</value>
+  </data>
+  <data name="Settings.RemoteControl.PollIntervalMs" xml:space="preserve">
+    <value>ポーリング間隔 (ms)</value>
+  </data>
+  <data name="Settings.RemoteControl.ReportTaskEndpoint" xml:space="preserve">
+    <value>タスク報告エンドポイント (REPORT)</value>
+  </data>
+  <data name="Settings.RemoteControl.ReportTaskEndpointWatermark" xml:space="preserve">
+    <value>https://example.com/api/task/report</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.SaveFailed" xml:space="preserve">
+    <value>リモート制御設定の保存に失敗しました。</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.SaveSucceeded" xml:space="preserve">
+    <value>リモート制御設定を保存しました。</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.TestFailed" xml:space="preserve">
+    <value>接続テストに失敗しました。</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.TestSucceeded" xml:space="preserve">
+    <value>接続テスト成功！{0}</value>
+  </data>
+  <data name="Settings.RemoteControl.UserIdentity" xml:space="preserve">
+    <value>ユーザー識別子</value>
+  </data>
+  <data name="Settings.RemoteControl.UserIdentityWatermark" xml:space="preserve">
+    <value>例: doctor-001</value>
+  </data>
+  <data name="Settings.RemoteControl.Warning" xml:space="preserve">
+    <value>注意: 出所不明のアドレスを入力すると、アカウントの安全性に影響する可能性があります。</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.BatchEmpty" xml:space="preserve">
+    <value>設定項目がありません。</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.ProfileMissing" xml:space="preserve">
+    <value>現在のプロファイル `{0}` が見つかりません。</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.SaveFailed" xml:space="preserve">
+    <value>設定の保存に失敗しました: {0}</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.SettingKeyMissing" xml:space="preserve">
+    <value>設定キーは空にできません。</value>
+  </data>
+  <data name="Settings.SaveScoped.Status.BatchSavedSummary" xml:space="preserve">
+    <value>設定バッチを保存しました: グローバル={0}, プロファイル={1}</value>
+  </data>
+  <data name="Settings.SaveScoped.Status.SavedCount" xml:space="preserve">
+    <value>{0} 件の設定を保存しました。</value>
+  </data>
+  <data name="Settings.Section.About" xml:space="preserve">
+    <value>このアプリについて</value>
+  </data>
+  <data name="Settings.Section.Achievement" xml:space="preserve">
+    <value>実績</value>
+  </data>
+  <data name="Settings.Section.Background" xml:space="preserve">
+    <value>背景設定</value>
+  </data>
+  <data name="Settings.Section.ConfigurationManager" xml:space="preserve">
+    <value>設定切替</value>
+  </data>
+  <data name="Settings.Section.Connect" xml:space="preserve">
+    <value>接続設定</value>
+  </data>
+  <data name="Settings.Section.ExternalNotification" xml:space="preserve">
+    <value>外部通知</value>
+  </data>
+  <data name="Settings.Section.GUI" xml:space="preserve">
+    <value>UI設定</value>
+  </data>
+  <data name="Settings.Section.Game" xml:space="preserve">
+    <value>ゲーム設定</value>
+  </data>
+  <data name="Settings.Section.HotKey" xml:space="preserve">
+    <value>ホットキー</value>
+  </data>
+  <data name="Settings.Section.IssueReport" xml:space="preserve">
+    <value>問題報告</value>
+  </data>
+  <data name="Settings.Section.Performance" xml:space="preserve">
+    <value>パフォーマンス</value>
+  </data>
+  <data name="Settings.Section.RemoteControl" xml:space="preserve">
+    <value>リモート制御</value>
+  </data>
+  <data name="Settings.Section.Start" xml:space="preserve">
+    <value>起動設定</value>
+  </data>
+  <data name="Settings.Section.Timer" xml:space="preserve">
+    <value>スケジュール</value>
+  </data>
+  <data name="Settings.Section.VersionUpdate" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="Settings.Start.ApplyOnNextExecution" xml:space="preserve">
+    <value>次回実行時に有効になります</value>
+  </data>
+  <data name="Settings.Start.ApplyOnNextLaunch" xml:space="preserve">
+    <value>次回起動時に有効になります</value>
+  </data>
+  <data name="Settings.Start.AutoOpenEmulator" xml:space="preserve">
+    <value>エミュレータを自動起動</value>
+  </data>
+  <data name="Settings.Start.AutoStartMaa" xml:space="preserve">
+    <value>システム起動時に MAA を自動起動</value>
+  </data>
+  <data name="Settings.Start.AutoStartMaaTip" xml:space="preserve">
+    <value>自動起動登録に対応したシステムでのみ有効です</value>
+  </data>
+  <data name="Settings.Start.Dialog.SelectEmulatorPathCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Settings.Start.Dialog.SelectEmulatorPathConfirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Settings.Start.Dialog.SelectEmulatorPathTitle" xml:space="preserve">
+    <value>エミュレータのパスを選択</value>
+  </data>
+  <data name="Settings.Start.EmulatorExtraArgs" xml:space="preserve">
+    <value>エミュレータ追加引数</value>
+  </data>
+  <data name="Settings.Start.EmulatorExtraArgsTip" xml:space="preserve">
+    <value>エミュレータ起動コマンドに渡す引数</value>
+  </data>
+  <data name="Settings.Start.EmulatorPath" xml:space="preserve">
+    <value>エミュレータパス</value>
+  </data>
+  <data name="Settings.Start.EmulatorPathTip" xml:space="preserve">
+    <value>エミュレータ起動時にこのパスを使用します</value>
+  </data>
+  <data name="Settings.Start.EmulatorWaitSeconds" xml:space="preserve">
+    <value>起動待機秒数</value>
+  </data>
+  <data name="Settings.Start.EmulatorWaitSecondsNote" xml:space="preserve">
+    <value>エミュレータの起動完了を待ってから接続します</value>
+  </data>
+  <data name="Settings.Start.MinimizeDirectly" xml:space="preserve">
+    <value>起動後に直接最小化</value>
+  </data>
+  <data name="Settings.Start.RetryOnDisconnected" xml:space="preserve">
+    <value>接続切断後に再試行</value>
+  </data>
+  <data name="Settings.Start.RetryOnDisconnectedTip" xml:space="preserve">
+    <value>接続アドレスの自動検出と併用することを推奨します</value>
+  </data>
+  <data name="Settings.Start.RunDirectly" xml:space="preserve">
+    <value>起動後にタスクを自動開始</value>
+  </data>
+  <data name="Settings.Start.SelectButton" xml:space="preserve">
+    <value>選択</value>
+  </data>
+  <data name="Settings.Start.Status.EmulatorPathSelectionCancelled" xml:space="preserve">
+    <value>エミュレータパスの選択をキャンセルしました。</value>
+  </data>
+  <data name="Settings.Start.Status.EmulatorPathSelectionClosed" xml:space="preserve">
+    <value>エミュレータパス選択ダイアログを閉じました。</value>
+  </data>
+  <data name="Settings.Start.Status.EmulatorPathUpdated" xml:space="preserve">
+    <value>エミュレータパスを更新しました: {0}</value>
+  </data>
+  <data name="Settings.StartPerformance.Normalize" xml:space="preserve">
+    <value>起動/パフォーマンス設定をリセット</value>
+  </data>
+  <data name="Settings.StartPerformance.Status.SyncCoreInstanceOptionsFailed" xml:space="preserve">
+    <value>コアインスタンス設定の同期に失敗しました: {0} {1}</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.EmulatorPathNotFound" xml:space="preserve">
+    <value>エミュレータパスが存在しません: {0}</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.EmulatorPathRequired" xml:space="preserve">
+    <value>エミュレータ自動起動を有効にする場合、エミュレータパスは必須です。</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.EmulatorWaitSecondsOutOfRange" xml:space="preserve">
+    <value>エミュレータ待機秒数は {0}-{1} の範囲で指定してください。</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.GpuFallbackApplied" xml:space="preserve">
+    <value>このプラットフォームでは未対応の GPU 設定を削除しました。CPU OCR フォールバックを使用します。</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.Passed" xml:space="preserve">
+    <value>起動/パフォーマンス設定の検証に合格しました。</value>
+  </data>
+  <data name="Settings.State.Saved" xml:space="preserve">
+    <value>保存しました</value>
+  </data>
+  <data name="Settings.State.Saving" xml:space="preserve">
+    <value>保存中...</value>
+  </data>
+  <data name="Settings.Timer.CustomConfig" xml:space="preserve">
+    <value>カスタム構成オプション</value>
+  </data>
+  <data name="Settings.Timer.ForceScheduledStart" xml:space="preserve">
+    <value>強制的なタイミングで起動</value>
+  </data>
+  <data name="Settings.Timer.ShowWindowBeforeForceScheduledStart" xml:space="preserve">
+    <value>強制的なタイミングで起動前の表示ウィンドウ</value>
+  </data>
+  <data name="Settings.Timer.SlotLabel" xml:space="preserve">
+    <value>定時タスク</value>
+  </data>
+  <data name="Settings.VersionUpdate.AutoDownload" xml:space="preserve">
+    <value>更新パッケージを自動ダウンロード</value>
+  </data>
+  <data name="Settings.VersionUpdate.AutoInstall" xml:space="preserve">
+    <value>更新パッケージを自動インストール</value>
+  </data>
+  <data name="Settings.VersionUpdate.Changelog" xml:space="preserve">
+    <value>更新履歴</value>
+  </data>
+  <data name="Settings.VersionUpdate.Channel" xml:space="preserve">
+    <value>更新チャンネル</value>
+  </data>
+  <data name="Settings.VersionUpdate.Copy" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="Settings.VersionUpdate.Dialog.Cancel" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Settings.VersionUpdate.Dialog.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Settings.VersionUpdate.Dialog.Title" xml:space="preserve">
+    <value>バージョン更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.ForceGithub" xml:space="preserve">
+    <value>GitHub を強制使用</value>
+  </data>
+  <data name="Settings.VersionUpdate.MirrorCdk" xml:space="preserve">
+    <value>Mirror酱 CDK</value>
+  </data>
+  <data name="Settings.VersionUpdate.MirrorSite" xml:space="preserve">
+    <value>Mirror酱</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelBuildTime" xml:space="preserve">
+    <value>ビルド時刻</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelCoreVersion" xml:space="preserve">
+    <value>コアバージョン</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelResourceTime" xml:space="preserve">
+    <value>リソース時刻</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelResourceVersion" xml:space="preserve">
+    <value>リソースバージョン</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelUiVersion" xml:space="preserve">
+    <value>UI バージョン</value>
+  </data>
+  <data name="Settings.VersionUpdate.ProxyAddress" xml:space="preserve">
+    <value>プロキシアドレス</value>
+  </data>
+  <data name="Settings.VersionUpdate.ProxyAddressWatermark" xml:space="preserve">
+    <value>&lt;IP&gt;:&lt;連接埠&gt;</value>
+  </data>
+  <data name="Settings.VersionUpdate.ProxyType" xml:space="preserve">
+    <value>プロキシ種類</value>
+  </data>
+  <data name="Settings.VersionUpdate.ResourceApi" xml:space="preserve">
+    <value>リソース API</value>
+  </data>
+  <data name="Settings.VersionUpdate.ResourceRepository" xml:space="preserve">
+    <value>リソースリポジトリ</value>
+  </data>
+  <data name="Settings.VersionUpdate.ResourceUpdate" xml:space="preserve">
+    <value>リソース更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.ScheduledCheck" xml:space="preserve">
+    <value>定時で更新を確認</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwareUpdate" xml:space="preserve">
+    <value>ソフト更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.Source" xml:space="preserve">
+    <value>更新ソース</value>
+  </data>
+  <data name="Settings.VersionUpdate.StartupCheck" xml:space="preserve">
+    <value>起動時に更新を確認</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.CheckFailed" xml:space="preserve">
+    <value>更新チェックに失敗しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.DialogCancelled" xml:space="preserve">
+    <value>バージョン更新ダイアログをキャンセルしました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.DialogClosed" xml:space="preserve">
+    <value>バージョン更新ダイアログを閉じました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.DialogConfirmed" xml:space="preserve">
+    <value>バージョン更新ダイアログを確認しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.MirrorCdkExpired" xml:space="preserve">
+    <value>MirrorChyan CDK は期限切れです。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.MirrorCdkExpiredAt" xml:space="preserve">
+    <value>MirrorChyan CDK は期限切れです（{0:yyyy-MM-dd HH:mm}）。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.MirrorCdkRemainingDays" xml:space="preserve">
+    <value>MirrorChyan CDK の残りは {0:F1} 日です（{1:yyyy-MM-dd HH:mm} まで）。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenChangelogFailed" xml:space="preserve">
+    <value>更新履歴を開けませんでした。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenChangelogSucceeded" xml:space="preserve">
+    <value>更新履歴を開きました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenMirrorChyanFailed" xml:space="preserve">
+    <value>MirrorChyan を開けませんでした。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenMirrorChyanSucceeded" xml:space="preserve">
+    <value>MirrorChyan を開きました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenResourceRepositoryFailed" xml:space="preserve">
+    <value>リソースリポジトリを開けませんでした。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenResourceRepositorySucceeded" xml:space="preserve">
+    <value>リソースリポジトリを開きました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.PersistFailed" xml:space="preserve">
+    <value>更新結果は反映されましたが、設定への保存に失敗しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.PersistFailedSuffix" xml:space="preserve">
+    <value>結果の保存に失敗しました</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.ResourceUpdateFailed" xml:space="preserve">
+    <value>リソース更新に失敗しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveChannelFailed" xml:space="preserve">
+    <value>更新チャンネル設定の保存に失敗しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveChannelSucceeded" xml:space="preserve">
+    <value>更新チャンネル設定を保存しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveProxyFailed" xml:space="preserve">
+    <value>更新プロキシ設定の保存に失敗しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveProxySucceeded" xml:space="preserve">
+    <value>更新プロキシ設定を保存しました。</value>
+  </data>
+  <data name="SlowAndSteadyWinsTheRace" xml:space="preserve">
+    <value>攻守一体（重装、術師、狙撃）</value>
+  </data>
+  <data name="StartUp.AccountName" xml:space="preserve">
+    <value>アカウント</value>
+  </data>
+  <data name="StartUp.AccountSwitch" xml:space="preserve">
+    <value>アカウントの切り替え</value>
+  </data>
+  <data name="StartUp.AccountSwitchManualRun" xml:space="preserve">
+    <value>今すぐ切り替える</value>
+  </data>
+  <data name="StartUp.AccountSwitchTip" xml:space="preserve">
+    <value>切り替える必要があるアカウントを入力し、空白のままにしてアカウントの切り替えを完了します。
+ログインインターフェイスに表示される内容を入力します（「123****4567」など）。「123****4567」または「4567」または「23****45」を入力できます。
+公式(CN)とBilibiliサーバーのみをサポートします。 ログインアカウントはサポートされていません。</value>
+  </data>
+  <data name="StartUp.AdbPath" xml:space="preserve">
+    <value>ADB パス</value>
+  </data>
+  <data name="StartUp.AttachKeyboard" xml:space="preserve">
+    <value>AttachWindow-キーボード</value>
+  </data>
+  <data name="StartUp.AttachMouse" xml:space="preserve">
+    <value>AttachWindow-タッチ</value>
+  </data>
+  <data name="StartUp.AttachScreencap" xml:space="preserve">
+    <value>AttachWindow-スクショ</value>
+  </data>
+  <data name="StartUp.AutoDetect" xml:space="preserve">
+    <value>自動検出</value>
+  </data>
+  <data name="StartUp.AutoDetectConnectionTip" xml:space="preserve">
+    <value>このチェックボックスは、検出が完了するたびに自動的にチェックが外れますが、再検出が必要な場合は再度チェックを入れることができます</value>
+  </data>
+  <data name="StartUp.ClientType" xml:space="preserve">
+    <value>クライアント</value>
+  </data>
+  <data name="StartUp.ConnectAddress" xml:space="preserve">
+    <value>接続アドレス</value>
+  </data>
+  <data name="StartUp.ConnectConfig" xml:space="preserve">
+    <value>接続プリセット</value>
+  </data>
+  <data name="StartUp.ConnectionAddressTip" xml:space="preserve">
+    <value>問題があれば手動で修正してください</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.PostWithCursor" xml:space="preserve">
+    <value>PostMsg-CursorPos（半バックグラウンド、一時的にマウスを取得）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.PostWithWindowPos" xml:space="preserve">
+    <value>PostMsg-WindowPos（フルバックグラウンド、マウス不要、ウィンドウが動く可能性あり、最小化推奨）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.Seize" xml:space="preserve">
+    <value>Seize（フォアグラウンド、マウスを完全に取得）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.SendWithCursor" xml:space="preserve">
+    <value>SendMsg-CursorPos（半バックグラウンド、一時的にマウスを取得）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.SendWithWindowPos" xml:space="preserve">
+    <value>SendMsg-WindowPos（フルバックグラウンド、マウス不要、ウィンドウが動く可能性あり、最小化推奨）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.DesktopWindow" xml:space="preserve">
+    <value>DesktopWindow（フォアグラウンド、遮蔽不可）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.FramePool" xml:space="preserve">
+    <value>FramePool（バックグラウンド、高効率、最小化可）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.PrintWindow" xml:space="preserve">
+    <value>PrintWindow（バックグラウンド、安定、最小化可）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.ScreenDC" xml:space="preserve">
+    <value>ScreenDC（バックグラウンド、予備、最小化不可）</value>
+  </data>
+  <data name="StartUp.Option.ClientType.Bilibili" xml:space="preserve">
+    <value>Bilibili</value>
+  </data>
+  <data name="StartUp.Option.ClientType.Official" xml:space="preserve">
+    <value>CN-公式</value>
+  </data>
+  <data name="StartUp.Option.ClientType.Txwy" xml:space="preserve">
+    <value>txwy</value>
+  </data>
+  <data name="StartUp.Option.ClientType.YoStarEN" xml:space="preserve">
+    <value>YostarEN</value>
+  </data>
+  <data name="StartUp.Option.ClientType.YoStarJP" xml:space="preserve">
+    <value>YostarJP</value>
+  </data>
+  <data name="StartUp.Option.ClientType.YoStarKR" xml:space="preserve">
+    <value>YostarKR</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.BlueStacks" xml:space="preserve">
+    <value>BlueStacks</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.Compatible" xml:space="preserve">
+    <value>互換モード</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.General" xml:space="preserve">
+    <value>一般モード</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.GeneralWithoutScreencapErr" xml:space="preserve">
+    <value>一般モード（ブロックされた例外出力）</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.LDPlayer" xml:space="preserve">
+    <value>LDPlayer</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.MuMuEmulator12" xml:space="preserve">
+    <value>MuMu Player</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.Nox" xml:space="preserve">
+    <value>NoxPlayer</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.PC" xml:space="preserve">
+    <value>PC クライアント</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.SecondResolution" xml:space="preserve">
+    <value>2番目の決議</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.WSA" xml:space="preserve">
+    <value>古いバージョンのWSA</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.XYAZ" xml:space="preserve">
+    <value>MEmu</value>
+  </data>
+  <data name="StartUp.Option.TouchMode.AdbTouch" xml:space="preserve">
+    <value>ADB Input (非推奨)</value>
+  </data>
+  <data name="StartUp.Option.TouchMode.MaaTouch" xml:space="preserve">
+    <value>MaaTouch (実験機能)</value>
+  </data>
+  <data name="StartUp.Option.TouchMode.MiniTouch" xml:space="preserve">
+    <value>Minitouch (標準)</value>
+  </data>
+  <data name="StartUp.Select" xml:space="preserve">
+    <value>選択</value>
+  </data>
+  <data name="StartUp.StartGameEnabled" xml:space="preserve">
+    <value>起動時にクライアントを開始する</value>
+  </data>
+  <data name="StartUp.Title" xml:space="preserve">
+    <value>ウェイクアップ</value>
+  </data>
+  <data name="StartUp.TouchMode" xml:space="preserve">
+    <value>タッチモード</value>
+  </data>
+  <data name="TaskQueue.Error.BlockingValidation" xml:space="preserve">
+    <value>タスク `{0}` は検証でブロックされました: {1}</value>
+  </data>
+  <data name="TaskQueue.Module.Award" xml:space="preserve">
+    <value>報酬受取</value>
+  </data>
+  <data name="TaskQueue.Module.Custom" xml:space="preserve">
+    <value>カスタムタスク</value>
+  </data>
+  <data name="TaskQueue.Module.Fight" xml:space="preserve">
+    <value>作戦</value>
+  </data>
+  <data name="TaskQueue.Module.Infrast" xml:space="preserve">
+    <value>基地交代</value>
+  </data>
+  <data name="TaskQueue.Module.Mall" xml:space="preserve">
+    <value>信用取引</value>
+  </data>
+  <data name="TaskQueue.Module.PostAction" xml:space="preserve">
+    <value>完了後</value>
+  </data>
+  <data name="TaskQueue.Module.Reclamation" xml:space="preserve">
+    <value>生息演算</value>
+  </data>
+  <data name="TaskQueue.Module.Recruit" xml:space="preserve">
+    <value>公開求人</value>
+  </data>
+  <data name="TaskQueue.Module.Roguelike" xml:space="preserve">
+    <value>ローグライク</value>
+  </data>
+  <data name="TaskQueue.Module.StartUp" xml:space="preserve">
+    <value>開始起動</value>
+  </data>
+  <data name="TaskQueue.Module.TaskQueue" xml:space="preserve">
+    <value>タスクキュー</value>
+  </data>
+  <data name="TaskQueue.Root.AdvancedSettings" xml:space="preserve">
+    <value>詳細設定</value>
+  </data>
+  <data name="TaskQueue.Root.Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="TaskQueue.Root.Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TaskQueue.Root.GeneralSettings" xml:space="preserve">
+    <value>一般設定</value>
+  </data>
+  <data name="TaskQueue.Root.LeftClick" xml:space="preserve">
+    <value>左クリック</value>
+  </data>
+  <data name="TaskQueue.Root.LogsTitle" xml:space="preserve">
+    <value>ログ</value>
+  </data>
+  <data name="TaskQueue.Root.MoveDown" xml:space="preserve">
+    <value>下へ移動</value>
+  </data>
+  <data name="TaskQueue.Root.MoveUp" xml:space="preserve">
+    <value>上へ移動</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerCancelStatus" xml:space="preserve">
+    <value>オーバーレイ対象の選択をキャンセルしました。</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerClosedStatus" xml:space="preserve">
+    <value>オーバーレイ対象選択ダイアログを閉じました。</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerConfirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerTitle" xml:space="preserve">
+    <value>ウィンドウを選択</value>
+  </data>
+  <data name="TaskQueue.Root.Rename" xml:space="preserve">
+    <value>名前変更</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogCancelStatus" xml:space="preserve">
+    <value>名前変更をキャンセルしました。</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogClosedStatus" xml:space="preserve">
+    <value>名前変更ダイアログを閉じました。</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogConfirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogPrompt" xml:space="preserve">
+    <value>新しいタスク名を入力してください：</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogTitle" xml:space="preserve">
+    <value>タスク名を変更 {0}</value>
+  </data>
+  <data name="TaskQueue.Root.RightClick" xml:space="preserve">
+    <value>右クリック</value>
+  </data>
+  <data name="TaskQueue.Root.SelectAll" xml:space="preserve">
+    <value>全選択</value>
+  </data>
+  <data name="TaskQueue.Root.TaskConfigTitle" xml:space="preserve">
+    <value>タスク設定</value>
+  </data>
+  <data name="TaskQueue.Root.TaskListTitle" xml:space="preserve">
+    <value>タスクリスト</value>
+  </data>
+  <data name="TaskQueue.Root.TaskSettings" xml:space="preserve">
+    <value>タスク設定</value>
+  </data>
+  <data name="TaskQueue.SelectionHint" xml:space="preserve">
+    <value>左側のタスクリストから編集するタスクを選択してください。</value>
+  </data>
+  <data name="TaskQueue.Validation.BlockingCount" xml:space="preserve">
+    <value>ブロッキングエラーが {0} 件あります。</value>
+  </data>
+  <data name="TaskQueue.Validation.Clean" xml:space="preserve">
+    <value>検証に合格しました。</value>
+  </data>
+  <data name="TaskQueue.Validation.LoadFailed" xml:space="preserve">
+    <value>検証レポートの読み込みに失敗しました。</value>
+  </data>
+  <data name="TaskQueue.Validation.WarningCount" xml:space="preserve">
+    <value>警告が {0} 件あります。</value>
+  </data>
+  <data name="Toolbox.Action.LinkStart" xml:space="preserve">
+    <value>リンク開始！</value>
+  </data>
+  <data name="Toolbox.Action.PeepStart" xml:space="preserve">
+    <value>覗き見！</value>
+  </data>
+  <data name="Toolbox.Action.PeepStop" xml:space="preserve">
+    <value>停止！</value>
+  </data>
+  <data name="Toolbox.Action.PeepStopStrong" xml:space="preserve">
+    <value>停止！！！！！</value>
+  </data>
+  <data name="Toolbox.Action.StartRecognition" xml:space="preserve">
+    <value>認識開始</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Fallback.None" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Provider.Unknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Summary" xml:space="preserve">
+    <value>プロバイダー: {0}; サポート: {1}; フォールバック: {2}</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Supported.False" xml:space="preserve">
+    <value>いいえ</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Supported.True" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="Toolbox.Advanced.EntryDescription" xml:space="preserve">
+    <value>統合入口：ステージ管理、オーバーレイ、トレイ、リモート制御、通知 Provider、WebApi 互換設定。</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.DefaultMessage" xml:space="preserve">
+    <value>高度な外部通知テスト</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.DefaultTitle" xml:space="preserve">
+    <value>MAA テスト</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.MessageBody" xml:space="preserve">
+    <value>本文</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.MessageTitle" xml:space="preserve">
+    <value>タイトル</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Parameters" xml:space="preserve">
+    <value>パラメーター</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Parameters.Watermark" xml:space="preserve">
+    <value>key=value;key2=value2</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Provider" xml:space="preserve">
+    <value>プロバイダー</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.RefreshProviders" xml:space="preserve">
+    <value>プロバイダーを更新</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.SendTest" xml:space="preserve">
+    <value>テスト送信</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Title" xml:space="preserve">
+    <value>外部通知プロバイダー</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.ValidateParameters" xml:space="preserve">
+    <value>パラメーターを検証</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.ReloadTargets" xml:space="preserve">
+    <value>対象を更新</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.TargetWindow" xml:space="preserve">
+    <value>対象ウィンドウ</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.Title" xml:space="preserve">
+    <value>オーバーレイ</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.ToggleVisibility" xml:space="preserve">
+    <value>表示切替</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.GetTaskEndpoint" xml:space="preserve">
+    <value>GetTask エンドポイント</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.GetTaskEndpoint.Watermark" xml:space="preserve">
+    <value>https://example.com/get-task</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.PollInterval" xml:space="preserve">
+    <value>ポーリング間隔 (ms)</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.ReportEndpoint" xml:space="preserve">
+    <value>Report エンドポイント</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.ReportEndpoint.Watermark" xml:space="preserve">
+    <value>https://example.com/report</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.TestConnectivity" xml:space="preserve">
+    <value>接続テスト</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.Title" xml:space="preserve">
+    <value>リモート制御センター</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.AutoIterate" xml:space="preserve">
+    <value>自動巡回</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.ClientType" xml:space="preserve">
+    <value>クライアント</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.LastSelectedStage" xml:space="preserve">
+    <value>前回ステージ</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.LocalResources" xml:space="preserve">
+    <value>ローカル リソース</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.RefreshLocal" xml:space="preserve">
+    <value>ローカル更新</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.RefreshWeb" xml:space="preserve">
+    <value>Web 更新</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.StageCodes" xml:space="preserve">
+    <value>ステージ一覧</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.StageCodes.Watermark" xml:space="preserve">
+    <value>1 行 1 件、またはカンマ区切り。例: 1-7, CE-5</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Title" xml:space="preserve">
+    <value>ステージ管理</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Validate" xml:space="preserve">
+    <value>検証</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.WebResources" xml:space="preserve">
+    <value>Web リソース</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.ExternalNotification" xml:space="preserve">
+    <value>外部通知</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.Overlay" xml:space="preserve">
+    <value>オーバーレイ</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.RemoteControl" xml:space="preserve">
+    <value>リモート制御</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.StageManager" xml:space="preserve">
+    <value>ステージ管理</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.Tray" xml:space="preserve">
+    <value>トレイ統合</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.WebApi" xml:space="preserve">
+    <value>WebApi（互換）</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.ApplyVisibility" xml:space="preserve">
+    <value>表示設定を適用</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.DefaultMessageBody" xml:space="preserve">
+    <value>トレイ統合テスト。</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.DefaultMessageTitle" xml:space="preserve">
+    <value>MAAUnified</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.MessageBody" xml:space="preserve">
+    <value>通知本文</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.MessageTitle" xml:space="preserve">
+    <value>通知タイトル</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.RefreshCapability" xml:space="preserve">
+    <value>機能を更新</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.SendMessage" xml:space="preserve">
+    <value>トレイ通知を送信</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.SyncMenuState" xml:space="preserve">
+    <value>メニュー状態を同期</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.Title" xml:space="preserve">
+    <value>トレイ統合</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.Visible" xml:space="preserve">
+    <value>トレイ表示</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.AccessToken" xml:space="preserve">
+    <value>アクセストークン</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Enabled" xml:space="preserve">
+    <value>WebApi を有効化</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Host" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Port" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.RefreshStatus" xml:space="preserve">
+    <value>状態を更新</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.RunningStatus" xml:space="preserve">
+    <value>動作状態</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.SaveConfig" xml:space="preserve">
+    <value>設定を保存</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.StartService" xml:space="preserve">
+    <value>サービスを開始</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Status.Running" xml:space="preserve">
+    <value>実行中</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Status.Stopped" xml:space="preserve">
+    <value>停止中</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.StopService" xml:space="preserve">
+    <value>サービスを停止</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Title" xml:space="preserve">
+    <value>WebApi（互換）</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Warning" xml:space="preserve">
+    <value>このパネルは旧版 WebApi 互換のためのものです。外部アクセスが明確に必要な場合のみ有効化し、可能であればアクセストークンを設定してください。</value>
+  </data>
+  <data name="Toolbox.Depot.ExportArkPlanner" xml:space="preserve">
+    <value>Penguin Stats 周回計画へエクスポート</value>
+  </data>
+  <data name="Toolbox.Depot.ExportLolicon" xml:space="preserve">
+    <value>アークナイツツールボックスへエクスポート</value>
+  </data>
+  <data name="Toolbox.Depot.LastSync" xml:space="preserve">
+    <value>前回同期: {0}</value>
+  </data>
+  <data name="Toolbox.Depot.NeverSynced" xml:space="preserve">
+    <value>未同期</value>
+  </data>
+  <data name="Toolbox.Error.BusyWithTool" xml:space="preserve">
+    <value>`{0}` 実行中です。先に停止してから覗き見を開始してください。</value>
+  </data>
+  <data name="Toolbox.Error.ConnectionFailed" xml:space="preserve">
+    <value>接続に失敗しました。</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionCancelled" xml:space="preserve">
+    <value>ツール実行がキャンセルされました: {0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionFailed" xml:space="preserve">
+    <value>ツール実行に失敗しました: {0}</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionFailedDefault" xml:space="preserve">
+    <value>ツール実行に失敗しました。</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionFailedWithCode" xml:space="preserve">
+    <value>ツール実行に失敗しました: {0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.GachaDisclaimerRequired" xml:space="preserve">
+    <value>先にガチャのリスク確認をしてください。</value>
+  </data>
+  <data name="Toolbox.Error.InvalidParameters" xml:space="preserve">
+    <value>ツールのパラメーターエラー: {0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.OwnerRunning" xml:space="preserve">
+    <value>`{0}` が既に実行中です。</value>
+  </data>
+  <data name="Toolbox.Error.RecruitFailed" xml:space="preserve">
+    <value>公開求人の認識に失敗しました。画面と接続状態を確認してください。</value>
+  </data>
+  <data name="Toolbox.Error.ToolExecutionCancelled" xml:space="preserve">
+    <value>ツール実行がキャンセルされました。</value>
+  </data>
+  <data name="Toolbox.Error.ToolNotSupported" xml:space="preserve">
+    <value>このツールは未対応です: {0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.ToolboxBusy" xml:space="preserve">
+    <value>Toolbox で既にタスクが実行中です。先に停止してください。</value>
+  </data>
+  <data name="Toolbox.ExecutionReview.HistoryLabel" xml:space="preserve">
+    <value>履歴</value>
+  </data>
+  <data name="Toolbox.ExecutionReview.ParametersLabel" xml:space="preserve">
+    <value>パラメーター</value>
+  </data>
+  <data name="Toolbox.ExecutionReview.ResultLabel" xml:space="preserve">
+    <value>最新結果</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Acknowledge" xml:space="preserve">
+    <value>了解</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Body" xml:space="preserve">
+    <value>ガチャツールは現在のクライアントを直接操作します。メインアカウントでないことを確認し、対応するガチャ画面を開いてください。</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Emphasis" xml:space="preserve">
+    <value>本当のガチャ</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Lead" xml:space="preserve">
+    <value>注意してください。これは</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.NoMore" xml:space="preserve">
+    <value>次回から表示しない</value>
+  </data>
+  <data name="Toolbox.Gacha.DrawOnce" xml:space="preserve">
+    <value>1回引く</value>
+  </data>
+  <data name="Toolbox.Gacha.DrawTen" xml:space="preserve">
+    <value>10回引く</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.1" xml:space="preserve">
+    <value>ガチャ実行中。覗き見を自動で開始しました。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.2" xml:space="preserve">
+    <value>ガチャ中はこのページから直接停止できます。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.3" xml:space="preserve">
+    <value>覗き見 FPS が高すぎる場合は目標 FPS を下げてください。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.4" xml:space="preserve">
+    <value>エミュレーターが重い場合は、まずキャプチャ方式と接続品質を確認してください。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.5" xml:space="preserve">
+    <value>ガチャはカスタムタスクチェーンを使い、終了時に自動で後処理します。</value>
+  </data>
+  <data name="Toolbox.History.ReadFailedEmpty" xml:space="preserve">
+    <value>実行履歴の読み込みに失敗しました: 設定が空です。</value>
+  </data>
+  <data name="Toolbox.History.ReadFailedWithReason" xml:space="preserve">
+    <value>実行履歴の読み込みに失敗しました: {0}</value>
+  </data>
+  <data name="Toolbox.MiniGame.CurrentTask" xml:space="preserve">
+    <value>現在のタスク: {0}</value>
+  </data>
+  <data name="Toolbox.MiniGame.Ending" xml:space="preserve">
+    <value>エンディング</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.None" xml:space="preserve">
+    <value>選択なし</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.Phantom" xml:space="preserve">
+    <value>ファントムトレイル</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.Ranger" xml:space="preserve">
+    <value>レンジャー</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.SupportPlatform" xml:space="preserve">
+    <value>支援作戦プラットフォーム</value>
+  </data>
+  <data name="Toolbox.MiniGame.EventPriority" xml:space="preserve">
+    <value>優先イベント</value>
+  </data>
+  <data name="Toolbox.MiniGame.Name" xml:space="preserve">
+    <value>ミニゲーム名</value>
+  </data>
+  <data name="Toolbox.OperBox.CopyToClipboard" xml:space="preserve">
+    <value>クリップボードにコピー</value>
+  </data>
+  <data name="Toolbox.OperBox.Header.NotOwned" xml:space="preserve">
+    <value>未所持 ({0})</value>
+  </data>
+  <data name="Toolbox.OperBox.Header.Owned" xml:space="preserve">
+    <value>所持 ({0})</value>
+  </data>
+  <data name="Toolbox.OperBox.Subtitle.NotOwned" xml:space="preserve">
+    <value>{0}★ / 未所持</value>
+  </data>
+  <data name="Toolbox.OperBox.Subtitle.Owned" xml:space="preserve">
+    <value>{0}★ / 昇進 {1} / レベル {2} / 潜在 {3}</value>
+  </data>
+  <data name="Toolbox.Peep.TargetFps" xml:space="preserve">
+    <value>目標FPS</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect3" xml:space="preserve">
+    <value>3★ Tags を自動選択</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect4" xml:space="preserve">
+    <value>4★ Tags を自動選択</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect5" xml:space="preserve">
+    <value>5★ Tags を自動選択</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect6" xml:space="preserve">
+    <value>6★ Tags を自動選択</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSetTime" xml:space="preserve">
+    <value>時間を自動設定</value>
+  </data>
+  <data name="Toolbox.Recruit.FixedSixStar" xml:space="preserve">
+    <value>固定 09:00（6★確定）</value>
+  </data>
+  <data name="Toolbox.Recruit.ResultLine" xml:space="preserve">
+    <value>{0}★ Tags: {1}</value>
+  </data>
+  <data name="Toolbox.Recruit.ShowPotential" xml:space="preserve">
+    <value>オペレーター潜在を表示（4/5/6★ Tags）</value>
+  </data>
+  <data name="Toolbox.Recruit.Suffix.Max" xml:space="preserve">
+    <value> (MAX)</value>
+  </data>
+  <data name="Toolbox.Recruit.Suffix.New" xml:space="preserve">
+    <value> (NEW)</value>
+  </data>
+  <data name="Toolbox.Recruit.TagsDetected" xml:space="preserve">
+    <value>求人タグを認識しました。</value>
+  </data>
+  <data name="Toolbox.Recruit.TagsDetectedWithList" xml:space="preserve">
+    <value>認識タグ: {0}</value>
+  </data>
+  <data name="Toolbox.Section.ExecutionReview" xml:space="preserve">
+    <value>実行レビュー</value>
+  </data>
+  <data name="Toolbox.Status.ConnectingEmulator" xml:space="preserve">
+    <value>エミュレーターに接続中...</value>
+  </data>
+  <data name="Toolbox.Status.CopiedToClipboard" xml:space="preserve">
+    <value>クリップボードにコピーしました</value>
+  </data>
+  <data name="Toolbox.Status.CurrentToolStopped" xml:space="preserve">
+    <value>現在のツールを停止しました。</value>
+  </data>
+  <data name="Toolbox.Status.MiniGameStarting" xml:space="preserve">
+    <value>ミニゲームタスクを起動中...</value>
+  </data>
+  <data name="Toolbox.Status.PeepStarted" xml:space="preserve">
+    <value>覗き見を開始しました。</value>
+  </data>
+  <data name="Toolbox.Status.PeepStopped" xml:space="preserve">
+    <value>覗き見を停止しました。</value>
+  </data>
+  <data name="Toolbox.Status.RecognitionCompleted" xml:space="preserve">
+    <value>認識完了。</value>
+  </data>
+  <data name="Toolbox.Status.Recognizing" xml:space="preserve">
+    <value>認識中...</value>
+  </data>
+  <data name="Toolbox.Status.ToolCompleted" xml:space="preserve">
+    <value>ツールの実行が完了しました。</value>
+  </data>
+  <data name="Toolbox.Status.ToolStarted" xml:space="preserve">
+    <value>{0}を開始しました。</value>
+  </data>
+  <data name="Toolbox.Status.ToolStopped" xml:space="preserve">
+    <value>ツールを停止しました。</value>
+  </data>
+  <data name="Toolbox.Status.WaitingForExecution" xml:space="preserve">
+    <value>ツールの実行待機中。</value>
+  </data>
+  <data name="Toolbox.Tab.Advanced" xml:space="preserve">
+    <value>上級ツール</value>
+  </data>
+  <data name="Toolbox.Tab.Depot" xml:space="preserve">
+    <value>在庫認識</value>
+  </data>
+  <data name="Toolbox.Tab.Gacha" xml:space="preserve">
+    <value>ガチャ</value>
+  </data>
+  <data name="Toolbox.Tab.MiniGame" xml:space="preserve">
+    <value>ミニゲーム</value>
+  </data>
+  <data name="Toolbox.Tab.OperBox" xml:space="preserve">
+    <value>オペレーター認識</value>
+  </data>
+  <data name="Toolbox.Tab.Peep" xml:space="preserve">
+    <value>覗き見</value>
+  </data>
+  <data name="Toolbox.Tab.Recruit" xml:space="preserve">
+    <value>公開求人認識</value>
+  </data>
+  <data name="Toolbox.Tip.DepotRecognition" xml:space="preserve">
+    <value>この機能はまだ実験段階です。結果を確認してから利用してください。誤りがある場合は debug/depot をまとめて issue を提出してください。</value>
+  </data>
+  <data name="Toolbox.Tip.GachaInit" xml:space="preserve">
+    <value>ロドスには同じ志を持つ仲間が集う。詩、戦争、自由。大地を変えるための物語は語り継がれるべきだ。</value>
+  </data>
+  <data name="Toolbox.Tip.MiniGameNameEmpty" xml:space="preserve">
+    <value>上のミニゲームを選択して開始してください。</value>
+  </data>
+  <data name="Toolbox.Tip.OperBoxRecognition" xml:space="preserve">
+    <value>特別注目は認識精度に影響する可能性があります。認識ミスは手動で確認してください。</value>
+  </data>
+  <data name="Toolbox.Tip.Peep" xml:space="preserve">
+    <value>牛牛の視界を覗いてみる？</value>
+  </data>
+  <data name="Toolbox.Tip.RecruitPotential" xml:space="preserve">
+    <value>先に「オペレーター認識」でオペレーター情報を取得してください。</value>
+  </data>
+  <data name="Toolbox.Tip.RecruitRecognition" xml:space="preserve">
+    <value>ヒント: メイン画面の自動公開求人とは独立した機能です。ゲーム内の求人タグ画面を開いてから使用してください。</value>
+  </data>
+  <data name="Toolbox.ToolName.Depot" xml:space="preserve">
+    <value>在庫認識</value>
+  </data>
+  <data name="Toolbox.ToolName.Gacha" xml:space="preserve">
+    <value>ガチャ</value>
+  </data>
+  <data name="Toolbox.ToolName.MiniGame" xml:space="preserve">
+    <value>ミニゲーム</value>
+  </data>
+  <data name="Toolbox.ToolName.OperBox" xml:space="preserve">
+    <value>オペレーター認識</value>
+  </data>
+  <data name="Toolbox.ToolName.Recruit" xml:space="preserve">
+    <value>公開求人認識</value>
+  </data>
+  <data name="Toolbox.ToolName.VideoRecognition" xml:space="preserve">
+    <value>覗き見</value>
+  </data>
+  <data name="Toolbox.Validation.DepotTopNInvalid" xml:space="preserve">
+    <value>倉庫 TopN は 1〜500 の範囲で指定してください。</value>
+  </data>
+  <data name="Toolbox.Validation.GachaDrawCountInvalid" xml:space="preserve">
+    <value>ガチャ回数は 1 または 10 のみ対応です。</value>
+  </data>
+  <data name="Toolbox.Validation.MiniGameSecretFrontEndingInvalid" xml:space="preserve">
+    <value>MiniGame@SecretFront の場合、エンディングは A〜E のいずれかである必要があります。</value>
+  </data>
+  <data name="Toolbox.Validation.MiniGameTaskNameEmpty" xml:space="preserve">
+    <value>ミニゲームのタスク名は空にできません。</value>
+  </data>
+  <data name="Toolbox.Validation.OperBoxModeInvalid" xml:space="preserve">
+    <value>オペレーター認識モードは owned または all のみ対応です。</value>
+  </data>
+  <data name="Toolbox.Validation.PeepFpsInvalid" xml:space="preserve">
+    <value>覗き見の目標 FPS は 1〜60 の範囲で指定してください。</value>
+  </data>
+  <data name="Toolbox.Validation.RecruitSelectAtLeastOne" xml:space="preserve">
+    <value>公開求人計算には少なくとも1つの星級を選択してください。</value>
+  </data>
+  <data name="Toolbox.Validation.RecruitTimeInvalid" xml:space="preserve">
+    <value>求人時間は 60〜540 の範囲で 10 分刻みである必要があります。</value>
+  </data>
+  <data name="Toolbox.Warning.GachaMessage" xml:space="preserve">
+    <value>この機能は高リスクで、意図しないガチャを引く可能性があります。
+「確認」を押すと、リスクを理解し受け入れたものとみなされます。</value>
+  </data>
+  <data name="Unbreakable" xml:space="preserve">
+    <value>難攻不落（重装、術師、医療）</value>
+  </data>
+  <data name="ActingCommandError" xml:space="preserve">
+    <value>自動指揮のミスが生じました</value>
+  </data>
+  <data name="AlgorithmBadge" xml:space="preserve">
+    <value>繁栄のバッジ</value>
+  </data>
+  <data name="AlgorithmConstructionPoint" xml:space="preserve">
+    <value>ビルドポイント</value>
+  </data>
+  <data name="AlgorithmFinish" xml:space="preserve">
+    <value>演算終了</value>
+  </data>
+  <data name="BattleFormation" xml:space="preserve">
+    <value>編成開始</value>
+  </data>
+  <data name="BattleFormationOperUnavailable" xml:space="preserve">
+    <value>{key=Operator}が使用できません: {0}、理由: {1}</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.Elite" xml:space="preserve">
+    <value>エリート度が低すぎる</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.Level" xml:space="preserve">
+    <value>レベル不足</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.Module" xml:space="preserve">
+    <value>必要なモジュールが未解除</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.SkillLevel" xml:space="preserve">
+    <value>スキルレベルが低すぎる</value>
+  </data>
+  <data name="BattleFormationParseFailed" xml:space="preserve">
+    <value>フォーメーション解析に失敗しました</value>
+  </data>
+  <data name="BattleFormationSelected" xml:space="preserve">
+    <value>{key=Operator}を選択: </value>
+  </data>
+  <data name="BegunToExplore" xml:space="preserve">
+    <value>探索を開始しました</value>
+  </data>
+  <data name="BulletTime" xml:space="preserve">
+    <value>バレットタイム突入</value>
+  </data>
+  <data name="Choose" xml:space="preserve">
+    <value>選択</value>
+  </data>
+  <data name="CloseArknightsFailed" xml:space="preserve">
+    <value>ゲームの終了に失敗しました</value>
+  </data>
+  <data name="ClueExchangeUnlocked" xml:space="preserve">
+    <value>手がかり交換を開始しました</value>
+  </data>
+  <data name="CombatError" xml:space="preserve">
+    <value>戦闘エラー</value>
+  </data>
+  <data name="CombatOps" xml:space="preserve">
+    <value>ステージ: 通常作戦</value>
+  </data>
+  <data name="CompleteCombat" xml:space="preserve">
+    <value>戦闘完了</value>
+  </data>
+  <data name="CompleteTask" xml:space="preserve">
+    <value>タスク完了: </value>
+  </data>
+  <data name="ConnectingToEmulator" xml:space="preserve">
+    <value>エミュレータ接続中……</value>
+  </data>
+  <data name="ContinueRefresh" xml:space="preserve">
+    <value>採用許可がないため、タグを更新しようとしています</value>
+  </data>
+  <data name="Copilot.Error.ListEmptyStageName" xml:space="preserve">
+    <value>ステージ名が空の作業があります</value>
+  </data>
+  <data name="Copilot.Error.ValidateTabMismatch" xml:space="preserve">
+    <value>選択した作業が現在のタブと一致しません</value>
+  </data>
+  <data name="Copilot.Option.Module.None" xml:space="preserve">
+    <value>モジュールなし</value>
+  </data>
+  <data name="Copilot.Option.SupportUnitUsage.FillGap" xml:space="preserve">
+    <value>補完のみ</value>
+  </data>
+  <data name="Copilot.Option.SupportUnitUsage.Random" xml:space="preserve">
+    <value>ランダム</value>
+  </data>
+  <data name="Copilot.Rating.Prompt" xml:space="preserve">
+    <value>この攻略ファイルは好きですか？評価してください！</value>
+  </data>
+  <data name="Copilot.Tip.AddList" xml:space="preserve">
+    <value>左クリックで通常難易度を追加
+右クリックしてレイドの難易度を追加します</value>
+  </data>
+  <data name="Copilot.Tip.ClearList" xml:space="preserve">
+    <value>左クリックですべてのタスクをクリア
+右クリックで非アクティブなタスクをクリア</value>
+  </data>
+  <data name="Copilot.Tip.File" xml:space="preserve">
+    <value>攻略ファイルはマウスで直接ドラッグして取り込むことがきます(oﾟvﾟ)ノ</value>
+  </data>
+  <data name="Copilot.Tip.ImportBatch" xml:space="preserve">
+    <value>バッチインポート</value>
+  </data>
+  <data name="Copilot.Tip.Paste" xml:space="preserve">
+    <value>クリップボードを読み取り、ジョブとして追加します</value>
+  </data>
+  <data name="Copilot.Tip.PasteSet" xml:space="preserve">
+    <value>クリップボードを読み取り、ジョブセットとして追加します</value>
+  </data>
+  <data name="Copilot.Tip.StageName" xml:space="preserve">
+    <value>ステージコード, 例えば 1-7</value>
+  </data>
+  <data name="Copilot.Tip.UseSupportUnit" xml:space="preserve">
+    <value>1つ足りないくらいならまだ使えますが、2つ以上欠けている場合は別の攻略に替えたほうがいいでしょう。</value>
+  </data>
+  <data name="CopilotUserAdditionalNameInvalid" xml:space="preserve">
+    <value>追加のカスタム{key=Operator}名が無効です: {0}、スペルを確認してください</value>
+  </data>
+  <data name="CreditFight" xml:space="preserve">
+    <value>サポートを借りて戦闘を行いポイントを獲得します</value>
+  </data>
+  <data name="CurTimes" xml:space="preserve">
+    <value>現在の回数</value>
+  </data>
+  <data name="CurrentStage" xml:space="preserve">
+    <value>現在のステージ: {0}</value>
+  </data>
+  <data name="CurrentSteps" xml:space="preserve">
+    <value>現在の手順: {0} {1}</value>
+  </data>
+  <data name="DeepExplorationNotUnlockedComplain" xml:space="preserve">
+    <value>深部探索はまだアンロックされていません</value>
+  </data>
+  <data name="Deploy" xml:space="preserve">
+    <value>配置</value>
+  </data>
+  <data name="Dialog.Error.CloseButton" xml:space="preserve">
+    <value>シャットダウン</value>
+  </data>
+  <data name="Dialog.Error.CopyButton" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="Dialog.Warning.CancelButton" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Dialog.Warning.ConfirmButton" xml:space="preserve">
+    <value>認識する</value>
+  </data>
+  <data name="Dialog.Warning.Title" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="DreadfulFoe" xml:space="preserve">
+    <value>ステージ: 悪路凶敵</value>
+  </data>
+  <data name="DropRecognitionError" xml:space="preserve">
+    <value>ドロップ認識エラー</value>
+  </data>
+  <data name="ElapsedTime" xml:space="preserve">
+    <value>経過時間: {0}ms</value>
+  </data>
+  <data name="EmergencyOps" xml:space="preserve">
+    <value>ステージ: 緊急作戦</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>エラー発生</value>
+  </data>
+  <data name="ExpiringMedicineUsed" xml:space="preserve">
+    <value>48時間以内に期限が切れる回復剤を使った</value>
+  </data>
+  <data name="ExplorationAbandoned" xml:space="preserve">
+    <value>この探索を放棄しました</value>
+  </data>
+  <data name="FailedToOpenClient" xml:space="preserve">
+    <value>クライアントを開くのに失敗しました。構成ファイルを確認してください</value>
+  </data>
+  <data name="FightCompleted" xml:space="preserve">
+    <value>戦闘完了</value>
+  </data>
+  <data name="FightFailed" xml:space="preserve">
+    <value>戦闘失敗</value>
+  </data>
+  <data name="FightMissionFailedAndStop" xml:space="preserve">
+    <value>自動指揮の失敗回数が上限に達したため、任務が停止されました</value>
+  </data>
+  <data name="FightTimesUnused" xml:space="preserve">
+    <value>{0} 回の戦闘を完了しました。次回は {1} 回の乗数プロキシを実行します。参加後、{2} 回の戦闘を完了します。{3} 回の制限を超えたため、戦闘には参加しません。</value>
+  </data>
+  <data name="FilterTruth" xml:space="preserve">
+    <value>ステージ: 真実の選別</value>
+  </data>
+  <data name="First-ClassSquad" xml:space="preserve">
+    <value>高規格分隊</value>
+  </data>
+  <data name="FurnitureDrop" xml:space="preserve">
+    <value>家具</value>
+  </data>
+  <data name="GameDrop" xml:space="preserve">
+    <value>回線が落ちました。再接続を行います</value>
+  </data>
+  <data name="GameDropNoRestart" xml:space="preserve">
+    <value>ゲームが落ちたため、再接続せず任務を停止します</value>
+  </data>
+  <data name="GatheringSquad" xml:space="preserve">
+    <value>集団分隊</value>
+  </data>
+  <data name="GiveUpUploadingPenguins" xml:space="preserve">
+    <value>Penguin-Statsへのアップロードをあきらめました</value>
+  </data>
+  <data name="HasReturned" xml:space="preserve">
+    <value>戻ります</value>
+  </data>
+  <data name="IS2NewSquad1" xml:space="preserve">
+    <value>精神論分隊</value>
+  </data>
+  <data name="IS2NewSquad2" xml:space="preserve">
+    <value>最大活用分隊</value>
+  </data>
+  <data name="IS2NewSquad3" xml:space="preserve">
+    <value>人文主義分隊</value>
+  </data>
+  <data name="IS3NewSquad1" xml:space="preserve">
+    <value>永久狩猟分隊</value>
+  </data>
+  <data name="IS3NewSquad2" xml:space="preserve">
+    <value>生活重視分隊</value>
+  </data>
+  <data name="IS3NewSquad3" xml:space="preserve">
+    <value>科学主義分隊</value>
+  </data>
+  <data name="IS3NewSquad4" xml:space="preserve">
+    <value>特訓分隊</value>
+  </data>
+  <data name="IS4NewSquad1" xml:space="preserve">
+    <value>霊魂護送分隊</value>
+  </data>
+  <data name="IS4NewSquad2" xml:space="preserve">
+    <value>博学多識分隊</value>
+  </data>
+  <data name="IS4NewSquad3" xml:space="preserve">
+    <value>位置測定分隊</value>
+  </data>
+  <data name="IS4NewSquad4" xml:space="preserve">
+    <value>臨機応変分隊</value>
+  </data>
+  <data name="IS4NewSquad5" xml:space="preserve">
+    <value>奇想天外分隊</value>
+  </data>
+  <data name="IS4NewSquad6" xml:space="preserve">
+    <value>破棘成金分隊</value>
+  </data>
+  <data name="IS4NewSquad7" xml:space="preserve">
+    <value>擬態学者分隊</value>
+  </data>
+  <data name="IS4NewSquad8" xml:space="preserve">
+    <value>専門家分隊</value>
+  </data>
+  <data name="IS5NewSquad1" xml:space="preserve">
+    <value>高台突破分隊</value>
+  </data>
+  <data name="IS5NewSquad10" xml:space="preserve">
+    <value>知学分队（占位）</value>
+  </data>
+  <data name="IS5NewSquad11" xml:space="preserve">
+    <value>商贾分队（占位）</value>
+  </data>
+  <data name="IS5NewSquad2" xml:space="preserve">
+    <value>地面突破分隊</value>
+  </data>
+  <data name="IS5NewSquad3" xml:space="preserve">
+    <value>観光客分隊</value>
+  </data>
+  <data name="IS5NewSquad4" xml:space="preserve">
+    <value>司歳台分隊</value>
+  </data>
+  <data name="IS5NewSquad5" xml:space="preserve">
+    <value>天師府分隊</value>
+  </data>
+  <data name="IS5NewSquad6" xml:space="preserve">
+    <value>花团锦簇分队（占位）</value>
+  </data>
+  <data name="IS5NewSquad7" xml:space="preserve">
+    <value>棋行险着分队（占位）</value>
+  </data>
+  <data name="IS5NewSquad8" xml:space="preserve">
+    <value>岁影回音分队（占位）</value>
+  </data>
+  <data name="IS5NewSquad9" xml:space="preserve">
+    <value>代理人分队（占位）</value>
+  </data>
+  <data name="Infrast.ReceptionSend" xml:space="preserve">
+    <value>手がかりを贈る</value>
+  </data>
+  <data name="Infrast.Select" xml:space="preserve">
+    <value>選択</value>
+  </data>
+  <data name="InfrastDormDoubleConfirmed" xml:space="preserve">
+    <value>{key=Operator}が競合しました</value>
+  </data>
+  <data name="LabelsRefreshed" xml:space="preserve">
+    <value>タグが更新されました</value>
+  </data>
+  <data name="LeaderSquad" xml:space="preserve">
+    <value>指揮分隊</value>
+  </data>
+  <data name="Main.Menu.Exit" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="Main.Menu.Restart" xml:space="preserve">
+    <value>重启动</value>
+  </data>
+  <data name="Main.Menu.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="Main.Menu.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Mall.InfrastReceptionClueExchange" xml:space="preserve">
+    <value>手がかり交換を実施</value>
+  </data>
+  <data name="Mall.InfrastReceptionMessageBoardReceive" xml:space="preserve">
+    <value>受付室の掲示板からのクレジット収集</value>
+  </data>
+  <data name="Mall.InfrastReceptionSendClue" xml:space="preserve">
+    <value>手がかりを贈る</value>
+  </data>
+  <data name="MedicineUsed" xml:space="preserve">
+    <value>回復剤を使った</value>
+  </data>
+  <data name="MedicineUsedTimes" xml:space="preserve">
+    <value>薬: {0}  </value>
+  </data>
+  <data name="MedicineUsedTimesWithExpiring" xml:space="preserve">
+    <value>薬: {0},{1}(期限切れ)  </value>
+  </data>
+  <data name="MissingOperators" xml:space="preserve">
+    <value>次の{key=Operator}が{key=Operator}グループにありません：</value>
+  </data>
+  <data name="MissionStart" xml:space="preserve">
+    <value>行動開始しました</value>
+  </data>
+  <data name="NoDrop" xml:space="preserve">
+    <value>ドロップなし</value>
+  </data>
+  <data name="NoRecruitmentPermit" xml:space="preserve">
+    <value>採用許可がないため返却されました</value>
+  </data>
+  <data name="NotEnoughStaff" xml:space="preserve">
+    <value>利用可能な{key=Operator}が不足しています</value>
+  </data>
+  <data name="Operator" xml:space="preserve">
+    <value>オペレーター</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Exit" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Restart" xml:space="preserve">
+    <value>重启动</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="ProductChanged" xml:space="preserve">
+    <value>製産物が切り替わった</value>
+  </data>
+  <data name="ProductIncorrect" xml:space="preserve">
+    <value>製産物が構成と一致しません。</value>
+  </data>
+  <data name="ProductUnknown" xml:space="preserve">
+    <value>認識不能な製産物</value>
+  </data>
+  <data name="ReclamationPisModeError" xml:space="preserve">
+    <value>現在のタスクモードでは、合成可能なアイテムを持っているセーブデータが必要です。モードを切り替えることを検討してください。</value>
+  </data>
+  <data name="ReclamationPnsModeError" xml:space="preserve">
+    <value>現在はセーブなしのタスクモードを使用しています。既存のセーブデータを手動で削除してから再試行してください。セーブデータを保持したい場合は、モードを切り替えることを検討してください。</value>
+  </data>
+  <data name="RecruitConfirm" xml:space="preserve">
+    <value>募集を行いました</value>
+  </data>
+  <data name="RecruitingResults" xml:space="preserve">
+    <value>公開求人の認識結果: </value>
+  </data>
+  <data name="Refreshed" xml:space="preserve">
+    <value>現在のタグが更新されました</value>
+  </data>
+  <data name="ResearchSquad" xml:space="preserve">
+    <value>研究分隊</value>
+  </data>
+  <data name="Retreat" xml:space="preserve">
+    <value>撤退</value>
+  </data>
+  <data name="RoguelikeCollectibleModeSquad" xml:space="preserve">
+    <value>支援選択を得るモードの分隊</value>
+  </data>
+  <data name="RoguelikeFindPlaytimeTarget" xml:space="preserve">
+    <value>ターゲット常楽系スポット</value>
+  </data>
+  <data name="RoguelikeGamePass" xml:space="preserve">
+    <value>ゲームクリア、おめでとうございます！</value>
+  </data>
+  <data name="RoguelikeSpecialItemBought" xml:space="preserve">
+    <value>スペシャルアイテムを購入しました！</value>
+  </data>
+  <data name="RoguelikeThemeJieGarden" xml:space="preserve">
+    <value>界園</value>
+  </data>
+  <data name="RoguelikeThemeMizuki" xml:space="preserve">
+    <value>ミヅキ</value>
+  </data>
+  <data name="RoguelikeThemePhantom" xml:space="preserve">
+    <value>ファントム</value>
+  </data>
+  <data name="RoguelikeThemeSami" xml:space="preserve">
+    <value>サーミ</value>
+  </data>
+  <data name="RoguelikeThemeSarkaz" xml:space="preserve">
+    <value>サルカズ</value>
+  </data>
+  <data name="RoomGroupsMatch" xml:space="preserve">
+    <value>グループに合わせる: </value>
+  </data>
+  <data name="RoomGroupsMatchFailed" xml:space="preserve">
+    <value>{key=Operator} グループ、グループ リストの一致に失敗しました: </value>
+  </data>
+  <data name="RoomOperators" xml:space="preserve">
+    <value>優先{key=Operator}: </value>
+  </data>
+  <data name="RoutingRestartTooManyBattles" xml:space="preserve">
+    <value>前方の戦闘数：{0}、ルートを再計画します</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>動作中……</value>
+  </data>
+  <data name="SSSGamePass" xml:space="preserve">
+    <value>ゲームクリア、おめでとうございます！</value>
+  </data>
+  <data name="SafeHouse" xml:space="preserve">
+    <value>ステージ: 安全な片隅</value>
+  </data>
+  <data name="Series" xml:space="preserve">
+    <value>連戦回数</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Switch" xml:space="preserve">
+    <value>構成を切り替える</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.Fill" xml:space="preserve">
+    <value>引き伸ばし（フィル）</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.None" xml:space="preserve">
+    <value>伸縮なし</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.Uniform" xml:space="preserve">
+    <value>アスペクト比保持（フィット）</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.UniformToFill" xml:space="preserve">
+    <value>アスペクト比保持（トリミング）</value>
+  </data>
+  <data name="Settings.Option.InverseClear.Clear" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="Settings.Option.InverseClear.Inverse" xml:space="preserve">
+    <value>逆選択</value>
+  </data>
+  <data name="Settings.Option.InverseClear.Switchable" xml:space="preserve">
+    <value>切り替え可能</value>
+  </data>
+  <data name="Settings.Option.OperNameLanguage.Client" xml:space="preserve">
+    <value>ゲームクライアントをフォローする</value>
+  </data>
+  <data name="Settings.Option.OperNameLanguage.MAA" xml:space="preserve">
+    <value>MAA をフォローする</value>
+  </data>
+  <data name="Settings.Option.ResourceSource.Github" xml:space="preserve">
+    <value>グローバルソース</value>
+  </data>
+  <data name="Settings.Option.ResourceSource.MirrorChyan" xml:space="preserve">
+    <value>MirrorChyan</value>
+  </data>
+  <data name="Settings.Option.Theme.Dark" xml:space="preserve">
+    <value>ダークモード</value>
+  </data>
+  <data name="Settings.Option.Theme.Light" xml:space="preserve">
+    <value>ライトモード</value>
+  </data>
+  <data name="Settings.Option.Theme.SyncWithOs" xml:space="preserve">
+    <value>OSと同期する</value>
+  </data>
+  <data name="Settings.Option.UpdateVersion.Beta" xml:space="preserve">
+    <value>ベータ版</value>
+  </data>
+  <data name="Settings.Option.UpdateVersion.Nightly" xml:space="preserve">
+    <value>内部テスト版</value>
+  </data>
+  <data name="Settings.Option.UpdateVersion.Stable" xml:space="preserve">
+    <value>安定版</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Option.SystemDefault" xml:space="preserve">
+    <value>システムデフォルトGPU</value>
+  </data>
+  <data name="SkillDaemon" xml:space="preserve">
+    <value>自動進行開始</value>
+  </data>
+  <data name="SkillUsage" xml:space="preserve">
+    <value>スキル使用法切替</value>
+  </data>
+  <data name="SpearheadSquad" xml:space="preserve">
+    <value>先鋒分隊</value>
+  </data>
+  <data name="SpecialForceSquad" xml:space="preserve">
+    <value>特別行動分隊</value>
+  </data>
+  <data name="StageInfoError" xml:space="preserve">
+    <value>ステージ認識エラー</value>
+  </data>
+  <data name="StartCombat" xml:space="preserve">
+    <value>戦闘開始: </value>
+  </data>
+  <data name="StartTask" xml:space="preserve">
+    <value>タスク開始: </value>
+  </data>
+  <data name="StartingCoreChar" xml:space="preserve">
+    <value>最初の{key=Operator}</value>
+  </data>
+  <data name="StartingCoreCharTip" xml:space="preserve">
+    <value>記入がない場合はデフォルトの方針を使用します。</value>
+  </data>
+  <data name="StartingRoles" xml:space="preserve">
+    <value>最初の職業</value>
+  </data>
+  <data name="StartingSquad" xml:space="preserve">
+    <value>最初の分隊</value>
+  </data>
+  <data name="StartsWithScript" xml:space="preserve">
+    <value>スクリプトを使用して始めます</value>
+  </data>
+  <data name="StoneUsed" xml:space="preserve">
+    <value>源石を使った</value>
+  </data>
+  <data name="StoneUsedTimes" xml:space="preserve">
+    <value>石: {0}  </value>
+  </data>
+  <data name="SupportSquad" xml:space="preserve">
+    <value>支援分隊</value>
+  </data>
+  <data name="SwitchSpeed" xml:space="preserve">
+    <value>倍速切替</value>
+  </data>
+  <data name="TacticalAssaultOperative" xml:space="preserve">
+    <value>突撃戦術分隊</value>
+  </data>
+  <data name="TacticalDestructionOperative" xml:space="preserve">
+    <value>破壊戦術分隊</value>
+  </data>
+  <data name="TacticalFortificationOperative" xml:space="preserve">
+    <value>要塞戦術分隊</value>
+  </data>
+  <data name="TacticalRangedOperative" xml:space="preserve">
+    <value>援護戦術分隊</value>
+  </data>
+  <data name="TaskError" xml:space="preserve">
+    <value>タスクエラー: </value>
+  </data>
+  <data name="TaskQueue.Root.Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="TaskQueue.Root.Inverse" xml:space="preserve">
+    <value>逆選択</value>
+  </data>
+  <data name="TaskQueue.Root.LinkStart" xml:space="preserve">
+    <value>Link Start!</value>
+  </data>
+  <data name="TaskQueue.Root.PostActionNone" xml:space="preserve">
+    <value>ドロップなし</value>
+  </data>
+  <data name="TaskQueue.Root.PostActionTitle" xml:space="preserve">
+    <value>完了後</value>
+  </data>
+  <data name="TaskQueue.Root.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="TaskQueue.Root.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="TaskQueue.Status.Error" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="TheEx" xml:space="preserve">
+    <value>ステージ報酬がないため停止します</value>
+  </data>
+  <data name="ThisFacility" xml:space="preserve">
+    <value>現在の施設: </value>
+  </data>
+  <data name="TotalDrop" xml:space="preserve">
+    <value>ドロップ統計: </value>
+  </data>
+  <data name="Trader" xml:space="preserve">
+    <value>ステージ: 怪しい旅商人</value>
+  </data>
+  <data name="TrainingCompleted" xml:space="preserve">
+    <value>訓練が完了しました</value>
+  </data>
+  <data name="TrainingIdle" xml:space="preserve">
+    <value>訓練室は空いています</value>
+  </data>
+  <data name="TrainingLevel" xml:space="preserve">
+    <value>スキルランク</value>
+  </data>
+  <data name="TrainingTimeLeft" xml:space="preserve">
+    <value>残り時間</value>
+  </data>
+  <data name="UnitTime" xml:space="preserve">
+    <value>回</value>
+  </data>
+  <data name="UpperLimit" xml:space="preserve">
+    <value>源石錐が上限に達しました</value>
+  </data>
+  <data name="UseSkill" xml:space="preserve">
+    <value>スキル使用</value>
+  </data>
+  <data name="Visiting" xml:space="preserve">
+    <value>戦友訪問</value>
+  </data>
+  <data name="Copilot.Popup.UserAdditionalTitle" xml:space="preserve">
+    <value>カスタム{key=Operator}追加</value>
+  </data>
+  <data name="Copilot.Tip.AutoSquad" xml:space="preserve">
+    <value>自動編成では、一時的に「戦術要員」{key=Operator}を認識できません</value>
+  </data>
+  <data name="Copilot.Tip.BattleList" xml:space="preserve">
+    <value>以下のモードのみ対応:
+  1. {key=MainStage}: 同じ章内でのナビゲーション
+  2. {key=SideStory}: 現在のページ内でのナビゲーション（Normal/EX/S 間の移動は不可）
+  3. {key=StoryCollection}: 現在のページ内でのナビゲーション
+  4. {key=ParadoxSimulation}: {key=Operator}リストから起動
+対応する画面から開始してください。章間のナビゲーションはサポートされていません。
+
+「{key=UseCopilotList}」を有効にすると、個々のジョブが自動的に「{key=CopilotList}」に追加されます。</value>
+  </data>
+  <data name="Copilot.Tip.IgnoreRequirements" xml:space="preserve">
+    <value>一部の攻略は特定のモジュールなどを前提条件とします
+この項目を選択するとこれらのチェックをスキップしますが、タスクが正常に動作しなくなる可能性があります。
+オペレーターのエリートレベルはスキップできません。いずれかの条件をスキップした場合、戦闘後にオペレーションは自動的に評価されなくなります。</value>
+  </data>
+  <data name="Copilot.Tip.UserAdditionalFormat" xml:space="preserve">
+    <value>「;」はセパレータ、「,」で{key=Operator}の名前とスキルを区切ります。例: Surtr, 3; Eyjafjalla, 1</value>
+  </data>
+  <data name="Infrast.ContinueTraining" xml:space="preserve">
+    <value>訓練完了後に現在スキルの継続特化を試みます</value>
+  </data>
+  <data name="Infrast.CustomPlanToolTip" xml:space="preserve">
+    <value>｢{key=CustomInfrastPlan}｣に実行時間が設定されている場合、｢{key=Base}｣タスク開始前やタスク実行中には自動で切り替わらず、{key=LinkStart}時点の状態を維持します。切り替えはアイドル時またはタスク完了後のみ行われます。</value>
+  </data>
+  <data name="Infrast.File" xml:space="preserve">
+    <value>基地構成ファイルの指定</value>
+  </data>
+  <data name="Infrast.NotStationed" xml:space="preserve">
+    <value>作業中の{key=Operator}を宿舎に移動しない（例:訓練所でのアイリーニなど）</value>
+  </data>
+  <data name="Infrast.NotStationedTip" xml:space="preserve">
+    <value>チェックした場合、アイリーニのような{key=Operator}が訓練室から外れなくなり、また、加工所の{key=Operator}が宿舎に送られることを防止します。</value>
+  </data>
+  <data name="Infrast.ReceptionBoard" xml:space="preserve">
+    <value>受付室の掲示板からのクレジット収集</value>
+  </data>
+  <data name="Infrast.ReceptionExchange" xml:space="preserve">
+    <value>手がかり交換を実施</value>
+  </data>
+  <data name="Infrast.Replenish" xml:space="preserve">
+    <value>源石の欠片を自動で補充</value>
+  </data>
+  <data name="Infrast.Threshold" xml:space="preserve">
+    <value>体力が設定した%以下になれば宿舎へ移動する</value>
+  </data>
+  <data name="Infrast.ThresholdTip" xml:space="preserve">
+    <value>カスタム シフトが有効な場合、このフィールドは自動入力と{key=Operator} グループのあるルームに対してのみ有効です</value>
+  </data>
+  <data name="Infrast.Trust" xml:space="preserve">
+    <value>宿舎の空き位置で信頼度を上げる</value>
+  </data>
+  <data name="Mall.ReceptionOptionsRequireInfrast" xml:space="preserve">
+    <value>{key=Infrast} で以下の関数を設定して実行する必要があります</value>
+  </data>
+  <data name="Recruit.SelectStrategy" xml:space="preserve">
+    <value>公開求人でのタグを複数選択する場合の作戦</value>
+  </data>
+  <data name="TaskQueue.Root.WaitAndStop" xml:space="preserve">
+    <value>待機 &amp; 停止</value>
+  </data>
+  <data name="TaskQueue.Root.Waiting" xml:space="preserve">
+    <value>ミッション終了を待っています……</value>
+  </data>
+  <data name="TaskQueue.Root.DailyStageLabel" xml:space="preserve">
+    <value>今日のステージのヒント:</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.ForceShow" xml:space="preserve">
+    <value>MAAの強制表示</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.HideTray" xml:space="preserve">
+    <value>トレイアイコンを隠す</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.SwitchLanguage" xml:space="preserve">
+    <value>言語を切り替える 🌐</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.ToggleOverlay" xml:space="preserve">
+    <value>ログオーバーレイのオン/オフ</value>
+  </data>
+  <data name="PostAction.Clear" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="TaskQueue.Status.Running" xml:space="preserve">
+    <value>動作中……</value>
+  </data>
+  <data name="TaskQueue.Root.ToggleOverlay" xml:space="preserve">
+    <value>ログオーバーレイのオン/オフ</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Confirm" xml:space="preserve">
+    <value>重启动</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Message" xml:space="preserve">
+    <value>変更を適用するためにすぐに再起動しますか？</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Confirm" xml:space="preserve">
+    <value>重启动</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Message" xml:space="preserve">
+    <value>変更を適用するためにすぐに再起動しますか？</value>
+  </data>
+  <data name="Achievement.NewBadgeText" xml:space="preserve">
+    <value>新</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Cancel" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Confirm" xml:space="preserve">
+    <value>了解しました</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Prompt" xml:space="preserve">
+    <value>設定スキーマのバージョンが最新より古い状態です。
+現在のバージョン: v{0}
+最新バージョン: v{1}
+
+{2}
+推奨される対応: {3}
+保存時には最新 schema を書き込む前に、avalonia.json.schema-v{0}.bak.&lt;timestamp&gt; としてバックアップを作成します。</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Title" xml:space="preserve">
+    <value>設定スキーマ移行のお知らせ</value>
+  </data>
+  <data name="PostAction.Dialog.ConfirmNow" xml:space="preserve">
+    <value>今すぐ実行</value>
+  </data>
+  <data name="PostAction.Dialog.Message.Hibernate" xml:space="preserve">
+    <value>キャンセルしない場合、MAA は {0} 秒後にこのコンピューターを休止状態にします。</value>
+  </data>
+  <data name="PostAction.Dialog.Message.Shutdown" xml:space="preserve">
+    <value>キャンセルしない場合、MAA は {0} 秒後にこのコンピューターをシャットダウンします。</value>
+  </data>
+  <data name="PostAction.Dialog.Message.Sleep" xml:space="preserve">
+    <value>キャンセルしない場合、MAA は {0} 秒後にこのコンピューターをスリープ状態にします。</value>
+  </data>
+  <data name="PostAction.Dialog.Title.Hibernate" xml:space="preserve">
+    <value>休止状態の確認</value>
+  </data>
+  <data name="PostAction.Dialog.Title.Shutdown" xml:space="preserve">
+    <value>シャットダウンの確認</value>
+  </data>
+  <data name="PostAction.Dialog.Title.Sleep" xml:space="preserve">
+    <value>スリープの確認</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Title" xml:space="preserve">
+    <value>MAA を再起動</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Title" xml:space="preserve">
+    <value>MAA を再読み込み</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Cancel" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Confirm" xml:space="preserve">
+    <value>今すぐ再起動</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Message" xml:space="preserve">
+    <value>起動設定を保存しました。変更を適用するため、今すぐ MAA を再起動しますか？</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Title" xml:space="preserve">
+    <value>MAA を再起動</value>
+  </data>
+  <data name="Settings.Start.RestartLaunched" xml:space="preserve">
+    <value>再起動を開始しました。</value>
+  </data>
+  <data name="Settings.Start.RestartManualClose" xml:space="preserve">
+    <value>新しいインスタンスを起動しました。再起動を完了するには現在のインスタンスを閉じてください。</value>
+  </data>
+  <data name="Settings.Start.RestartPending" xml:space="preserve">
+    <value>起動設定を保存しました。変更を適用するには、後で MAA を再起動してください。</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Cancel" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Confirm" xml:space="preserve">
+    <value>今すぐ再起動</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Message" xml:space="preserve">
+    <value>ソフトウェア更新パッケージのダウンロードが完了しました。更新を適用するため、今すぐ MAA を再起動しますか？</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Title" xml:space="preserve">
+    <value>更新パッケージの準備ができました</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartLaunched" xml:space="preserve">
+    <value>ソフトウェア更新を適用するための再起動を開始しました。</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartManualClose" xml:space="preserve">
+    <value>新しいインスタンスを起動しました。更新の適用を続けるには現在のインスタンスを閉じてください。</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartPending" xml:space="preserve">
+    <value>更新パッケージのダウンロードが完了しました。更新を適用するには、後で MAA を再起動してください。</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Cancel" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Confirm" xml:space="preserve">
+    <value>わかりました</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Message" xml:space="preserve">
+    <value>MAA Unified ではソフトウェア更新がまだ実装されていません。ソフトウェア更新には WPF 版を引き続き使用してください。</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Status" xml:space="preserve">
+    <value>MAA Unified ではソフトウェア更新がまだ実装されていません。</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Title" xml:space="preserve">
+    <value>ソフトウェア更新</value>
+  </data>
+</root>

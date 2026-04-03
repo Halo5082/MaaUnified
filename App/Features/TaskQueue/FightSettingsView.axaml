@@ -24,7 +24,8 @@
       <StackPanel IsVisible="{Binding IsGeneralMode}" Spacing="{DynamicResource MAA.Spacing.Small}">
         <TextBlock Text="{Binding Texts[Fight.StageSelect]}" />
         <ComboBox ItemsSource="{Binding StageOptions}"
-                  SelectedItem="{Binding SelectedStageOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding Stage}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:FightTaskModuleViewModel+StageOption">
               <TextBlock Text="{Binding DisplayName}"
@@ -87,7 +88,9 @@
                                   Margin="{DynamicResource MAA.Thickness.MarginLeftSmall}"
                                   Tip="{Binding Texts[Fight.SeriesTip]}" />
           </Grid>
-          <ComboBox ItemsSource="{Binding SeriesOptions}" SelectedItem="{Binding SelectedSeriesOption}">
+          <ComboBox ItemsSource="{Binding SeriesOptions}"
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding Series}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:FightTaskModuleViewModel+IntOption">
                 <TextBlock Text="{Binding DisplayName}" />
@@ -104,7 +107,8 @@
         </Grid>
         <ComboBox IsEnabled="{Binding IsDropControlsEnabled}"
                   ItemsSource="{Binding DropOptions}"
-                  SelectedItem="{Binding SelectedDropOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding DropId}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:FightTaskModuleViewModel+DropOption">
               <TextBlock Text="{Binding DisplayName}" />
@@ -122,7 +126,8 @@
         <TextBlock Text="{Binding Texts[Fight.AnnihilationStage]}" />
         <ComboBox IsEnabled="{Binding UseCustomAnnihilation}"
                   ItemsSource="{Binding AnnihilationStageOptions}"
-                  SelectedItem="{Binding SelectedAnnihilationStageOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding AnnihilationStage}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:FightTaskModuleViewModel+StringOption">
               <TextBlock Text="{Binding DisplayName}" />
@@ -146,7 +151,9 @@
         </Grid>
 
         <TextBlock Text="{Binding Texts[Fight.StageResetMode]}" />
-        <ComboBox ItemsSource="{Binding StageResetModeOptions}" SelectedItem="{Binding SelectedStageResetModeOption}">
+        <ComboBox ItemsSource="{Binding StageResetModeOptions}"
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding StageResetMode}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:FightTaskModuleViewModel+StringOption">
               <TextBlock Text="{Binding DisplayName}" />

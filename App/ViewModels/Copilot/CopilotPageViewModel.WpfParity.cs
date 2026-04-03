@@ -19,6 +19,63 @@ public sealed partial class CopilotPageViewModel
     private static readonly Regex InvalidNavigationStageNameRegex = new(
         "[:',\\.\\(\\)\\|\\[\\]\\?，。【】｛｝；：]",
         RegexOptions.Compiled);
+    private static readonly string[] LocalizedBindingPropertyNames =
+    [
+        nameof(Texts),
+        nameof(RootTexts),
+        nameof(MainTabTitle),
+        nameof(SecurityTabTitle),
+        nameof(ParadoxTabTitle),
+        nameof(OtherTabTitle),
+        nameof(PathOrCodeWatermark),
+        nameof(FileButtonText),
+        nameof(FileButtonTip),
+        nameof(PasteButtonText),
+        nameof(PasteButtonTip),
+        nameof(PasteSetButtonText),
+        nameof(PasteSetButtonTip),
+        nameof(StartButtonText),
+        nameof(StopButtonText),
+        nameof(AutoSquadText),
+        nameof(AutoSquadTip),
+        nameof(UseFormationText),
+        nameof(IgnoreRequirementsText),
+        nameof(IgnoreRequirementsTip),
+        nameof(UseSupportUnitText),
+        nameof(UseSupportUnitTip),
+        nameof(AddTrustText),
+        nameof(AddUserAdditionalText),
+        nameof(EditButtonText),
+        nameof(UserAdditionalFormatTip),
+        nameof(UserAdditionalPopupTitle),
+        nameof(OperatorNameWatermark),
+        nameof(DeleteButtonText),
+        nameof(AddButtonText),
+        nameof(ConfirmButtonText),
+        nameof(CancelButtonText),
+        nameof(BattleListText),
+        nameof(BattleListTip),
+        nameof(UseSanityPotionText),
+        nameof(LoopTimesText),
+        nameof(LoadButtonText),
+        nameof(ImportBatchButtonText),
+        nameof(ImportBatchButtonTip),
+        nameof(StageNameWatermark),
+        nameof(StageNameTip),
+        nameof(AddListButtonText),
+        nameof(AddListButtonTip),
+        nameof(ClearButtonText),
+        nameof(ClearButtonTip),
+        nameof(RatingPromptText),
+        nameof(LikeButtonText),
+        nameof(DislikeButtonText),
+        nameof(SelectTaskFilePickerTitle),
+        nameof(ImportBatchFilePickerTitle),
+        nameof(HelpText),
+        nameof(ListSelectionHint),
+        nameof(RaidLabelText),
+        nameof(InlineJsonHintText),
+    ];
 
     private readonly HashSet<CopilotItemViewModel> _trackedCopilotItems = new();
     private readonly ObservableCollection<CopilotFileItemViewModel> _fileItems = [];
@@ -76,6 +133,106 @@ public sealed partial class CopilotPageViewModel
     }
 
     public string HelpText => T("Copilot.HelpText", string.Empty);
+
+    public string MainTabTitle => T("Copilot.Tab.Main", "主线/故事集/SideStory");
+
+    public string SecurityTabTitle => T("Copilot.Tab.Security", "保全派驻");
+
+    public string ParadoxTabTitle => T("Copilot.Tab.Paradox", "悖论模拟");
+
+    public string OtherTabTitle => T("Copilot.Tab.Other", "其他活动");
+
+    public string PathOrCodeWatermark => T("Copilot.Input.PathOrCodeWatermark", "作业路径/神秘代码");
+
+    public string FileButtonText => T("Copilot.Button.File", "文件");
+
+    public string FileButtonTip => T("Copilot.Tip.File", "可以直接拖拽作业文件到这里。");
+
+    public string PasteButtonText => T("Copilot.Button.Paste", "粘贴");
+
+    public string PasteButtonTip => T("Copilot.Tip.Paste", "读取剪贴板并添加为作业");
+
+    public string PasteSetButtonText => T("Copilot.Button.PasteSet", "作业集");
+
+    public string PasteSetButtonTip => T("Copilot.Tip.PasteSet", "读取剪贴板并添加为作业集");
+
+    public string StartButtonText => T("Copilot.Action.Start", "开始");
+
+    public string StopButtonText => T("Copilot.Action.Stop", "停止");
+
+    public string AutoSquadText => T("Copilot.Option.AutoSquad", "自动编队");
+
+    public string AutoSquadTip => T("Copilot.Tip.AutoSquad", "自动编队可能无法识别带有「特别关注」标记的干员");
+
+    public string UseFormationText => T("Copilot.Option.UseFormation", "使用编队");
+
+    public string IgnoreRequirementsText => T("Copilot.Option.IgnoreRequirements", "忽略干员属性要求");
+
+    public string IgnoreRequirementsTip => T("Copilot.Tip.IgnoreRequirements", "部分作业对模组等属性有要求，启用后可能跳过校验并导致失败。");
+
+    public string UseSupportUnitText => T("Copilot.Option.UseSupportUnit", "借助战");
+
+    public string UseSupportUnitTip => T("Copilot.Tip.UseSupportUnit", "少一名干员可能还能运行，缺失更多时通常会失败。");
+
+    public string AddTrustText => T("Copilot.Option.AddTrust", "补充低信赖干员");
+
+    public string AddUserAdditionalText => T("Copilot.Option.AddUserAdditional", "追加自定干员");
+
+    public string EditButtonText => T("Copilot.Button.Edit", "编辑");
+
+    public string UserAdditionalFormatTip => T("Copilot.Tip.UserAdditionalFormat", "使用 ';' 分隔条目，使用 ',' 分隔干员名和技能，例如 Exusiai,3;Eyjafjalla,1");
+
+    public string UserAdditionalPopupTitle => T("Copilot.Popup.UserAdditionalTitle", "追加自定干员");
+
+    public string OperatorNameWatermark => T("Copilot.Input.OperatorNameWatermark", "干员名");
+
+    public string DeleteButtonText => T("Copilot.Button.Delete", "删除");
+
+    public string AddButtonText => T("Copilot.Button.Add", "添加");
+
+    public string ConfirmButtonText => T("Copilot.Button.Confirm", "确定");
+
+    public string CancelButtonText => T("Copilot.Button.Cancel", "取消");
+
+    public string BattleListText => T("Copilot.Option.BattleList", "战斗列表");
+
+    public string BattleListTip => T("Copilot.Tip.BattleList", "启用后，选中作业会自动加入战斗列表。");
+
+    public string UseSanityPotionText => T("Copilot.Option.UseSanityPotion", "使用理智药");
+
+    public string LoopTimesText => T("Copilot.Option.LoopTimes", "循环次数");
+
+    public string LoadButtonText => T("Copilot.Button.Load", "载入");
+
+    public string ImportBatchButtonText => T("Copilot.Button.ImportBatch", "批量导入");
+
+    public string ImportBatchButtonTip => T("Copilot.Tip.ImportBatch", "批量导入");
+
+    public string StageNameWatermark => T("Copilot.Input.StageNameWatermark", "关卡名");
+
+    public string StageNameTip => T("Copilot.Tip.StageName", "关卡名，例如 1-7");
+
+    public string AddListButtonText => T("Copilot.Button.Add", "添加");
+
+    public string AddListButtonTip => T("Copilot.Tip.AddList", "左键添加普通难度\n右键添加突袭难度");
+
+    public string ClearButtonText => T("Copilot.Button.Clear", "清除");
+
+    public string ClearButtonTip => T("Copilot.Tip.ClearList", "左键清空全部\n右键仅清理未激活项");
+
+    public string RatingPromptText => T("Copilot.Rating.Prompt", "作业怎么样？评价下吧！");
+
+    public string LikeButtonText => T("Copilot.Button.Like", "点赞");
+
+    public string DislikeButtonText => T("Copilot.Button.Dislike", "点踩");
+
+    public string SelectTaskFilePickerTitle => T("Copilot.FilePicker.SelectTask.Title", "选择作业");
+
+    public string ImportBatchFilePickerTitle => T("Copilot.FilePicker.ImportBatch.Title", "批量导入作业");
+
+    public string RaidLabelText => T("Copilot.List.RaidLabel", "突袭");
+
+    public string InlineJsonHintText => T("Copilot.List.InlineJsonHint", "inline-json");
 
     public int CopilotTabIndex
     {
@@ -361,16 +518,28 @@ public sealed partial class CopilotPageViewModel
             new IntOption(4, T("Copilot.Option.Module.Delta", "Δ")),
         ];
 
+        OnPropertyChanged(nameof(SelectedFormationOption));
         OnPropertyChanged(nameof(SelectedSupportUnitUsageOption));
     }
 
     private void RefreshLocalizedUiState()
     {
-        RebuildLocalizedOptionLists();
-        OnPropertyChanged(nameof(HelpText));
-        OnPropertyChanged(nameof(ListSelectionHint));
-        RefreshVisibilityState();
+        RefreshLocalizedBindingProperties();
+        RefreshLocalizedStatusTexts();
+        RefreshLocalizedCollections();
+        OnPropertyChanged(string.Empty);
+    }
 
+    private void RefreshLocalizedBindingProperties()
+    {
+        foreach (var propertyName in LocalizedBindingPropertyNames)
+        {
+            OnPropertyChanged(propertyName);
+        }
+    }
+
+    private void RefreshLocalizedStatusTexts()
+    {
         if (Logs.Count == 1 && string.Equals(Logs[0].Content, _lastRenderedHelpText, StringComparison.Ordinal))
         {
             Logs.Clear();
@@ -378,6 +547,23 @@ public sealed partial class CopilotPageViewModel
         }
 
         _lastRenderedHelpText = HelpText;
+        OnPropertyChanged(nameof(StatusMessage));
+        OnPropertyChanged(nameof(LastErrorMessage));
+    }
+
+    private void RefreshLocalizedCollections()
+    {
+        RebuildLocalizedOptionLists();
+        RelocalizeTrackedCopilotItems();
+        RefreshVisibilityState();
+    }
+
+    private void RelocalizeTrackedCopilotItems()
+    {
+        foreach (var item in _trackedCopilotItems)
+        {
+            item.ApplyLocalization(RaidLabelText, InlineJsonHintText);
+        }
     }
 
     private void OnSelectedTypeIndexChanged()
@@ -522,6 +708,7 @@ public sealed partial class CopilotPageViewModel
             return;
         }
 
+        item.ApplyLocalization(RaidLabelText, InlineJsonHintText);
         item.PropertyChanged += OnTrackedCopilotItemPropertyChanged;
     }
 
@@ -542,7 +729,9 @@ public sealed partial class CopilotPageViewModel
             return;
         }
 
-        if (e.PropertyName is nameof(CopilotItemViewModel.Status))
+        if (e.PropertyName is nameof(CopilotItemViewModel.Status)
+            or nameof(CopilotItemViewModel.DisplayName)
+            or nameof(CopilotItemViewModel.ExecutionPathHint))
         {
             return;
         }
@@ -1212,12 +1401,10 @@ public sealed partial class CopilotPageViewModel
         var displayName = !string.IsNullOrWhiteSpace(stageName)
             ? stageName
             : Path.GetFileNameWithoutExtension(sourcePath ?? string.Empty);
-        var type = ResolveTypeDisplayNameForTab(CopilotTabIndex);
         var rawType = ReadJsonString(obj, "type");
-        if (string.Equals(rawType, "SSS", StringComparison.OrdinalIgnoreCase))
-        {
-            type = SecurityServiceStationType;
-        }
+        var type = string.IsNullOrWhiteSpace(rawType)
+            ? ResolveTypeDisplayNameForTab(CopilotTabIndex)
+            : NormalizeTypeDisplayName(rawType);
 
         descriptor = new LoadedCopilotDescriptor(
             string.IsNullOrWhiteSpace(displayName) ? $"Imported-{DateTime.Now:HHmmss}" : displayName.Trim(),
@@ -1275,7 +1462,7 @@ public sealed partial class CopilotPageViewModel
             CopilotId = Math.Max(0, descriptor.CopilotId),
             IsChecked = true,
             IsRaid = isRaid,
-            TabIndex = CopilotTabIndex,
+            TabIndex = ResolveTabIndexFromType(descriptor.Type),
         };
     }
 

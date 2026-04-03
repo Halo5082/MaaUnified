@@ -10,7 +10,8 @@
       <StackPanel IsVisible="{Binding IsGeneralMode}" Spacing="{DynamicResource MAA.Spacing.Small}">
         <TextBlock Text="{Binding Texts[Reclamation.Theme]}" />
         <ComboBox ItemsSource="{Binding ThemeOptions}"
-                  SelectedItem="{Binding SelectedThemeOption}">
+                  SelectedValueBinding="{Binding Type}"
+                  SelectedValue="{Binding Theme}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:TaskModuleOption">
               <TextBlock Text="{Binding DisplayName}" />
@@ -20,7 +21,8 @@
 
         <TextBlock Text="{Binding Texts[Reclamation.Mode]}" />
         <ComboBox ItemsSource="{Binding ModeOptions}"
-                  SelectedItem="{Binding SelectedModeOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding Mode}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:ReclamationModuleViewModel+IntOption">
               <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" />
@@ -43,7 +45,8 @@
         <TextBlock Text="{Binding Texts[Reclamation.IncrementMode]}" />
         <ComboBox IsEnabled="{Binding IsArchiveSettingsEnabled}"
                   ItemsSource="{Binding IncrementModeOptions}"
-                  SelectedItem="{Binding SelectedIncrementModeOption}">
+                  SelectedValueBinding="{Binding Value}"
+                  SelectedValue="{Binding IncrementMode}">
           <ComboBox.ItemTemplate>
             <DataTemplate x:DataType="vm:ReclamationModuleViewModel+IntOption">
               <TextBlock Text="{Binding DisplayName}" />

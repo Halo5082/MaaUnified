@@ -197,6 +197,30 @@ public sealed class CopilotInputValidationTests
             retry: 40));
     }
 
+    [Fact]
+    public async Task CopilotPage_ClipboardImport_ShouldPreservePayloadTypeAndResolvedTab()
+    {
+        await using var fixture = await CopilotPageFixture.CreateAsync();
+        var vm = fixture.ViewModel;
+        vm.SelectedTypeIndex = 0;
+
+        await vm.ImportFromClipboardAsync(
+            """
+            {
+              "type": "ParadoxCopilot",
+              "stage_name": "悖论关卡",
+              "minimum_required": "v4.0",
+              "actions": [
+                { "type": "Deploy" }
+              ]
+            }
+            """);
+
+        var item = Assert.Single(vm.Items);
+        Assert.Equal("悖论模拟", item.Type);
+        Assert.Equal(2, item.TabIndex);
+    }
+
     private static string CreateTempFile(string contents)
     {
         var root = Path.Combine(Path.GetTempPath(), "maa-unified-tests", Guid.NewGuid().ToString("N"));

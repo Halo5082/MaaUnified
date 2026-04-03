@@ -20,6 +20,7 @@ public sealed class RootViewStructureContractTests
         Assert.DoesNotContain("{Binding RootTexts[Main.Menu.Start]}", text, StringComparison.Ordinal);
         Assert.DoesNotContain("{Binding RootTexts[Main.Menu.SwitchLanguage]}", text, StringComparison.Ordinal);
         Assert.Contains("Title=\"{Binding WindowTitle}\"", text, StringComparison.Ordinal);
+        Assert.Contains("<TabControl Classes=\"root-nav\"", text, StringComparison.Ordinal);
         Assert.Contains("<DataTemplate DataType=\"viewModels:RootPageHostViewModel\">", text, StringComparison.Ordinal);
         Assert.Contains("<DataTemplate DataType=\"taskVm:TaskQueuePageViewModel\">", text, StringComparison.Ordinal);
         Assert.Contains("<DataTemplate DataType=\"copilotVm:CopilotPageViewModel\">", text, StringComparison.Ordinal);
@@ -41,14 +42,14 @@ public sealed class RootViewStructureContractTests
         var root = GetMaaUnifiedRoot();
         var text = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "TaskQueueView.axaml"));
 
-        Assert.Contains("{Binding RootTexts[TaskQueue.Root.TaskListTitle]}", text, StringComparison.Ordinal);
-        Assert.Contains("{Binding RootTexts[TaskQueue.Root.TaskConfigTitle]}", text, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding TaskListTitleText}\"", text, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding TaskConfigTitleText}\"", text, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding SelectedTaskSettingsViewModel}\"", text, StringComparison.Ordinal);
         Assert.Contains("IsEnabled=\"{Binding CanToggleRun}\"", text, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding CoreInitializationMessage}\"", text, StringComparison.Ordinal);
         Assert.Contains("IsVisible=\"{Binding HasCoreInitializationMessage}\"", text, StringComparison.Ordinal);
         Assert.Contains("Classes=\"wpf-list-no-highlight\"", text, StringComparison.Ordinal);
-        Assert.Contains("{Binding RootTexts[TaskQueue.Root.LogsTitle]}", text, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding LogsTitleText}\"", text, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding LogCards}\"", text, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding Items}\"", text, StringComparison.Ordinal);
         Assert.Contains("ToolTip.ShowDelay=\"200\"", text, StringComparison.Ordinal);
@@ -68,7 +69,7 @@ public sealed class RootViewStructureContractTests
         Assert.DoesNotContain("Click=\"OnInverseClick\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("TaskQueue.Root.AdvancedMode", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ShowAdvanced", text, StringComparison.Ordinal);
-        Assert.Contains("{Binding RootTexts[TaskQueue.Root.OverlayButton]}", text, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding OverlayButtonText}\"", text, StringComparison.Ordinal);
         Assert.Contains("Click=\"OnToggleOverlayClick\"", text, StringComparison.Ordinal);
         Assert.Contains("PointerPressed=\"OnOverlayButtonPointerPressed\"", text, StringComparison.Ordinal);
         Assert.Contains("ToolTip.Tip=\"{Binding OverlayButtonToolTip}\"", text, StringComparison.Ordinal);
@@ -162,6 +163,9 @@ public sealed class RootViewStructureContractTests
         Assert.Contains("anchor.Child = content;", codeBehind, StringComparison.Ordinal);
         Assert.Contains("TryMaterializeNextSectionForScroll();", codeBehind, StringComparison.Ordinal);
         Assert.Contains("EnsureSectionsThrough(", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("BindViewModelNotifications();", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("RefreshLocalizedSections()", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("nameof(SettingsPageViewModel.RootTexts)", codeBehind, StringComparison.Ordinal);
         Assert.Contains("new settingsViews.ConfigurationManagerView()", codeBehind, StringComparison.Ordinal);
         Assert.Contains("new settingsViews.AboutSettingsView()", codeBehind, StringComparison.Ordinal);
     }

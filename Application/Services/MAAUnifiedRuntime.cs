@@ -150,7 +150,12 @@ public static class MAAUnifiedRuntimeFactory
         var uiLanguageCoordinator = new UiLanguageCoordinator(configService);
         var appLifecycleService = new ProcessAppLifecycleService();
         var achievementTrackerService = new AchievementTrackerService(configService, baseDirectory);
-        var versionUpdateFeatureService = new VersionUpdateFeatureService(configService, diagnosticsService, achievementTrackerService);
+        var versionUpdateFeatureService = new VersionUpdateFeatureService(
+            configService,
+            diagnosticsService,
+            achievementTrackerService,
+            logService,
+            runtimeBaseDirectory: baseDirectory);
         var achievementFeatureService = new AchievementFeatureService(configService);
         var announcementFeatureService = new AnnouncementFeatureService(configService);
         var stageManagerFeatureService = new StageManagerFeatureServiceImpl(configService);

@@ -7,6 +7,7 @@ public static class DialogTextCatalog
 {
     private static readonly IReadOnlyDictionary<string, string> EmptyNamedTexts =
         new Dictionary<string, string>(StringComparer.Ordinal);
+    private const string Scope = "DialogTextCatalog";
 
     public static class ChromeKeys
     {
@@ -39,82 +40,88 @@ public static class DialogTextCatalog
 
     public static string ErrorDialogTitle(string? language)
     {
-        return Select(language, "错误提示", "Error");
+        return GetText(language, "Dialog.Error.Title", "错误提示", "Error");
     }
 
     public static string ErrorDialogSectionTitle(string? language)
     {
-        return Select(language, "错误详情", "Error");
+        return GetText(language, "Dialog.Error.SectionTitle", "错误详情", "Error");
     }
 
     public static string ErrorDialogCopyButton(string? language)
     {
-        return Select(language, "复制", "Copy");
+        return GetText(language, "Dialog.Error.CopyButton", "复制", "Copy");
     }
 
     public static string ErrorDialogIssueReportButton(string? language)
     {
-        return Select(language, "问题反馈", "IssueReport");
+        return GetText(language, "Dialog.Error.IssueReportButton", "问题反馈", "IssueReport");
     }
 
     public static string ErrorDialogCloseButton(string? language)
     {
-        return Select(language, "关闭", "Close");
+        return GetText(language, "Dialog.Error.CloseButton", "关闭", "Close");
     }
 
     public static string ErrorDialogIgnoreButton(string? language)
     {
-        return Select(language, "忽略", "Ignore");
+        return GetText(language, "Dialog.Error.IgnoreButton", "忽略", "Ignore");
     }
 
     public static string ErrorDialogTimestampLabel(string? language)
     {
-        return Select(language, "时间", "TimestampUtc");
+        return GetText(language, "Dialog.Error.TimestampLabel", "时间", "TimestampUtc");
     }
 
     public static string ErrorDialogContextLabel(string? language)
     {
-        return Select(language, "上下文", "Context");
+        return GetText(language, "Dialog.Error.ContextLabel", "上下文", "Context");
     }
 
     public static string ErrorDialogCodeLabel(string? language)
     {
-        return Select(language, "错误码", "Code");
+        return GetText(language, "Dialog.Error.CodeLabel", "错误码", "Code");
     }
 
     public static string ErrorDialogMessageLabel(string? language)
     {
-        return Select(language, "消息", "Message");
+        return GetText(language, "Dialog.Error.MessageLabel", "消息", "Message");
     }
 
     public static string ErrorDialogDetailsLabel(string? language)
     {
-        return Select(language, "详情", "Details");
+        return GetText(language, "Dialog.Error.DetailsLabel", "详情", "Details");
     }
 
     public static string ErrorDialogSuggestionLabel(string? language)
     {
-        return Select(language, "建议", "Suggestion");
+        return GetText(language, "Dialog.Error.SuggestionLabel", "建议", "Suggestion");
     }
 
     public static string WarningDialogTitle(string? language)
     {
-        return Select(language, "警告", "Warning");
+        return GetText(language, "Dialog.Warning.Title", "警告", "Warning");
     }
 
     public static string WarningDialogPrompt(string? language)
     {
-        return Select(language, "确认执行此操作？", "Do you want to continue?");
+        return GetText(language, "Dialog.Warning.Prompt", "确认执行此操作？", "Do you want to continue?");
     }
 
     public static string WarningDialogConfirmButton(string? language)
     {
-        return Select(language, "确认", "Confirm");
+        return GetText(language, "Dialog.Warning.ConfirmButton", "确认", "Confirm");
     }
 
     public static string WarningDialogCancelButton(string? language)
     {
-        return Select(language, "取消", "Cancel");
+        return GetText(language, "Dialog.Warning.CancelButton", "取消", "Cancel");
+    }
+
+    private static string GetText(string? language, string key, string zhFallback, string enFallback)
+    {
+        return UiLocalizer.Create(UiLanguageCatalog.Normalize(language))
+            .GetOrDefault(key, Select(language, zhFallback, enFallback), Scope);
     }
 
     public static DialogChromeCatalog CreateCatalog(

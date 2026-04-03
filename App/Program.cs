@@ -7,6 +7,8 @@ using Avalonia;
 using Avalonia.Win32;
 using Avalonia.X11;
 using MAAUnified.Compat.Constants;
+using MAAUnified.Application.Services;
+using MAAUnified.Application.Services.VersionUpdate;
 
 namespace MAAUnified.App;
 
@@ -26,6 +28,27 @@ internal static class Program
     public static int Main(string[] args)
     {
         RecordStartupStage("Main.Entry", BuildStartupEnvironmentSnapshot(args));
+        var pendingUpdateResult = PendingAppUpdateService.TryApplyPendingUpdatePackage(AppContext.BaseDirectory);
+        if (pendingUpdateResult.Status == PendingAppUpdateStatus.Applied)
+        {
+            RecordStartupStage("Main.PendingUpdate.Applied", pendingUpdateResult.Message);
+            var restartResult = new ProcessAppLifecycleService().RestartAsync().GetAwaiter().GetResult();
+            if (!restartResult.Success)
+            {
+                ReportStartupFailure(
+                    StartupUnhandledCode,
+                    $"Pending software update was applied, but restart failed. {restartResult.Message}");
+                return 1;
+            }
+
+            RecordStartupStage("Main.PendingUpdate.Restart", restartResult.Message);
+            return 0;
+        }
+
+        if (pendingUpdateResult.Status == PendingAppUpdateStatus.Failed)
+        {
+            RecordStartupStage("Main.PendingUpdate.Failed", pendingUpdateResult.Message);
+        }
 
         if (OperatingSystem.IsLinux() && !HasLinuxDesktopDisplay())
         {

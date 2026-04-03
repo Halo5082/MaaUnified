@@ -27,7 +27,8 @@
                  Text="{Binding RootTexts[Settings.Performance.Gpu.Select]}" />
       <ComboBox Width="{DynamicResource MAA.Size.Settings.ColumnWidth}"
                 ItemsSource="{Binding AvailableGpuOptions}"
-                SelectedItem="{Binding SelectedGpuOption}"
+                SelectedValueBinding="{Binding Descriptor.Id}"
+                SelectedValue="{Binding SelectedGpuOptionId}"
                 IsEnabled="{Binding IsGpuSelectionEnabled}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="vm:GpuOptionDisplayItem">

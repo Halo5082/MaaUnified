@@ -421,14 +421,14 @@ public sealed class TaskModuleCFeatureTests
         var reclamationView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "ReclamationSettingsView.axaml"));
         var customView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "CustomSettingsView.axaml"));
 
-        Assert.Contains("{Binding SelectedThemeOption}", roguelikeView);
-        Assert.Contains("{Binding SelectedModeOption}", roguelikeView);
+        Assert.Contains("SelectedValue=\"{Binding Theme}\"", roguelikeView);
+        Assert.Contains("SelectedValue=\"{Binding Mode}\"", roguelikeView);
         Assert.Contains("{Binding DelayAbortUntilCombatComplete}", roguelikeView);
         Assert.Contains("{Binding StatusMessage}", roguelikeView);
         Assert.DoesNotContain("傀影与猩红孤钻", roguelikeView);
         Assert.DoesNotContain("SelectedIndex=\"0\"", roguelikeView);
 
-        Assert.Contains("{Binding SelectedThemeOption}", reclamationView);
+        Assert.Contains("SelectedValue=\"{Binding Theme}\"", reclamationView);
         Assert.Contains("{Binding NumCraftBatches}", reclamationView);
         Assert.Contains("{Binding StatusMessage}", reclamationView);
         Assert.DoesNotContain("萨尔贡沙洲遗闻", reclamationView);

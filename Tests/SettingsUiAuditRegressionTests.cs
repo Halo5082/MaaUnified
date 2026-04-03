@@ -158,7 +158,7 @@ public sealed class SettingsUiAuditRegressionTests
                 NotificationProviderFeatureService = new NotificationProviderFeatureService(),
                 SettingsFeatureService = new SettingsFeatureService(config, capability, diagnostics),
                 ConfigurationProfileFeatureService = new ConfigurationProfileFeatureService(config),
-                VersionUpdateFeatureService = new VersionUpdateFeatureService(config),
+                VersionUpdateFeatureService = new VersionUpdateFeatureService(config, runtimeBaseDirectory: root),
                 AchievementFeatureService = new AchievementFeatureService(config),
                 AnnouncementFeatureService = new AnnouncementFeatureService(config),
                 DialogFeatureService = new DialogFeatureService(diagnostics),

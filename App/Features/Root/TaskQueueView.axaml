@@ -63,7 +63,7 @@
   <Grid ColumnDefinitions="{StaticResource MAA.Layout.TaskQueue.Columns}">
     <Border Grid.Column="0" Classes="wpf-panel">
       <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
-        <TextBlock Classes="section-title" Text="{Binding RootTexts[TaskQueue.Root.TaskListTitle]}" />
+        <TextBlock Classes="section-title" Text="{Binding TaskListTitleText}" />
 
         <ListBox Grid.Row="1"
                  Classes="wpf-list-no-highlight"
@@ -87,19 +87,19 @@
                       ToolTip.Tip="{Binding ToolTipText}">
                 <Border.ContextMenu>
                   <ContextMenu>
-                    <MenuItem Header="{Binding RootTexts[TaskQueue.Root.MoveUp]}"
+                    <MenuItem Header="{Binding TaskMenuMoveUpText}"
                               IsEnabled="{Binding CanEdit}"
                               CommandParameter="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                               Click="OnTaskMenuMoveUpClick" />
-                    <MenuItem Header="{Binding RootTexts[TaskQueue.Root.MoveDown]}"
+                    <MenuItem Header="{Binding TaskMenuMoveDownText}"
                               IsEnabled="{Binding CanEdit}"
                               CommandParameter="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                               Click="OnTaskMenuMoveDownClick" />
-                    <MenuItem Header="{Binding RootTexts[TaskQueue.Root.Rename]}"
+                    <MenuItem Header="{Binding TaskMenuRenameText}"
                               IsEnabled="{Binding CanEdit}"
                               CommandParameter="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                               Click="OnTaskMenuRenameClick" />
-                    <MenuItem Header="{Binding RootTexts[TaskQueue.Root.Delete]}"
+                    <MenuItem Header="{Binding TaskMenuDeleteText}"
                               IsEnabled="{Binding CanEdit}"
                               CommandParameter="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                               Click="OnTaskMenuRemoveClick" />
@@ -119,7 +119,7 @@
                   <Button Grid.Column="2"
                           Classes="wpf-button task-row-gear"
                           Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-                          Content="{Binding DataContext.RootTexts[TaskQueue.Root.TaskMenuIcon], RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          Content="{Binding DataContext.TaskMenuIconText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                           ToolTip.Tip="{Binding DataContext.TaskMenuTooltipText, RelativeSource={RelativeSource AncestorType=UserControl}}"
                           Click="OnTaskGearClick" />
                 </Grid>
@@ -133,27 +133,28 @@
               ColumnDefinitions="Auto,Auto,Auto"
               HorizontalAlignment="Center"
               IsEnabled="{Binding CanEdit}">
-          <Button Grid.Column="0"
+          <Button x:Name="AddTaskButton"
+                  Grid.Column="0"
                   Classes="wpf-button compact icon-only queue-segment segment-left"
-                  Content="{Binding RootTexts[TaskQueue.Root.AddTaskIcon]}"
+                  Content="{Binding AddTaskButtonText}"
                   Click="OnOpenButtonContextMenuClick">
             <Button.ContextMenu>
               <ContextMenu>
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.StartUp]}" Tag="StartUp" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Fight]}" Tag="Fight" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Infrast]}" Tag="Infrast" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Recruit]}" Tag="Recruit" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Mall]}" Tag="Mall" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Award]}" Tag="Award" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Roguelike]}" Tag="Roguelike" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Reclamation]}" Tag="Reclamation" Click="OnAddTaskModuleClick" />
-                <MenuItem Header="{Binding RootTexts[TaskQueue.Module.Custom]}" Tag="Custom" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuStartUpText}" Tag="StartUp" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuFightText}" Tag="Fight" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuInfrastText}" Tag="Infrast" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuRecruitText}" Tag="Recruit" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuMallText}" Tag="Mall" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuAwardText}" Tag="Award" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuRoguelikeText}" Tag="Roguelike" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuReclamationText}" Tag="Reclamation" Click="OnAddTaskModuleClick" />
+                <MenuItem Header="{Binding AddTaskMenuCustomText}" Tag="Custom" Click="OnAddTaskModuleClick" />
               </ContextMenu>
             </Button.ContextMenu>
           </Button>
           <Button Grid.Column="1"
                   Classes="wpf-button compact queue-segment segment-middle"
-                  Content="{Binding RootTexts[TaskQueue.Root.SelectAll]}"
+                  Content="{Binding SelectAllButtonText}"
                   Click="OnSelectAllClick" />
           <Button Grid.Column="2"
                   Classes="wpf-button compact queue-segment segment-right"
@@ -193,7 +194,7 @@
             <Button Grid.Column="1"
                     Classes="wpf-button wpf-button-subtle compact icon-only"
                     Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
-                    Content="{Binding RootTexts[TaskQueue.Root.TaskMenuIcon]}"
+                    Content="{Binding TaskMenuIconText}"
                     Click="OnOpenPostActionClick" />
           </Grid>
         </Border>
@@ -233,7 +234,7 @@
       <Grid RowDefinitions="Auto,*,Auto,Auto"
             Width="{DynamicResource MAA.Size.TaskQueue.ConfigPanelWidth}"
             HorizontalAlignment="Center">
-        <TextBlock Classes="section-title" Text="{Binding RootTexts[TaskQueue.Root.TaskConfigTitle]}" />
+        <TextBlock Classes="section-title" Text="{Binding TaskConfigTitleText}" />
 
         <ScrollViewer Grid.Row="1"
                       HorizontalScrollBarVisibility="Disabled">
@@ -254,12 +255,12 @@
               HorizontalAlignment="Center">
           <Button Classes="wpf-button compact queue-mode segment-left"
                   Classes.mode-selected="{Binding IsGeneralSettingsSelected}"
-                  Content="{Binding RootTexts[TaskQueue.Root.GeneralSettings]}"
+                  Content="{Binding GeneralSettingsButtonText}"
                   Click="OnSelectGeneralSettingsClick" />
           <Button Grid.Column="1"
                   Classes="wpf-button compact queue-mode segment-right"
                   Classes.mode-selected="{Binding IsAdvancedSettingsSelected}"
-                  Content="{Binding RootTexts[TaskQueue.Root.AdvancedSettings]}"
+                  Content="{Binding AdvancedSettingsButtonText}"
                   IsEnabled="{Binding CanUseAdvancedSettings}"
                   Click="OnSelectAdvancedSettingsClick" />
         </Grid>
@@ -270,9 +271,9 @@
                       VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="{DynamicResource MAA.Spacing.Tight}">
             <Grid ColumnDefinitions="Auto,Auto,*">
-              <TextBlock Classes="subtle" Text="{Binding RootTexts[TaskQueue.Root.DailyStageLabel]}" />
+              <TextBlock Classes="subtle" Text="{Binding DailyStageLabelText}" />
               <controls:TooltipHint Grid.Column="1"
-                                    Tip="{Binding RootTexts[TaskQueue.Root.DailyStageTooltip]}" />
+                                    Tip="{Binding DailyStageTooltipText}" />
             </Grid>
             <TextBlock Classes="long-wrap subtle" Text="{Binding DailyStageHint}" />
           </StackPanel>
@@ -283,7 +284,7 @@
     <Grid Grid.Column="2">
       <Grid RowDefinitions="Auto,Auto,*">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Classes="section-title" Text="{Binding RootTexts[TaskQueue.Root.LogsTitle]}" />
+          <TextBlock Classes="section-title" Text="{Binding LogsTitleText}" />
           <Button Grid.Column="1"
                   Classes="wpf-button wpf-button-secondary overlay-toggle"
                   ToolTip.Tip="{Binding OverlayButtonToolTip}"
@@ -295,7 +296,7 @@
                       Classes.mode-hidden="{Binding IsOverlayHiddenMode}"
                       Classes.mode-preview="{Binding IsOverlayPreviewMode}"
                       Classes.mode-native="{Binding IsOverlayNativeMode}" />
-              <TextBlock Text="{Binding RootTexts[TaskQueue.Root.OverlayButton]}" />
+              <TextBlock Text="{Binding OverlayButtonText}" />
             </StackPanel>
           </Button>
         </Grid>

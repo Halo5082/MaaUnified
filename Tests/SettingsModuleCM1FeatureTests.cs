@@ -54,10 +54,13 @@ public sealed class SettingsModuleCM1FeatureTests
     }
 
     [Fact]
-    public async Task VersionUpdate_CheckForUpdates_UpdatesStatusMessage()
+    public async Task VersionUpdate_CheckForUpdates_ShowsNotImplementedMessage()
     {
         await using var fixture = await RuntimeFixture.CreateAsync();
-        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        var vm = new SettingsPageViewModel(
+            fixture.Runtime,
+            new ConnectionGameSharedStateViewModel(),
+            coreVersionResolver: () => "core-9.9.9");
         await vm.InitializeAsync();
 
         var feedPath = Path.Combine(Path.GetTempPath(), $"maa-unified-settings-feed-{Guid.NewGuid():N}.json");
@@ -86,9 +89,9 @@ public sealed class SettingsModuleCM1FeatureTests
 
             await vm.CheckVersionUpdateAsync();
 
-            Assert.Contains("发现新版本", vm.VersionUpdateStatusMessage, StringComparison.Ordinal);
+            Assert.Contains("暂未实现软件更新", vm.VersionUpdateStatusMessage, StringComparison.Ordinal);
             Assert.False(vm.HasVersionUpdateErrorMessage);
-            Assert.Equal("Release v2.0.0", vm.VersionUpdateName);
+            Assert.Equal("core-9.9.9", vm.UpdatePanelCoreVersion);
         }
         finally
         {
@@ -118,7 +121,7 @@ public sealed class SettingsModuleCM1FeatureTests
     }
 
     [Fact]
-    public async Task VersionUpdate_CheckForUpdates_WhenValidationFails_ShouldNotRaiseDialogPopup()
+    public async Task VersionUpdate_CheckForUpdates_ShouldNotRaiseErrorDialog()
     {
         await using var fixture = await RuntimeFixture.CreateAsync();
         var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
@@ -130,8 +133,8 @@ public sealed class SettingsModuleCM1FeatureTests
         vm.VersionUpdateVersionType = "Preview";
         await vm.CheckVersionUpdateAsync();
 
-        Assert.True(vm.HasVersionUpdateErrorMessage);
-        Assert.Contains("Version type `Preview` is unsupported.", vm.VersionUpdateErrorMessage, StringComparison.Ordinal);
+        Assert.False(vm.HasVersionUpdateErrorMessage);
+        Assert.Contains("暂未实现软件更新", vm.VersionUpdateStatusMessage, StringComparison.Ordinal);
         Assert.False(dialogRaised);
     }
 
@@ -487,7 +490,7 @@ public sealed class SettingsModuleCM1FeatureTests
     {
         var config = CreateConfigServiceWithStore(new ThrowOnSaveStore());
         config.CurrentConfig.GlobalValues[ConfigurationKeys.UpdateProxy] = JsonValue.Create("http://127.0.0.1:7000");
-        var service = new VersionUpdateFeatureService(config);
+        var service = new VersionUpdateFeatureService(config, runtimeBaseDirectory: Path.GetTempPath());
 
         var policy = VersionUpdatePolicy.Default with
         {
@@ -725,7 +728,7 @@ public sealed class SettingsModuleCM1FeatureTests
                 NotificationProviderFeatureService = new NotificationProviderFeatureService(),
                 SettingsFeatureService = new SettingsFeatureService(config, capability, diagnostics),
                 ConfigurationProfileFeatureService = new ConfigurationProfileFeatureService(config),
-                VersionUpdateFeatureService = new VersionUpdateFeatureService(config),
+                VersionUpdateFeatureService = new VersionUpdateFeatureService(config, runtimeBaseDirectory: root),
                 AchievementFeatureService = new AchievementFeatureService(config),
                 AnnouncementFeatureService = new AnnouncementFeatureService(config),
                 DialogFeatureService = new DialogFeatureService(diagnostics),

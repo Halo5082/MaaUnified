@@ -11,7 +11,8 @@
         <StackPanel IsVisible="{Binding IsGeneralMode}" Spacing="{DynamicResource MAA.Spacing.Small}">
           <TextBlock Text="{Binding Texts[Roguelike.Theme]}" />
           <ComboBox ItemsSource="{Binding ThemeOptions}"
-                    SelectedItem="{Binding SelectedThemeOption}">
+                    SelectedValueBinding="{Binding Type}"
+                    SelectedValue="{Binding Theme}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:TaskModuleOption">
                 <TextBlock Text="{Binding DisplayName}" />
@@ -27,7 +28,8 @@
                                   Tip="{Binding Texts[Roguelike.JieGardenDifficultyTip]}" />
           </Grid>
           <ComboBox ItemsSource="{Binding DifficultyOptions}"
-                    SelectedItem="{Binding SelectedDifficultyOption}">
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding Difficulty}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:RoguelikeModuleViewModel+IntOption">
                 <TextBlock Text="{Binding DisplayName}" />
@@ -37,7 +39,8 @@
 
           <TextBlock Text="{Binding Texts[Roguelike.Mode]}" />
           <ComboBox ItemsSource="{Binding ModeOptions}"
-                    SelectedItem="{Binding SelectedModeOption}">
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding Mode}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:RoguelikeModuleViewModel+IntOption">
                 <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" />
@@ -48,7 +51,8 @@
           <TextBlock IsVisible="{Binding ShowCollectibleModeSquad}" Text="{Binding Texts[Roguelike.CollectibleModeSquad]}" />
           <ComboBox IsVisible="{Binding ShowCollectibleModeSquad}"
                     ItemsSource="{Binding SquadOptions}"
-                    SelectedItem="{Binding SelectedCollectibleModeSquadOption}">
+                    SelectedValueBinding="{Binding Type}"
+                    SelectedValue="{Binding CollectibleModeSquad}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:TaskModuleOption">
                 <TextBlock Text="{Binding DisplayName}" />
@@ -58,7 +62,8 @@
 
           <TextBlock Text="{Binding Texts[Roguelike.Squad]}" />
           <ComboBox ItemsSource="{Binding SquadOptions}"
-                    SelectedItem="{Binding SelectedSquadOption}">
+                    SelectedValueBinding="{Binding Type}"
+                    SelectedValue="{Binding Squad}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:TaskModuleOption">
                 <TextBlock Text="{Binding DisplayName}" />
@@ -68,7 +73,8 @@
 
           <TextBlock Text="{Binding Texts[Roguelike.Roles]}" />
           <ComboBox ItemsSource="{Binding RolesOptions}"
-                    SelectedItem="{Binding SelectedRolesOption}">
+                    SelectedValueBinding="{Binding Type}"
+                    SelectedValue="{Binding Roles}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:TaskModuleOption">
                 <TextBlock Text="{Binding DisplayName}" TextWrapping="Wrap" />
@@ -79,7 +85,8 @@
           <TextBlock IsVisible="{Binding ShowFindPlayTimeTarget}" Text="{Binding Texts[Roguelike.FindPlayTimeTarget]}" />
           <ComboBox IsVisible="{Binding ShowFindPlayTimeTarget}"
                     ItemsSource="{Binding FindPlayTimeTargetOptions}"
-                    SelectedItem="{Binding SelectedFindPlayTimeTargetOption}">
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding FindPlayTimeTarget}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:RoguelikeModuleViewModel+IntOption">
                 <TextBlock Text="{Binding DisplayName}" />

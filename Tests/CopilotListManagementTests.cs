@@ -149,6 +149,88 @@ public sealed class CopilotListManagementTests
         Assert.Contains("Tips:", vm.HelpText, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SetLanguage_ShouldNotifyLocalizedTextMapsForViewBindings()
+    {
+        await using var fixture = await CopilotFixture.CreateAsync();
+        var vm = fixture.ViewModel;
+        var changed = new List<string?>();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        vm.SetLanguage("en-us");
+
+        Assert.Contains(nameof(CopilotPageViewModel.Texts), changed);
+        Assert.Contains(nameof(CopilotPageViewModel.RootTexts), changed);
+        Assert.Contains(nameof(CopilotPageViewModel.MainTabTitle), changed);
+        Assert.Contains(nameof(CopilotPageViewModel.StartButtonText), changed);
+        Assert.Contains(string.Empty, changed);
+    }
+
+    [Fact]
+    public async Task SetLanguage_ShouldRelocalizeTrackedCopilotItemsAcrossRepeatedSwitches()
+    {
+        await using var fixture = await CopilotFixture.CreateAsync();
+        var vm = fixture.ViewModel;
+        var item = new CopilotItemViewModel("Task-A", "主线/故事集/SideStory", inlinePayload: "{}")
+        {
+            IsRaid = true,
+        };
+
+        vm.Items.Add(item);
+
+        foreach (var language in new[] { "en-us", "ja-jp", "ko-kr", "zh-tw" })
+        {
+            vm.SetLanguage(language);
+
+            Assert.Equal(language, vm.Texts.Language);
+            Assert.Contains(vm.RaidLabelText, item.DisplayName, StringComparison.Ordinal);
+            Assert.Equal(vm.InlineJsonHintText, item.ExecutionPathHint);
+        }
+    }
+
+    [Fact]
+    public async Task SetLanguage_ShouldKeepLocalizedBindingsFreshAcrossRepeatedSwitches()
+    {
+        await using var fixture = await CopilotFixture.CreateAsync();
+        var vm = fixture.ViewModel;
+        var texts = vm.Texts;
+        var rootTexts = vm.RootTexts;
+
+        foreach (var language in new[] { "en-us", "ja-jp", "ko-kr", "zh-tw" })
+        {
+            vm.SetLanguage(language);
+
+            Assert.Same(texts, vm.Texts);
+            Assert.Same(rootTexts, vm.RootTexts);
+            Assert.Equal(language, vm.Texts.Language);
+            Assert.Equal(language, vm.RootTexts.Language);
+            Assert.Equal(vm.Texts["Copilot.Tab.Main"], vm.MainTabTitle);
+            Assert.Equal(vm.Texts["Copilot.Button.File"], vm.FileButtonText);
+            Assert.Equal(vm.Texts["Copilot.Option.UseSupportUnit"], vm.UseSupportUnitText);
+            Assert.Equal(vm.Texts["Copilot.Rating.Prompt"], vm.RatingPromptText);
+            Assert.Equal(vm.Texts["Copilot.HelpText"], vm.HelpText);
+            Assert.Equal(vm.Texts["Copilot.Option.SupportUnitUsage.FillGap"], vm.SupportUnitUsageOptions[0].DisplayName);
+        }
+    }
+
+    [Fact]
+    public async Task SetLanguage_ShouldRefreshHelpLogAcrossRepeatedSwitches()
+    {
+        await using var fixture = await CopilotFixture.CreateAsync();
+        var vm = fixture.ViewModel;
+
+        Assert.Single(vm.Logs);
+
+        foreach (var language in new[] { "en-us", "ja-jp", "ko-kr", "zh-tw" })
+        {
+            vm.SetLanguage(language);
+
+            var helpLog = Assert.Single(vm.Logs);
+            Assert.False(helpLog.HasTime);
+            Assert.Equal(vm.HelpText.TrimEnd(), helpLog.Content);
+        }
+    }
+
     private static string? GetPersistedTaskListPayload(UnifiedConfigurationService config)
     {
         if (!config.CurrentConfig.GlobalValues.TryGetValue(LegacyConfigurationKeys.CopilotTaskList, out var node)

@@ -8,19 +8,19 @@
 
     <StackPanel Grid.Row="1" Spacing="{DynamicResource MAA.Spacing.Small}">
       <Grid IsVisible="{Binding ShowAccountSwitch}"
+            RowDefinitions="Auto,Auto"
             ColumnDefinitions="*,Auto">
-        <Grid RowDefinitions="Auto,Auto">
-          <Grid ColumnDefinitions="Auto,Auto">
-            <TextBlock Text="{Binding Texts[StartUp.AccountSwitch]}" />
-            <controls:TooltipHint Grid.Column="1"
-                                  Margin="{DynamicResource MAA.Thickness.MarginLeftSmall}"
-                                  Tip="{Binding Texts[StartUp.AccountSwitchTip]}" />
-          </Grid>
-          <TextBox Grid.Row="1"
-                   Margin="{DynamicResource MAA.Thickness.MarginTopSmall}"
-                   Text="{Binding AccountName, UpdateSourceTrigger=LostFocus}" />
+        <Grid ColumnDefinitions="Auto,Auto">
+          <TextBlock Text="{Binding Texts[StartUp.AccountSwitch]}" />
+          <controls:TooltipHint Grid.Column="1"
+                                Margin="{DynamicResource MAA.Thickness.MarginLeftSmall}"
+                                Tip="{Binding Texts[StartUp.AccountSwitchTip]}" />
         </Grid>
-        <Button Grid.Column="1"
+        <TextBox Grid.Row="1"
+                 Margin="{DynamicResource MAA.Thickness.MarginTopSmall}"
+                 Text="{Binding AccountName, UpdateSourceTrigger=LostFocus}" />
+        <Button Grid.Row="1"
+                Grid.Column="1"
                 Classes="wpf-button wpf-button-secondary"
                 Margin="{DynamicResource MAA.Thickness.MarginActionButtonLeft}"
                 Content="{Binding Texts[StartUp.AccountSwitchManualRun]}"
@@ -30,7 +30,8 @@
 
       <TextBlock Text="{Binding Texts[StartUp.ClientType]}" />
       <ComboBox ItemsSource="{Binding ClientTypeOptions}"
-                SelectedItem="{Binding SelectedClientTypeOption}">
+                SelectedValueBinding="{Binding Type}"
+                SelectedValue="{Binding SelectedClientTypeValue}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="vm:TaskModuleOption">
             <TextBlock Text="{Binding DisplayName}" />
@@ -44,7 +45,8 @@
 
       <TextBlock Text="{Binding Texts[StartUp.ConnectConfig]}" />
       <ComboBox ItemsSource="{Binding ConnectConfigOptions}"
-                SelectedItem="{Binding SelectedConnectConfigOption}">
+                SelectedValueBinding="{Binding Type}"
+                SelectedValue="{Binding SelectedConnectConfigValue}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="vm:TaskModuleOption">
             <TextBlock Text="{Binding DisplayName}" />
@@ -81,7 +83,8 @@
 
       <TextBlock Text="{Binding Texts[StartUp.TouchMode]}" />
       <ComboBox ItemsSource="{Binding TouchModeOptions}"
-                SelectedItem="{Binding SelectedTouchModeOption}">
+                SelectedValueBinding="{Binding Type}"
+                SelectedValue="{Binding SelectedTouchModeValue}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="vm:TaskModuleOption">
             <TextBlock Text="{Binding DisplayName}" />

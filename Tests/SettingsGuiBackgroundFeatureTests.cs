@@ -51,6 +51,7 @@ public sealed class SettingsGuiBackgroundFeatureTests
         Assert.Equal("Dark", ReadGlobalString(fixture.Config, "Theme.Mode"));
         Assert.Equal("en-us", ReadGlobalString(fixture.Config, ConfigurationKeys.Localization));
         Assert.Equal("en-us", vm.Language);
+        Assert.Equal("en-us", vm.SelectedLanguageValue);
         Assert.Equal("en-us", vm.SelectedLanguageOption?.Value);
         Assert.Equal("False", ReadGlobalString(fixture.Config, ConfigurationKeys.UseTray));
         Assert.Equal("False", ReadGlobalString(fixture.Config, ConfigurationKeys.MinimizeToTray));
@@ -78,14 +79,16 @@ public sealed class SettingsGuiBackgroundFeatureTests
 
         await WaitUntilAsync(() =>
             string.Equals(vm.Language, "en-us", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(vm.SelectedLanguageValue, "en-us", StringComparison.OrdinalIgnoreCase)
             && string.Equals(vm.SelectedLanguageOption?.Value, "en-us", StringComparison.OrdinalIgnoreCase)
             && string.Equals(ReadGlobalString(fixture.Config, ConfigurationKeys.Localization), "en-us", StringComparison.OrdinalIgnoreCase));
         Assert.Equal("en-us", vm.Language);
+        Assert.Equal("en-us", vm.SelectedLanguageValue);
         Assert.Equal("en-us", vm.SelectedLanguageOption?.Value);
     }
 
     [Fact]
-    public async Task LanguageChange_RebuildsSupportedLanguages_AndDoesNotFallbackToZhCn()
+    public async Task LanguageChange_KeepsSupportedLanguagesStable_AndDoesNotFallbackToZhCn()
     {
         await using var fixture = await RuntimeFixture.CreateAsync();
         var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
@@ -100,16 +103,18 @@ public sealed class SettingsGuiBackgroundFeatureTests
             string.Equals(vm.Language, "en-us", StringComparison.OrdinalIgnoreCase)
             && string.Equals(ReadGlobalString(fixture.Config, ConfigurationKeys.Localization), "en-us", StringComparison.OrdinalIgnoreCase));
         var languagesAfterEnglish = vm.SupportedLanguages;
-        Assert.NotSame(originalLanguages, languagesAfterEnglish);
+        Assert.Same(originalLanguages, languagesAfterEnglish);
         Assert.Equal("en-us", vm.Language);
+        Assert.Equal("en-us", vm.SelectedLanguageValue);
         Assert.Equal("en-us", vm.SelectedLanguageOption?.Value);
 
         vm.SelectedLanguageOption = jaJp;
         await WaitUntilAsync(() =>
             string.Equals(vm.Language, "ja-jp", StringComparison.OrdinalIgnoreCase)
             && string.Equals(ReadGlobalString(fixture.Config, ConfigurationKeys.Localization), "ja-jp", StringComparison.OrdinalIgnoreCase));
-        Assert.NotSame(languagesAfterEnglish, vm.SupportedLanguages);
+        Assert.Same(languagesAfterEnglish, vm.SupportedLanguages);
         Assert.Equal("ja-jp", vm.Language);
+        Assert.Equal("ja-jp", vm.SelectedLanguageValue);
         Assert.Equal("ja-jp", vm.SelectedLanguageOption?.Value);
     }
 
@@ -126,16 +131,24 @@ public sealed class SettingsGuiBackgroundFeatureTests
         vm.OperNameLanguage = "OperNameLanguageClient";
         vm.BackgroundStretchMode = "UniformToFill";
         vm.InverseClearMode = "ClearInverse";
+        vm.VersionUpdateVersionType = "Beta";
+        vm.VersionUpdateResourceSource = "MirrorChyan";
+        vm.VersionUpdateProxyType = "socks5";
 
         var originalThemeOptions = vm.ThemeOptions;
         var originalOperNameLanguageOptions = vm.OperNameLanguageOptions;
         var originalBackgroundStretchModes = vm.BackgroundStretchModes;
         var originalInverseClearModeOptions = vm.InverseClearModeOptions;
+        var originalVersionTypeOptions = vm.VersionUpdateVersionTypeOptions;
+        var originalResourceSourceOptions = vm.VersionUpdateResourceSourceOptions;
+        var originalProxyTypeOptions = vm.VersionUpdateProxyTypeOptions;
 
         var originalThemeLight = FindDisplay(vm.ThemeOptions, "Light");
         var originalOperNameClient = FindDisplay(vm.OperNameLanguageOptions, "OperNameLanguageClient");
         var originalStretchCover = FindDisplay(vm.BackgroundStretchModes, "UniformToFill");
         var originalInverseSwitchable = FindDisplay(vm.InverseClearModeOptions, "ClearInverse");
+        var originalVersionChannelBeta = FindDisplay(vm.VersionUpdateVersionTypeOptions, "Beta");
+        var originalResourceSourceMirror = FindDisplay(vm.VersionUpdateResourceSourceOptions, "MirrorChyan");
 
         await vm.ChangeLanguageAsync("en-us");
         await WaitUntilAsync(() => string.Equals(vm.Language, "en-us", StringComparison.OrdinalIgnoreCase));
@@ -144,16 +157,54 @@ public sealed class SettingsGuiBackgroundFeatureTests
         Assert.NotSame(originalOperNameLanguageOptions, vm.OperNameLanguageOptions);
         Assert.NotSame(originalBackgroundStretchModes, vm.BackgroundStretchModes);
         Assert.NotSame(originalInverseClearModeOptions, vm.InverseClearModeOptions);
+        Assert.NotSame(originalVersionTypeOptions, vm.VersionUpdateVersionTypeOptions);
+        Assert.NotSame(originalResourceSourceOptions, vm.VersionUpdateResourceSourceOptions);
+        Assert.NotSame(originalProxyTypeOptions, vm.VersionUpdateProxyTypeOptions);
 
         Assert.NotEqual(originalThemeLight, FindDisplay(vm.ThemeOptions, "Light"));
         Assert.NotEqual(originalOperNameClient, FindDisplay(vm.OperNameLanguageOptions, "OperNameLanguageClient"));
         Assert.NotEqual(originalStretchCover, FindDisplay(vm.BackgroundStretchModes, "UniformToFill"));
         Assert.NotEqual(originalInverseSwitchable, FindDisplay(vm.InverseClearModeOptions, "ClearInverse"));
+        Assert.NotEqual(originalVersionChannelBeta, FindDisplay(vm.VersionUpdateVersionTypeOptions, "Beta"));
+        Assert.NotEqual(originalResourceSourceMirror, FindDisplay(vm.VersionUpdateResourceSourceOptions, "MirrorChyan"));
 
         Assert.Equal("Dark", vm.SelectedThemeOption?.Value);
         Assert.Equal("OperNameLanguageClient", vm.SelectedOperNameLanguageOption?.Value);
         Assert.Equal("UniformToFill", vm.SelectedBackgroundStretchModeOption?.Value);
         Assert.Equal("ClearInverse", vm.SelectedInverseClearModeOption?.Value);
+        Assert.Equal("Beta", vm.SelectedVersionUpdateVersionTypeOption?.Value);
+        Assert.Equal("MirrorChyan", vm.SelectedVersionUpdateResourceSourceOption?.Value);
+        Assert.Equal("socks5", vm.SelectedVersionUpdateProxyTypeOption?.Value);
+    }
+
+    [Fact]
+    public async Task LanguageChange_ShouldNotifySettingsAndConnectRootTextsForOpenSections()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        var settingsChanged = new List<string>();
+        var connectChanged = new List<string>();
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.PropertyName))
+            {
+                settingsChanged.Add(e.PropertyName);
+            }
+        };
+        vm.ConnectionGameSharedState.PropertyChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.PropertyName))
+            {
+                connectChanged.Add(e.PropertyName);
+            }
+        };
+
+        await vm.ChangeLanguageAsync("en-us");
+        await WaitUntilAsync(() => string.Equals(vm.Language, "en-us", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains(nameof(SettingsPageViewModel.RootTexts), settingsChanged);
+        Assert.Contains(nameof(ConnectionGameSharedStateViewModel.RootTexts), connectChanged);
     }
 
     [Fact]
@@ -171,8 +222,10 @@ public sealed class SettingsGuiBackgroundFeatureTests
 
         await WaitUntilAsync(() =>
             string.Equals(vm.Language, "ja-jp", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(vm.SelectedLanguageValue, "ja-jp", StringComparison.OrdinalIgnoreCase)
             && string.Equals(ReadGlobalString(fixture.Config, ConfigurationKeys.Localization), "ja-jp", StringComparison.OrdinalIgnoreCase));
         Assert.Equal("ja-jp", vm.Language);
+        Assert.Equal("ja-jp", vm.SelectedLanguageValue);
         Assert.Equal("ja-jp", vm.SelectedLanguageOption?.Value);
     }
 
@@ -198,9 +251,46 @@ public sealed class SettingsGuiBackgroundFeatureTests
 
         await WaitUntilAsync(() => coordinator.ChangeCallCount == 1);
         Assert.Contains(nameof(SettingsPageViewModel.SelectedLanguageOption), changedProperties);
+        Assert.Contains(nameof(SettingsPageViewModel.SelectedLanguageValue), changedProperties);
         Assert.Equal("zh-cn", vm.Language);
+        Assert.Equal("zh-cn", vm.SelectedLanguageValue);
         Assert.Equal("zh-cn", vm.SelectedLanguageOption?.Value);
         Assert.True(string.IsNullOrWhiteSpace(ReadGlobalString(fixture.Config, ConfigurationKeys.Localization)));
+    }
+
+    [Fact]
+    public async Task SelectedLanguageValue_ReboundDuringApply_ShouldNotQueueSecondLanguageChange()
+    {
+        var coordinator = new CountingUiLanguageCoordinator("zh-cn");
+        await using var fixture = await RuntimeFixture.CreateAsync(uiLanguageCoordinator: coordinator);
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        var injectedRebind = false;
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (injectedRebind
+                || !string.Equals(e.PropertyName, nameof(SettingsPageViewModel.SelectedLanguageValue), StringComparison.Ordinal)
+                || !string.Equals(vm.Language, "en-us", StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(vm.SelectedLanguageValue, "en-us", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            injectedRebind = true;
+            vm.SelectedLanguageValue = "zh-cn";
+        };
+
+        vm.SelectedLanguageValue = "en-us";
+
+        await WaitUntilAsync(() =>
+            injectedRebind
+            && string.Equals(vm.Language, "en-us", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(vm.SelectedLanguageValue, "en-us", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Equal(1, coordinator.ChangeCallCount);
+        Assert.Equal("en-us", vm.Language);
+        Assert.Equal("en-us", vm.SelectedLanguageValue);
+        Assert.Equal("en-us", vm.SelectedLanguageOption?.Value);
     }
 
     [Fact]
@@ -225,6 +315,74 @@ public sealed class SettingsGuiBackgroundFeatureTests
         Assert.Equal(baselinePolicySaves, versionUpdate.SavePolicyCallCount);
         Assert.Equal(baselineHasVersionUpdateError, vm.HasVersionUpdateErrorMessage);
         Assert.Equal(baselineVersionUpdateError, vm.VersionUpdateErrorMessage);
+    }
+
+    [Fact]
+    public async Task StartupVersionUpdateCheck_ShouldRefreshVersionAndResourceAvailability()
+    {
+        var versionUpdate = new SpyVersionUpdateFeatureService
+        {
+            CheckForUpdatesResult = UiOperationResult<VersionUpdateCheckResult>.Ok(
+                new VersionUpdateCheckResult(
+                    Channel: "Stable",
+                    CurrentVersion: "v1.0.0",
+                    TargetVersion: "v2.0.0",
+                    ReleaseName: "Release v2.0.0",
+                    Summary: "Summary",
+                    Body: "Body",
+                    PackageName: "pkg.zip",
+                    PackageDownloadUrl: null,
+                    PackageSize: null,
+                    IsNewVersion: true,
+                    HasPackage: false),
+                "发现新版本：v2.0.0"),
+            CheckResourceUpdateResult = UiOperationResult<ResourceUpdateCheckResult>.Ok(
+                new ResourceUpdateCheckResult(
+                    IsUpdateAvailable: true,
+                    DisplayVersion: "2026-04-03 10:00:00",
+                    ReleaseNote: "episode",
+                    RequiresMirrorChyanCdk: true,
+                    DownloadUrl: null),
+                "检测到资源更新，可手动更新。"),
+        };
+        await using var fixture = await RuntimeFixture.CreateAsync(versionUpdateFeatureService: versionUpdate);
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        Assert.False(vm.HasPendingVersionUpdateAvailability);
+        Assert.False(vm.HasPendingResourceUpdateAvailability);
+
+        await vm.RunStartupVersionUpdateCheckAsync();
+
+        Assert.False(vm.HasPendingVersionUpdateAvailability);
+        Assert.False(vm.HasPendingResourceUpdateAvailability);
+        Assert.Equal(0, versionUpdate.CheckResourceCallCount);
+    }
+
+    [Fact]
+    public async Task ManualUpdateResource_WhenAlreadyLatest_ShouldSkipDownload()
+    {
+        var versionUpdate = new SpyVersionUpdateFeatureService
+        {
+            CheckResourceUpdateResult = UiOperationResult<ResourceUpdateCheckResult>.Ok(
+                new ResourceUpdateCheckResult(
+                    IsUpdateAvailable: false,
+                    DisplayVersion: string.Empty,
+                    ReleaseNote: string.Empty,
+                    RequiresMirrorChyanCdk: false,
+                    DownloadUrl: null),
+                "资源已是最新版本。"),
+        };
+        await using var fixture = await RuntimeFixture.CreateAsync(versionUpdateFeatureService: versionUpdate);
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        await vm.ManualUpdateResourceAsync();
+
+        Assert.Equal(1, versionUpdate.CheckResourceCallCount);
+        Assert.Equal(0, versionUpdate.UpdateResourceCallCount);
+        Assert.Contains("最新", vm.VersionUpdateStatusMessage, StringComparison.Ordinal);
+        Assert.False(vm.HasPendingResourceUpdateAvailability);
     }
 
     [Fact]
@@ -542,9 +700,7 @@ public sealed class SettingsGuiBackgroundFeatureTests
 
     private static void SelectLanguageThroughView(GuiSettingsView view, SettingsPageViewModel vm, string language)
     {
-        var option = vm.SupportedLanguages.First(candidate =>
-            string.Equals(candidate.Value, language, StringComparison.OrdinalIgnoreCase));
-        vm.SelectedLanguageOption = option;
+        vm.SelectedLanguageValue = language;
     }
 
     private static string FindDisplay(IReadOnlyList<DisplayValueOption> options, string value)
@@ -657,7 +813,7 @@ public sealed class SettingsGuiBackgroundFeatureTests
                 OverlayFeatureService = new OverlayFeatureService(capability),
                 NotificationProviderFeatureService = new NotificationProviderFeatureService(),
                 SettingsFeatureService = new SettingsFeatureService(config, capability, diagnostics),
-                VersionUpdateFeatureService = versionUpdateFeatureService ?? new VersionUpdateFeatureService(config),
+                VersionUpdateFeatureService = versionUpdateFeatureService ?? new VersionUpdateFeatureService(config, runtimeBaseDirectory: root),
                 UiLanguageCoordinator = uiLanguageCoordinator ?? new UiLanguageCoordinator(config),
                 DialogFeatureService = new DialogFeatureService(diagnostics),
                 PostActionFeatureService = new PostActionFeatureService(
@@ -809,6 +965,30 @@ public sealed class SettingsGuiBackgroundFeatureTests
         }
     }
 
+    private sealed class CountingUiLanguageCoordinator : IUiLanguageCoordinator
+    {
+        public CountingUiLanguageCoordinator(string currentLanguage)
+        {
+            CurrentLanguage = UiLanguageCatalog.Normalize(currentLanguage);
+        }
+
+        public string CurrentLanguage { get; private set; }
+
+        public int ChangeCallCount { get; private set; }
+
+        public event EventHandler<UiLanguageChangedEventArgs>? LanguageChanged;
+
+        public Task<UiOperationResult<string>> ChangeLanguageAsync(string targetLanguage, CancellationToken cancellationToken = default)
+        {
+            ChangeCallCount++;
+            var normalized = UiLanguageCatalog.Normalize(targetLanguage);
+            var previous = CurrentLanguage;
+            CurrentLanguage = normalized;
+            LanguageChanged?.Invoke(this, new UiLanguageChangedEventArgs(previous, normalized));
+            return Task.FromResult(UiOperationResult<string>.Ok(normalized, $"Language switched to {normalized}."));
+        }
+    }
+
     private sealed class SpyVersionUpdateFeatureService : IVersionUpdateFeatureService
     {
         public int SaveChannelCallCount { get; private set; }
@@ -816,6 +996,36 @@ public sealed class SettingsGuiBackgroundFeatureTests
         public int SaveProxyCallCount { get; private set; }
 
         public int SavePolicyCallCount { get; private set; }
+
+        public int CheckResourceCallCount { get; private set; }
+
+        public int UpdateResourceCallCount { get; private set; }
+
+        public UiOperationResult<VersionUpdateCheckResult> CheckForUpdatesResult { get; set; } =
+            UiOperationResult<VersionUpdateCheckResult>.Ok(
+                new VersionUpdateCheckResult(
+                    Channel: "Stable",
+                    CurrentVersion: "v1.0.0",
+                    TargetVersion: "v1.0.0",
+                    ReleaseName: string.Empty,
+                    Summary: string.Empty,
+                    Body: string.Empty,
+                    PackageName: string.Empty,
+                    PackageDownloadUrl: null,
+                    PackageSize: null,
+                    IsNewVersion: false,
+                    HasPackage: false),
+                "Checked.");
+
+        public UiOperationResult<ResourceUpdateCheckResult> CheckResourceUpdateResult { get; set; } =
+            UiOperationResult<ResourceUpdateCheckResult>.Ok(
+                new ResourceUpdateCheckResult(
+                    IsUpdateAvailable: false,
+                    DisplayVersion: string.Empty,
+                    ReleaseNote: string.Empty,
+                    RequiresMirrorChyanCdk: false,
+                    DownloadUrl: null),
+                "Resources are up to date.");
 
         public Task<UiOperationResult<VersionUpdatePolicy>> LoadPolicyAsync(CancellationToken cancellationToken = default)
         {
@@ -855,7 +1065,17 @@ public sealed class SettingsGuiBackgroundFeatureTests
             string? clientType,
             CancellationToken cancellationToken = default)
         {
+            UpdateResourceCallCount++;
             return Task.FromResult(UiOperationResult<string>.Ok(string.Empty, "Updated."));
+        }
+
+        public Task<UiOperationResult<ResourceUpdateCheckResult>> CheckResourceUpdateAsync(
+            VersionUpdatePolicy policy,
+            string? clientType,
+            CancellationToken cancellationToken = default)
+        {
+            CheckResourceCallCount++;
+            return Task.FromResult(CheckResourceUpdateResult);
         }
 
         public Task<UiOperationResult<VersionUpdateCheckResult>> CheckForUpdatesAsync(
@@ -863,21 +1083,12 @@ public sealed class SettingsGuiBackgroundFeatureTests
             string currentVersion,
             CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(
-                UiOperationResult<VersionUpdateCheckResult>.Ok(
-                    new VersionUpdateCheckResult(
-                        Channel: "Stable",
-                        CurrentVersion: currentVersion,
-                        TargetVersion: currentVersion,
-                        ReleaseName: string.Empty,
-                        Summary: string.Empty,
-                        Body: string.Empty,
-                        PackageName: string.Empty,
-                        PackageDownloadUrl: null,
-                        PackageSize: null,
-                        IsNewVersion: false,
-                        HasPackage: false),
-                    "Checked."));
+            return Task.FromResult(CheckForUpdatesResult with
+            {
+                Value = CheckForUpdatesResult.Value is null
+                    ? null
+                    : CheckForUpdatesResult.Value with { CurrentVersion = currentVersion },
+            });
         }
     }
 

@@ -42,6 +42,14 @@ public partial class CheckComboBox : UserControl
             nameof(SelectedItem),
             defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly StyledProperty<object?> SelectedValueProperty =
+        AvaloniaProperty.Register<CheckComboBox, object?>(
+            nameof(SelectedValue),
+            defaultBindingMode: BindingMode.TwoWay);
+
+    public static readonly StyledProperty<IBinding?> SelectedValueBindingProperty =
+        AvaloniaProperty.Register<CheckComboBox, IBinding?>(nameof(SelectedValueBinding));
+
     public static readonly StyledProperty<IDataTemplate?> ItemTemplateProperty =
         AvaloniaProperty.Register<CheckComboBox, IDataTemplate?>(nameof(ItemTemplate));
 
@@ -64,7 +72,15 @@ public partial class CheckComboBox : UserControl
 
         this.GetObservable(IsEditableProperty).Subscribe(_ => UpdateVisualState());
         this.GetObservable(ItemsSourceProperty).Subscribe(_ => UpdateVisualState());
+        this.GetObservable(ItemsSourceProperty).Subscribe(_ => SyncSelectedItemFromSelectedValue());
         this.GetObservable(IsTreeModeProperty).Subscribe(_ => UpdateVisualState());
+        this.GetObservable(SelectedItemProperty).Subscribe(_ => SyncSelectedValueFromSelectedItem());
+        this.GetObservable(SelectedValueProperty).Subscribe(_ => SyncSelectedItemFromSelectedValue());
+        this.GetObservable(SelectedValueBindingProperty).Subscribe(_ =>
+        {
+            SyncSelectedValueFromSelectedItem();
+            SyncSelectedItemFromSelectedValue();
+        });
         UpdateVisualState();
     }
 
@@ -112,6 +128,18 @@ public partial class CheckComboBox : UserControl
     {
         get => GetValue(SelectedItemProperty);
         set => SetValue(SelectedItemProperty, value);
+    }
+
+    public object? SelectedValue
+    {
+        get => GetValue(SelectedValueProperty);
+        set => SetValue(SelectedValueProperty, value);
+    }
+
+    public IBinding? SelectedValueBinding
+    {
+        get => GetValue(SelectedValueBindingProperty);
+        set => SetValue(SelectedValueBindingProperty, value);
     }
 
     public IDataTemplate? ItemTemplate
@@ -234,6 +262,124 @@ public partial class CheckComboBox : UserControl
     {
         IsDropDownOpen = false;
         SelectionCommitted?.Invoke(this, new CheckComboBoxSelectionCommittedEventArgs(selectedItem));
+    }
+
+    private bool _syncingSelectionValue;
+
+    private void SyncSelectedValueFromSelectedItem()
+    {
+        if (_syncingSelectionValue)
+        {
+            return;
+        }
+
+        var nextValue = ResolveSelectedValue(SelectedItem);
+        if (Equals(SelectedValue, nextValue))
+        {
+            return;
+        }
+
+        _syncingSelectionValue = true;
+        try
+        {
+            SetCurrentValue(SelectedValueProperty, nextValue);
+        }
+        finally
+        {
+            _syncingSelectionValue = false;
+        }
+    }
+
+    private void SyncSelectedItemFromSelectedValue()
+    {
+        if (_syncingSelectionValue)
+        {
+            return;
+        }
+
+        var matchedItem = FindItemBySelectedValue(SelectedValue);
+        if (Equals(SelectedItem, matchedItem))
+        {
+            return;
+        }
+
+        _syncingSelectionValue = true;
+        try
+        {
+            SetCurrentValue(SelectedItemProperty, matchedItem);
+        }
+        finally
+        {
+            _syncingSelectionValue = false;
+        }
+    }
+
+    private object? FindItemBySelectedValue(object? selectedValue)
+    {
+        if (ItemsSource is null)
+        {
+            return null;
+        }
+
+        foreach (var item in ItemsSource)
+        {
+            if (Equals(ResolveSelectedValue(item), selectedValue))
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    private object? ResolveSelectedValue(object? item)
+    {
+        if (item is null)
+        {
+            return null;
+        }
+
+        var path = ResolveSelectedValuePath();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return item;
+        }
+
+        return ResolvePathValue(item, path);
+    }
+
+    private string? ResolveSelectedValuePath()
+    {
+        var binding = SelectedValueBinding;
+        if (binding is null)
+        {
+            return null;
+        }
+
+        var pathProperty = binding.GetType().GetProperty("Path", BindingFlags.Public | BindingFlags.Instance);
+        return pathProperty?.GetValue(binding) as string;
+    }
+
+    private static object? ResolvePathValue(object source, string path)
+    {
+        object? current = source;
+        foreach (var segment in path.Split('.', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (current is null)
+            {
+                return null;
+            }
+
+            var property = current.GetType().GetProperty(segment, BindingFlags.Public | BindingFlags.Instance);
+            if (property is null)
+            {
+                return null;
+            }
+
+            current = property.GetValue(current);
+        }
+
+        return current;
     }
 
     private static bool CanCommitSelection(object? item)

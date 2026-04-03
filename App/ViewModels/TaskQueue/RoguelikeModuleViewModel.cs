@@ -1880,7 +1880,7 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
             }
         }
 
-        return new TaskModuleOption(normalized, normalized);
+        return options.FirstOrDefault();
     }
 
     private static IntOption? ResolveSelectedOption(

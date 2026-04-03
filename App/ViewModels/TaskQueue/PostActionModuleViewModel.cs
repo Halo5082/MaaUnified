@@ -1,6 +1,7 @@
 using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Models;
 using MAAUnified.Application.Services;
+using System.ComponentModel;
 
 namespace MAAUnified.App.ViewModels.TaskQueue;
 
@@ -32,9 +33,23 @@ public sealed class PostActionModuleViewModel : ObservableObject
     {
         _runtime = runtime;
         _texts = texts;
+        _texts.PropertyChanged += OnTextsPropertyChanged;
     }
 
     public LocalizedTextMap Texts => _texts;
+
+    private void OnTextsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.PropertyName)
+            && !string.Equals(e.PropertyName, nameof(LocalizedTextMap.Language), StringComparison.Ordinal)
+            && !string.Equals(e.PropertyName, "Item[]", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        OnPropertyChanged(nameof(Texts));
+        OnPropertyChanged(string.Empty);
+    }
 
     public bool Once
     {

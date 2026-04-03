@@ -196,13 +196,19 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     private bool _deferredSectionDataLoadEnabled;
     private bool _suppressVersionUpdateResourceRefresh;
     private long _gpuRefreshSequence;
+    private bool _autoSaveReady;
+    private int _autoSaveSuspensionCount;
+    private int _viewCompositionDepth;
+    private bool _repairTimerProfilesWhenAutoSaveResumes;
     private bool _suppressPageAutoSave;
     private bool _suppressGuiAutoSave;
     private bool _suppressGuiPreview;
+    private bool _suppressSelectedLanguageChangeRequest;
     private bool _suppressStartPerformanceDirtyTracking;
     private bool _suppressConfigurationProfileSelectionHandling;
     private string _theme = DefaultTheme;
     private string _language = DefaultLanguage;
+    private string _selectedLanguageValue = DefaultLanguage;
     private string _logItemDateFormatString = DefaultLogItemDateFormat;
     private string _operNameLanguage = DefaultOperNameLanguage;
     private string _inverseClearMode = DefaultInverseClearMode;
@@ -324,6 +330,8 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     private bool _versionUpdateStartupCheckTriggered;
     private string _versionUpdateStatusMessage = string.Empty;
     private string _versionUpdateErrorMessage = string.Empty;
+    private bool _hasPendingVersionUpdateAvailability;
+    private bool _hasPendingResourceUpdateAvailability;
     private IReadOnlyList<DisplayValueOption> _themeOptions = [];
     private IReadOnlyList<DisplayValueOption> _supportedLanguages = [];
     private IReadOnlyList<DisplayValueOption> _backgroundStretchModes = [];
@@ -361,23 +369,27 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     private readonly Func<string, CancellationToken, Task<UiOperationResult>> _openExternalTargetAsync;
     private readonly IAppDialogService _dialogService;
     private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
+    private readonly Func<string?> _coreVersionResolver;
     private readonly DispatcherTimer _versionUpdateSchedulerTimer = new()
     {
         Interval = TimeSpan.FromHours(1),
     };
+    private string? _pendingLanguageChangeTarget;
 
     public SettingsPageViewModel(
         MAAUnifiedRuntime runtime,
         ConnectionGameSharedStateViewModel connectionGameSharedState,
         Action<LocalizationFallbackInfo>? localizationFallbackReporter = null,
         Func<string, CancellationToken, Task<UiOperationResult>>? openExternalTargetAsync = null,
-        IAppDialogService? dialogService = null)
+        IAppDialogService? dialogService = null,
+        Func<string?>? coreVersionResolver = null)
         : base(runtime)
     {
         _localizationFallbackReporter = localizationFallbackReporter;
         _openExternalTargetAsync = openExternalTargetAsync ?? OpenExternalTargetAsync;
         _dialogService = dialogService ?? NoOpAppDialogService.Instance;
         _uiLanguageCoordinator = runtime.UiLanguageCoordinator;
+        _coreVersionResolver = coreVersionResolver ?? ResolveCurrentCoreVersion;
         _uiLanguageCoordinator.LanguageChanged += OnUnifiedLanguageChanged;
         _versionUpdateSchedulerTimer.Tick += OnVersionUpdateSchedulerTick;
         RootTexts = new RootLocalizationTextMap("Root.Localization.Settings");
@@ -387,8 +399,10 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         ConnectionGameSharedState = connectionGameSharedState;
         ConnectionGameSharedState.SetLanguage(_language);
         runtime.AchievementTrackerService.SetCurrentLanguage(_language);
+        SupportedLanguages = SettingsOptionCatalog.BuildLanguageOptions();
         runtime.AchievementTrackerService.StateChanged += OnAchievementTrackerStateChanged;
         (_updatePanelUiVersion, _updatePanelBuildTime) = BuildVersionUpdateUiMetadata();
+        _updatePanelCoreVersion = ResolveCoreVersionOrUnknown();
         RebuildGuiOptionLists();
         RebuildVersionUpdateOptionLists();
         _aboutVersionInfo = BuildAboutVersionInfo();
@@ -419,6 +433,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     public event EventHandler<GuiSettingsAppliedEventArgs>? GuiSettingsApplied;
     public event EventHandler<GuiSettingsPreviewChangedEventArgs>? GuiSettingsPreviewChanged;
     public event EventHandler? ResourceVersionUpdated;
+    public event EventHandler? UpdateAvailabilityChanged;
     public event EventHandler<ConfigurationContextChangedEventArgs>? ConfigurationContextChanged;
 
     public ObservableCollection<SettingsSectionViewModel> Sections { get; }
@@ -481,7 +496,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     public DisplayValueOption? SelectedLanguageOption
     {
         get => SupportedLanguages.FirstOrDefault(
-            option => string.Equals(option.Value, Language, StringComparison.OrdinalIgnoreCase));
+            option => string.Equals(option.Value, SelectedLanguageValue, StringComparison.OrdinalIgnoreCase));
         set
         {
             if (value is null)
@@ -489,8 +504,14 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
                 return;
             }
 
-            RequestLanguageChangeFromSelection(value.Value);
+            SelectedLanguageValue = value.Value;
         }
+    }
+
+    public string SelectedLanguageValue
+    {
+        get => _pendingLanguageChangeTarget ?? _selectedLanguageValue;
+        set => SetSelectedLanguageValue(value, requestLanguageChange: true);
     }
 
     public DisplayValueOption? SelectedBackgroundStretchModeOption
@@ -693,25 +714,37 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             var previousLanguage = _language;
             if (SetProperty(ref _language, normalized))
             {
-                RootTexts.Language = normalized;
-                RefreshNotificationTemplateLocalization(previousLanguage, normalized);
-                ConnectionGameSharedState.SetLanguage(normalized);
-                Runtime.AchievementTrackerService.SetCurrentLanguage(normalized);
-                RefreshHotkeyUiText();
-                OnPropertyChanged(nameof(HotkeyCaptureGuideText));
-                RebuildGuiOptionLists();
-                RebuildSections(SelectedSection?.Key);
-                RebuildVersionUpdateOptionLists();
-                if (IsSettingsDataBucketLoaded(SettingsDataBucketStartPerformance))
+                var previousSuppressSelectedLanguageChangeRequest = _suppressSelectedLanguageChangeRequest;
+                try
                 {
-                    RefreshGpuUiState();
+                    _suppressSelectedLanguageChangeRequest = true;
+                    SetSelectedLanguageValue(normalized, requestLanguageChange: false);
+                    RootTexts.Language = normalized;
+                    OnPropertyChanged(nameof(RootTexts));
+                    RefreshNotificationTemplateLocalization(previousLanguage, normalized);
+                    ConnectionGameSharedState.SetLanguage(normalized);
+                    Runtime.AchievementTrackerService.SetCurrentLanguage(normalized);
+                    RefreshHotkeyUiText();
+                    OnPropertyChanged(nameof(HotkeyCaptureGuideText));
+                    RebuildGuiOptionLists();
+                    RebuildSections(SelectedSection?.Key);
+                    RebuildVersionUpdateOptionLists();
+                    if (IsSettingsDataBucketLoaded(SettingsDataBucketStartPerformance))
+                    {
+                        RefreshGpuUiState();
+                    }
+
+                    RefreshAchievementUiState();
+                    UpdateAchievementPolicySummary(new AchievementPolicy(AchievementPopupDisabled, AchievementPopupAutoClose));
+                    OnPropertyChanged(nameof(VersionUpdateMirrorChyanCdkExpiryText));
+                    MarkGuiSettingsDirty();
+                    NotifyGuiSettingsPreviewChanged();
+                    RefreshRightPaneLocalization();
                 }
-                RefreshAchievementUiState();
-                UpdateAchievementPolicySummary(new AchievementPolicy(AchievementPopupDisabled, AchievementPopupAutoClose));
-                OnPropertyChanged(nameof(VersionUpdateMirrorChyanCdkExpiryText));
-                MarkGuiSettingsDirty();
-                NotifyGuiSettingsPreviewChanged();
-                RefreshRightPaneLocalization();
+                finally
+                {
+                    _suppressSelectedLanguageChangeRequest = previousSuppressSelectedLanguageChangeRequest;
+                }
             }
         }
     }
@@ -1422,18 +1455,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     public string VersionUpdateName
     {
         get => _versionUpdateName;
-        set
-        {
-            if (!SetProperty(ref _versionUpdateName, value ?? string.Empty))
-            {
-                return;
-            }
-
-            if (!string.IsNullOrWhiteSpace(_versionUpdateName))
-            {
-                UpdatePanelCoreVersion = _versionUpdateName;
-            }
-        }
+        set => SetProperty(ref _versionUpdateName, value ?? string.Empty);
     }
 
     public string VersionUpdateBody
@@ -1479,6 +1501,10 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     }
 
     public bool HasVersionUpdateErrorMessage => !string.IsNullOrWhiteSpace(VersionUpdateErrorMessage);
+
+    public bool HasPendingVersionUpdateAvailability => _hasPendingVersionUpdateAvailability;
+
+    public bool HasPendingResourceUpdateAvailability => _hasPendingResourceUpdateAvailability;
 
     public bool IsVersionUpdateMirrorChyanSource =>
         string.Equals(VersionUpdateResourceSource, "MirrorChyan", StringComparison.OrdinalIgnoreCase);
@@ -2059,6 +2085,22 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         }
     }
 
+    public string? SelectedGpuOptionId
+    {
+        get => SelectedGpuOption?.Descriptor.Id;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                SelectedGpuOption = null;
+                return;
+            }
+
+            SelectedGpuOption = AvailableGpuOptions.FirstOrDefault(
+                option => string.Equals(option.Descriptor.Id, value, StringComparison.Ordinal));
+        }
+    }
+
     public string GpuSupportMessage
     {
         get => _gpuSupportMessage;
@@ -2574,28 +2616,82 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        await LoadInitialSettingsAsync(cancellationToken);
-        await RefreshConfigurationProfilesAsync(cancellationToken);
-        await LoadImmediateSettingsDataAsync(cancellationToken);
-        await RefreshAutostartStatusAsync(cancellationToken);
-        _deferredSectionDataLoadEnabled = true;
-        await EnsureSectionDataLoadedAsync(SelectedSection?.Key, cancellationToken);
+        ResetAutoSaveLifecycle();
+        SuspendAutoSave(repairTimerProfilesOnResume: true);
 
-        await RecordEventAsync("Settings", "Settings page initialized.", cancellationToken);
+        var initialized = false;
+        try
+        {
+            await LoadInitialSettingsAsync(cancellationToken);
+            await RefreshConfigurationProfilesAsync(cancellationToken);
+            await LoadImmediateSettingsDataAsync(cancellationToken);
+            await RefreshAutostartStatusAsync(cancellationToken);
+            _deferredSectionDataLoadEnabled = true;
+            await EnsureSectionDataLoadedAsync(SelectedSection?.Key, cancellationToken);
+
+            await RecordEventAsync("Settings", "Settings page initialized.", cancellationToken);
+            initialized = true;
+        }
+        finally
+        {
+            _autoSaveReady = initialized;
+            ResumeAutoSave();
+        }
+    }
+
+    public void BeginViewComposition()
+    {
+        _viewCompositionDepth++;
+        if (_viewCompositionDepth != 1)
+        {
+            return;
+        }
+
+        SuspendAutoSave(repairTimerProfilesOnResume: true);
+    }
+
+    public void EndViewComposition()
+    {
+        if (_viewCompositionDepth <= 0)
+        {
+            _viewCompositionDepth = 0;
+            return;
+        }
+
+        _viewCompositionDepth--;
+        if (_viewCompositionDepth != 0)
+        {
+            return;
+        }
+
+        ResumeAutoSave();
     }
 
     public async Task ChangeLanguageAsync(string targetLanguage, CancellationToken cancellationToken = default)
     {
         var normalized = NormalizeLanguage(targetLanguage);
+        var previousLanguage = Language;
         var changeResult = await _uiLanguageCoordinator.ChangeLanguageAsync(normalized, cancellationToken);
         var appliedLanguage = await ApplyResultAsync(changeResult, "Settings.Gui.Language.Change", cancellationToken);
         if (appliedLanguage is null)
         {
-            OnPropertyChanged(nameof(SelectedLanguageOption));
+            SetSelectedLanguageValue(Language, requestLanguageChange: false);
             return;
         }
 
-        ApplyUnifiedLanguage(appliedLanguage);
+        if (!string.Equals(Language, appliedLanguage, StringComparison.OrdinalIgnoreCase))
+        {
+            ApplyUnifiedLanguage(appliedLanguage);
+        }
+        else
+        {
+            SetSelectedLanguageValue(appliedLanguage, requestLanguageChange: false);
+        }
+
+        if (!string.Equals(previousLanguage, appliedLanguage, StringComparison.OrdinalIgnoreCase))
+        {
+            _ = Runtime.AchievementTrackerService.Unlock("Linguist");
+        }
     }
 
     public async Task SaveGuiSettingsAsync(CancellationToken cancellationToken = default)
@@ -3852,7 +3948,6 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
             var snapshot = BuildNormalizedGuiSnapshot();
             var previousSoftwareRendering = ReadGlobalBool(Runtime.ConfigurationService.CurrentConfig, SoftwareRenderingConfigKey, false);
-            var previousLanguage = ReadGlobalString(Runtime.ConfigurationService.CurrentConfig, ConfigurationKeys.Localization, DefaultLanguage);
             var previousBackgroundImagePath = ReadGlobalString(Runtime.ConfigurationService.CurrentConfig, ConfigurationKeys.BackgroundImagePath, string.Empty);
             ApplyGuiSnapshotWithoutAutoSave(snapshot);
 
@@ -3882,11 +3977,6 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             ClearGuiValidationMessages();
             LastSuccessfulGuiSaveAt = DateTimeOffset.Now;
             RaiseGuiSettingsApplied(snapshot);
-
-            if (!string.Equals(previousLanguage, snapshot.Language, StringComparison.OrdinalIgnoreCase))
-            {
-                _ = Runtime.AchievementTrackerService.Unlock("Linguist");
-            }
 
             if (!string.IsNullOrWhiteSpace(snapshot.BackgroundImagePath)
                 && !string.Equals(previousBackgroundImagePath, snapshot.BackgroundImagePath, StringComparison.OrdinalIgnoreCase))
@@ -3934,10 +4024,142 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         }
     }
 
+    private bool IsPageAutoSaveSuppressed => _suppressPageAutoSave || !_autoSaveReady || _autoSaveSuspensionCount > 0;
+
+    private void ResetAutoSaveLifecycle()
+    {
+        _autoSaveReady = false;
+        _repairTimerProfilesWhenAutoSaveResumes = false;
+        _autoSaveSuspensionCount = _viewCompositionDepth > 0 ? 1 : 0;
+        CancelPendingAutoSaveRequests();
+    }
+
+    private void SuspendAutoSave(bool repairTimerProfilesOnResume = false)
+    {
+        _autoSaveSuspensionCount++;
+        _repairTimerProfilesWhenAutoSaveResumes |= repairTimerProfilesOnResume;
+        CancelPendingAutoSaveRequests();
+    }
+
+    private void ResumeAutoSave()
+    {
+        if (_autoSaveSuspensionCount > 0)
+        {
+            _autoSaveSuspensionCount--;
+        }
+
+        if (IsPageAutoSaveSuppressed)
+        {
+            return;
+        }
+
+        if (_repairTimerProfilesWhenAutoSaveResumes)
+        {
+            _repairTimerProfilesWhenAutoSaveResumes = false;
+            RepairEnabledTimerProfilesFromConfig();
+        }
+
+        ResumePendingAutoSaves();
+    }
+
+    private void CancelPendingAutoSaveRequests()
+    {
+        CancelAutoSaveCts(ref _guiAutoSaveCts);
+        CancelAutoSaveCts(ref _startPerformanceAutoSaveCts);
+        CancelAutoSaveCts(ref _timerAutoSaveCts);
+        CancelAutoSaveCts(ref _connectionGameAutoSaveCts);
+        CancelAutoSaveCts(ref _remoteControlAutoSaveCts);
+        CancelAutoSaveCts(ref _externalNotificationAutoSaveCts);
+        CancelAutoSaveCts(ref _versionUpdateAutoSaveCts);
+        CancelAutoSaveCts(ref _achievementAutoSaveCts);
+        CancelAutoSaveCts(ref _autostartAutoApplyCts);
+    }
+
+    private void ResumePendingAutoSaves()
+    {
+        if (HasPendingGuiChanges && !_suppressGuiAutoSave)
+        {
+            ScheduleGuiAutoSave();
+        }
+
+        if (HasPendingStartPerformanceChanges && !_suppressStartPerformanceDirtyTracking)
+        {
+            ScheduleAutoSave(
+                ref _startPerformanceAutoSaveCts,
+                "Settings.AutoSave.StartPerformance",
+                550,
+                SaveStartPerformanceSettingsAsync);
+        }
+
+        if (HasPendingTimerChanges && !_suppressTimerDirtyTracking)
+        {
+            ScheduleAutoSave(
+                ref _timerAutoSaveCts,
+                "Settings.AutoSave.Timer",
+                550,
+                SaveTimerSettingsAsync);
+        }
+    }
+
+    private void RepairEnabledTimerProfilesFromConfig()
+    {
+        if (!CustomTimerConfig || Timers.Count == 0)
+        {
+            return;
+        }
+
+        var warnings = new List<string>();
+        var persistedSnapshot = ReadTimerSnapshot(Runtime.ConfigurationService.CurrentConfig, warnings);
+        if (!persistedSnapshot.CustomTimerConfig)
+        {
+            return;
+        }
+
+        var persistedSlots = persistedSnapshot.Slots.ToDictionary(static slot => slot.Index);
+        var previousSuppressPageAutoSave = _suppressPageAutoSave;
+        var previousSuppressTimerDirtyTracking = _suppressTimerDirtyTracking;
+        _suppressPageAutoSave = true;
+        _suppressTimerDirtyTracking = true;
+        try
+        {
+            foreach (var slot in Timers)
+            {
+                if (!slot.Enabled
+                    || !string.IsNullOrWhiteSpace(slot.Profile)
+                    || !persistedSlots.TryGetValue(slot.Index, out var persistedSlot)
+                    || !persistedSlot.Enabled
+                    || string.IsNullOrWhiteSpace(persistedSlot.Profile))
+                {
+                    continue;
+                }
+
+                slot.Profile = persistedSlot.Profile;
+            }
+        }
+        finally
+        {
+            _suppressTimerDirtyTracking = previousSuppressTimerDirtyTracking;
+            _suppressPageAutoSave = previousSuppressPageAutoSave;
+        }
+    }
+
+    private static void CancelAutoSaveCts(ref CancellationTokenSource? cts)
+    {
+        var current = cts;
+        cts = null;
+        if (current is null)
+        {
+            return;
+        }
+
+        current.Cancel();
+        current.Dispose();
+    }
+
     private void MarkGuiSettingsDirty(bool saveImmediately = true)
     {
         HasPendingGuiChanges = true;
-        if (_suppressGuiAutoSave || _suppressPageAutoSave || !saveImmediately)
+        if (_suppressGuiAutoSave || IsPageAutoSaveSuppressed || !saveImmediately)
         {
             return;
         }
@@ -3956,7 +4178,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkStartPerformanceDirty()
     {
-        if (_suppressStartPerformanceDirtyTracking || _suppressPageAutoSave)
+        if (_suppressStartPerformanceDirtyTracking || IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -3972,7 +4194,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkTimerDirty()
     {
-        if (_suppressTimerDirtyTracking || _suppressPageAutoSave)
+        if (_suppressTimerDirtyTracking || IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -3988,7 +4210,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkConnectionGameDirty()
     {
-        if (_suppressPageAutoSave)
+        if (IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -4002,7 +4224,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkRemoteControlDirty()
     {
-        if (_suppressPageAutoSave)
+        if (IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -4016,7 +4238,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkExternalNotificationDirty()
     {
-        if (_suppressPageAutoSave)
+        if (IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -4030,7 +4252,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkVersionUpdateDirty()
     {
-        if (_suppressPageAutoSave)
+        if (IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -4044,7 +4266,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkAchievementDirty()
     {
-        if (_suppressPageAutoSave)
+        if (IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -4058,7 +4280,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void MarkAutostartDirty()
     {
-        if (_suppressPageAutoSave)
+        if (IsPageAutoSaveSuppressed)
         {
             return;
         }
@@ -4077,8 +4299,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         int delayMs,
         Func<CancellationToken, Task> saveAsync)
     {
-        debounceCts?.Cancel();
-        debounceCts?.Dispose();
+        CancelAutoSaveCts(ref debounceCts);
         debounceCts = new CancellationTokenSource();
         var token = debounceCts.Token;
 
@@ -4094,6 +4315,11 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         try
         {
             await Task.Delay(delayMs, cancellationToken);
+            if (IsPageAutoSaveSuppressed)
+            {
+                return;
+            }
+
             await saveAsync(cancellationToken);
         }
         catch (OperationCanceledException)
@@ -4112,7 +4338,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (_suppressPageAutoSave || string.IsNullOrWhiteSpace(e.PropertyName))
+        if (IsPageAutoSaveSuppressed || string.IsNullOrWhiteSpace(e.PropertyName))
         {
             return;
         }
@@ -4143,7 +4369,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
                 MarkAchievementDirty();
                 break;
             default:
-                if (!_suppressPageAutoSave && IsVersionUpdateAutoSaveProperty(e.PropertyName))
+                if (!IsPageAutoSaveSuppressed && IsVersionUpdateAutoSaveProperty(e.PropertyName))
                 {
                     MarkVersionUpdateDirty();
                 }
@@ -4295,15 +4521,18 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private async Task LoadConfigurationProfilesAsync(string scope, CancellationToken cancellationToken, bool updateStatus = true)
     {
-        var stateResult = await Runtime.ConfigurationProfileFeatureService.LoadStateAsync(cancellationToken);
-        if (!stateResult.Success || stateResult.Value is null)
+        SuspendAutoSave();
+        try
         {
-            if (updateStatus)
+            var stateResult = await Runtime.ConfigurationProfileFeatureService.LoadStateAsync(cancellationToken);
+            if (!stateResult.Success || stateResult.Value is null)
             {
-                await ApplyResultAsync(stateResult, scope, cancellationToken);
-            }
-            else
-            {
+                if (updateStatus)
+                {
+                    await ApplyResultAsync(stateResult, scope, cancellationToken);
+                }
+                else
+                {
                     await RecordFailedResultAsync(
                         scope,
                         UiOperationResult.Fail(
@@ -4313,33 +4542,38 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
                         cancellationToken);
             }
 
-            if (updateStatus)
-            {
-                ConfigurationManagerErrorMessage = stateResult.Message;
-                ConfigurationManagerStatusMessage = LocalizeSettingsText(
-                    "Settings.ConfigurationManager.Status.ProfileListLoadFailed",
-                    "配置列表加载失败。");
+                if (updateStatus)
+                {
+                    ConfigurationManagerErrorMessage = stateResult.Message;
+                    ConfigurationManagerStatusMessage = LocalizeSettingsText(
+                        "Settings.ConfigurationManager.Status.ProfileListLoadFailed",
+                        "配置列表加载失败。");
+                }
+
+                return;
             }
 
-            return;
-        }
+            if (updateStatus)
+            {
+                await ApplyResultAsync(stateResult, scope, cancellationToken);
+            }
+            else
+            {
+                await RecordEventAsync(scope, stateResult.Message, cancellationToken);
+            }
 
-        if (updateStatus)
-        {
-            await ApplyResultAsync(stateResult, scope, cancellationToken);
+            ApplyConfigurationProfileState(stateResult.Value);
+            if (updateStatus)
+            {
+                ConfigurationManagerErrorMessage = string.Empty;
+                ConfigurationManagerStatusMessage = LocalizeSettingsText(
+                    "Settings.ConfigurationManager.Status.ProfileListSynced",
+                    "配置列表已同步。");
+            }
         }
-        else
+        finally
         {
-            await RecordEventAsync(scope, stateResult.Message, cancellationToken);
-        }
-
-        ApplyConfigurationProfileState(stateResult.Value);
-        if (updateStatus)
-        {
-            ConfigurationManagerErrorMessage = string.Empty;
-            ConfigurationManagerStatusMessage = LocalizeSettingsText(
-                "Settings.ConfigurationManager.Status.ProfileListSynced",
-                "配置列表已同步。");
+            ResumeAutoSave();
         }
     }
 
@@ -4933,7 +5167,6 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     {
         return new GuiSettingsSnapshot(
             Theme: NormalizeTheme(Theme),
-            Language: NormalizeLanguage(Language),
             UseTray: UseTray,
             MinimizeToTray: UseTray && MinimizeToTray,
             WindowTitleScrollable: WindowTitleScrollable,
@@ -4955,7 +5188,6 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         try
         {
             Theme = snapshot.Theme;
-            Language = snapshot.Language;
             UseTray = snapshot.UseTray;
             MinimizeToTray = snapshot.MinimizeToTray;
             WindowTitleScrollable = snapshot.WindowTitleScrollable;
@@ -5075,13 +5307,11 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     private void RebuildGuiOptionLists()
     {
         ThemeOptions = SettingsOptionCatalog.BuildThemeOptions(Language);
-        SupportedLanguages = SettingsOptionCatalog.BuildLanguageOptions();
         BackgroundStretchModes = SettingsOptionCatalog.BuildBackgroundStretchOptions(Language);
         OperNameLanguageOptions = SettingsOptionCatalog.BuildOperNameLanguageOptions(Language);
         InverseClearModeOptions = SettingsOptionCatalog.BuildInverseClearModeOptions(Language);
 
         OnPropertyChanged(nameof(SelectedThemeOption));
-        OnPropertyChanged(nameof(SelectedLanguageOption));
         OnPropertyChanged(nameof(SelectedBackgroundStretchModeOption));
         OnPropertyChanged(nameof(SelectedOperNameLanguageOption));
         OnPropertyChanged(nameof(SelectedInverseClearModeOption));
@@ -5195,6 +5425,95 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         return
             $"{assembly.Name} {version} | .NET {Environment.Version} | {RuntimeInformation.OSDescription}";
     }
+
+    private string ResolveCoreVersionOrUnknown()
+    {
+        var version = _coreVersionResolver.Invoke()?.Trim();
+        return string.IsNullOrWhiteSpace(version) ? "unknown" : version;
+    }
+
+    private string? ResolveCurrentCoreVersion()
+    {
+        var baseDirectories = new[]
+        {
+            AppContext.BaseDirectory,
+            ResolveRuntimeBaseDirectory(),
+        };
+
+        foreach (var baseDirectory in baseDirectories
+                     .Where(path => !string.IsNullOrWhiteSpace(path))
+                     .Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            var version = TryResolveInstalledCoreVersion(baseDirectory);
+            if (!string.IsNullOrWhiteSpace(version))
+            {
+                return version;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? TryResolveInstalledCoreVersion(string baseDirectory)
+    {
+        var libraryName = ResolveCoreLibraryName();
+        if (string.IsNullOrWhiteSpace(libraryName))
+        {
+            return null;
+        }
+
+        var libraryPath = Path.Combine(baseDirectory, libraryName);
+        if (!File.Exists(libraryPath))
+        {
+            return null;
+        }
+
+        nint library = nint.Zero;
+        try
+        {
+            library = NativeLibrary.Load(libraryPath);
+            if (!NativeLibrary.TryGetExport(library, "AsstGetVersion", out var export) || export == nint.Zero)
+            {
+                return null;
+            }
+
+            var getVersion = Marshal.GetDelegateForFunctionPointer<AsstGetVersionExport>(export);
+            return Marshal.PtrToStringUTF8(getVersion())?.Trim();
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            if (library != nint.Zero)
+            {
+                NativeLibrary.Free(library);
+            }
+        }
+    }
+
+    private static string? ResolveCoreLibraryName()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return "MaaCore.dll";
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return "libMaaCore.so";
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return "libMaaCore.dylib";
+        }
+
+        return null;
+    }
+
+    private delegate nint AsstGetVersionExport();
 
     private string ResolveDebugDirectoryPath()
     {
@@ -5319,6 +5638,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private async Task LoadFromConfigAsync(UnifiedConfig config, CancellationToken cancellationToken)
     {
+        SuspendAutoSave(repairTimerProfilesOnResume: true);
         var previousSuppressPageAutoSave = _suppressPageAutoSave;
         _suppressPageAutoSave = true;
         _loadedSettingsDataBuckets.Clear();
@@ -5472,16 +5792,18 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         if (versionPolicyResult.Success && versionPolicyResult.Value is not null)
         {
             ApplyVersionUpdatePolicy(versionPolicyResult.Value);
-            UpdatePanelCoreVersion = string.IsNullOrWhiteSpace(versionPolicyResult.Value.VersionName)
-                ? "unknown"
-                : versionPolicyResult.Value.VersionName;
+            SyncVersionUpdateAvailabilityFromState();
+            SetPendingResourceUpdateAvailability(false);
             VersionUpdateErrorMessage = string.Empty;
         }
         else
         {
-            UpdatePanelCoreVersion = "unknown";
+            SetPendingVersionUpdateAvailability(false);
+            SetPendingResourceUpdateAvailability(false);
             VersionUpdateErrorMessage = versionPolicyResult.Message;
         }
+
+        UpdatePanelCoreVersion = ResolveCoreVersionOrUnknown();
 
         await RefreshVersionUpdateResourceInfoAsync(cancellationToken);
 
@@ -5562,6 +5884,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         finally
         {
             _suppressPageAutoSave = previousSuppressPageAutoSave;
+            ResumeAutoSave();
         }
     }
 
@@ -5871,6 +6194,20 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         }
     }
 
+    public async Task WarmupDeferredSectionDataAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_deferredSectionDataLoadEnabled)
+        {
+            return;
+        }
+
+        foreach (var bucket in AllSettingsDataBuckets)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await EnsureSettingsDataBucketLoadedAsync(bucket, cancellationToken);
+        }
+    }
+
     private async Task EnsureSettingsDataBucketLoadedAsync(string bucket, CancellationToken cancellationToken)
     {
         if (IsSettingsDataBucketLoaded(bucket))
@@ -6176,16 +6513,14 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         if (versionPolicyResult.Success && versionPolicyResult.Value is not null)
         {
             ApplyVersionUpdatePolicy(versionPolicyResult.Value);
-            UpdatePanelCoreVersion = string.IsNullOrWhiteSpace(versionPolicyResult.Value.VersionName)
-                ? "unknown"
-                : versionPolicyResult.Value.VersionName;
             VersionUpdateErrorMessage = string.Empty;
         }
         else
         {
-            UpdatePanelCoreVersion = "unknown";
             VersionUpdateErrorMessage = versionPolicyResult.Message;
         }
+
+        UpdatePanelCoreVersion = ResolveCoreVersionOrUnknown();
 
         await RefreshVersionUpdateResourceInfoAsync(cancellationToken);
     }
@@ -6384,22 +6719,85 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         return !Dispatcher.UIThread.CheckAccess();
     }
 
+    private bool SetSelectedLanguageValue(string? value, bool requestLanguageChange)
+    {
+        if (requestLanguageChange && _suppressSelectedLanguageChangeRequest)
+        {
+            return false;
+        }
+
+        var normalized = NormalizeLanguage(value);
+        if (!SetProperty(ref _selectedLanguageValue, normalized, nameof(SelectedLanguageValue)))
+        {
+            return false;
+        }
+
+        NotifySelectedLanguageBindingChanged();
+        if (requestLanguageChange && !_suppressSelectedLanguageChangeRequest)
+        {
+            RequestLanguageChangeFromSelection(normalized);
+        }
+
+        return true;
+    }
+
     private void RequestLanguageChangeFromSelection(string targetLanguage)
     {
         var normalized = NormalizeLanguage(targetLanguage);
-        if (string.Equals(normalized, Language, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(normalized, Language, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(normalized, _pendingLanguageChangeTarget, StringComparison.OrdinalIgnoreCase))
         {
             return;
+        }
+
+        async Task ChangeLanguageCoreAsync()
+        {
+            var previousPendingTarget = _pendingLanguageChangeTarget;
+            _pendingLanguageChangeTarget = normalized;
+            if (!string.Equals(previousPendingTarget, normalized, StringComparison.OrdinalIgnoreCase))
+            {
+                NotifySelectedLanguageBindingChanged();
+            }
+
+            try
+            {
+                await ChangeLanguageAsync(normalized);
+            }
+            finally
+            {
+                if (string.Equals(_pendingLanguageChangeTarget, normalized, StringComparison.OrdinalIgnoreCase))
+                {
+                    _pendingLanguageChangeTarget = null;
+                    NotifySelectedLanguageBindingChanged();
+                }
+
+                SetSelectedLanguageValue(Language, requestLanguageChange: false);
+            }
         }
 
         // Non-UI contexts (test host/background callers) should observe language and config state immediately.
         if (IsNonUiThreadContext())
         {
-            Task.Run(() => ChangeLanguageAsync(normalized)).GetAwaiter().GetResult();
+            Task.Run(ChangeLanguageCoreAsync).GetAwaiter().GetResult();
             return;
         }
 
-        _ = ChangeLanguageAsync(normalized);
+        _ = ChangeLanguageCoreAsync();
+    }
+
+    private void NotifySelectedLanguageBindingChanged()
+    {
+        var previousSuppressState = _suppressSelectedLanguageChangeRequest;
+        _suppressSelectedLanguageChangeRequest = true;
+        try
+        {
+            OnPropertyChanged(nameof(SelectedLanguageOption));
+            OnPropertyChanged(nameof(SelectedLanguageValue));
+        }
+        finally
+        {
+            _suppressSelectedLanguageChangeRequest = previousSuppressState;
+        }
     }
 
     private void InvalidatePendingGpuRefresh()
@@ -6982,7 +7380,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
                     $"Timer {slot.Index} time must be HH:mm (00:00-23:59).");
             }
 
-            if (!snapshot.CustomTimerConfig)
+            if (!snapshot.CustomTimerConfig || !slot.Enabled)
             {
                 continue;
             }
@@ -7342,7 +7740,6 @@ internal enum ConfigValuePreference
 
 public sealed record GuiSettingsSnapshot(
     string Theme,
-    string Language,
     bool UseTray,
     bool MinimizeToTray,
     bool WindowTitleScrollable,
@@ -7361,7 +7758,6 @@ public sealed record GuiSettingsSnapshot(
         return new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["Theme.Mode"] = Theme,
-            [ConfigurationKeys.Localization] = Language,
             [ConfigurationKeys.UseTray] = UseTray.ToString(),
             [ConfigurationKeys.MinimizeToTray] = MinimizeToTray.ToString(),
             [ConfigurationKeys.WindowTitleScrollable] = WindowTitleScrollable.ToString(),

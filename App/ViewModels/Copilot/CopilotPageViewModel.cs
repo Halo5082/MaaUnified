@@ -52,8 +52,9 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
     private bool _hasActiveRun;
     private CopilotItemViewModel? _selectedItem;
     private bool _suppressSelectionFeedback;
-    private readonly RootLocalizationTextMap _rootTexts;
-    private readonly CopilotLocalizationTextMap _texts;
+    private RootLocalizationTextMap _rootTexts;
+    private CopilotLocalizationTextMap _texts;
+    private string _currentLanguage = UiLanguageCatalog.DefaultLanguage;
     private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
     private readonly ConcurrentQueue<SessionCallbackEnvelope> _pendingSessionCallbacks = new();
     private int _callbackDrainScheduled;
@@ -73,15 +74,9 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
         Logs = new ObservableCollection<TaskQueueLogEntryViewModel>();
         _uiLanguageCoordinator = runtime.UiLanguageCoordinator;
         _uiLanguageCoordinator.LanguageChanged += OnUnifiedLanguageChanged;
-        var currentLanguage = ResolveLanguage();
-        _rootTexts = new RootLocalizationTextMap("Root.Localization.Copilot")
-        {
-            Language = currentLanguage,
-        };
-        _texts = new CopilotLocalizationTextMap
-        {
-            Language = currentLanguage,
-        };
+        _currentLanguage = ResolveLanguage();
+        _rootTexts = CreateRootTexts(_currentLanguage);
+        _texts = CreateTexts(_currentLanguage);
         runtime.SessionService.CallbackProjected += OnSessionCallbackProjected;
         runtime.SessionService.SessionStateChanged += OnSessionStateChanged;
         _currentSessionState = runtime.SessionService.CurrentState;
@@ -228,16 +223,25 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
                 return;
             }
 
-            var displayName = Path.GetFileName((FilePath ?? string.Empty).Trim());
-            if (string.IsNullOrWhiteSpace(displayName))
+            var normalizedPath = (FilePath ?? string.Empty).Trim();
+            var payload = await File.ReadAllTextAsync(normalizedPath, cancellationToken);
+            if (TryReadLoadedCopilotDescriptor(payload, normalizedPath, out var descriptor, out _))
             {
-                displayName = $"Imported-{DateTime.Now:HHmmss}";
+                Items.Add(CreateListItemFromDescriptor(descriptor, normalizedPath, string.Empty, isRaid: false));
             }
+            else
+            {
+                var displayName = Path.GetFileName(normalizedPath);
+                if (string.IsNullOrWhiteSpace(displayName))
+                {
+                    displayName = $"Imported-{DateTime.Now:HHmmss}";
+                }
 
-            Items.Add(new CopilotItemViewModel(
-                displayName,
-                Types[SelectedTypeIndex],
-                sourcePath: (FilePath ?? string.Empty).Trim()));
+                Items.Add(new CopilotItemViewModel(
+                    displayName,
+                    Types[SelectedTypeIndex],
+                    sourcePath: normalizedPath));
+            }
             SetSelectedItemSilently(Items.LastOrDefault());
 
             var persistResult = await PersistItemsAsync(cancellationToken);
@@ -293,11 +297,34 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
             var normalizedPayload = (payload ?? string.Empty).Trim();
             var sourcePath = ResolveClipboardPathCandidate(normalizedPayload);
             var inlinePayload = sourcePath is null ? normalizedPayload : string.Empty;
-            Items.Add(new CopilotItemViewModel(
-                $"Clipboard-{DateTime.Now:HHmmss}",
-                Types[SelectedTypeIndex],
-                sourcePath: sourcePath,
-                inlinePayload: inlinePayload));
+            if (sourcePath is not null)
+            {
+                var filePayload = await File.ReadAllTextAsync(sourcePath, cancellationToken);
+                if (TryReadLoadedCopilotDescriptor(filePayload, sourcePath, out var descriptor, out _))
+                {
+                    Items.Add(CreateListItemFromDescriptor(descriptor, sourcePath, string.Empty, isRaid: false));
+                }
+                else
+                {
+                    Items.Add(new CopilotItemViewModel(
+                        $"Clipboard-{DateTime.Now:HHmmss}",
+                        Types[SelectedTypeIndex],
+                        sourcePath: sourcePath,
+                        inlinePayload: string.Empty));
+                }
+            }
+            else if (TryReadLoadedCopilotDescriptor(normalizedPayload, sourcePath: null, out var descriptor, out _))
+            {
+                Items.Add(CreateListItemFromDescriptor(descriptor, string.Empty, inlinePayload, isRaid: false));
+            }
+            else
+            {
+                Items.Add(new CopilotItemViewModel(
+                    $"Clipboard-{DateTime.Now:HHmmss}",
+                    Types[SelectedTypeIndex],
+                    sourcePath: null,
+                    inlinePayload: inlinePayload));
+            }
             SetSelectedItemSilently(Items.LastOrDefault());
 
             var persistResult = await PersistItemsAsync(cancellationToken);
@@ -1209,15 +1236,33 @@ public sealed partial class CopilotPageViewModel : PageViewModelBase
     public void SetLanguage(string language)
     {
         var normalized = UiLanguageCatalog.Normalize(language);
-        if (string.Equals(_rootTexts.Language, normalized, StringComparison.OrdinalIgnoreCase)
+        if (string.Equals(_currentLanguage, normalized, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(_rootTexts.Language, normalized, StringComparison.OrdinalIgnoreCase)
             && string.Equals(_texts.Language, normalized, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
+        _currentLanguage = normalized;
         _rootTexts.Language = normalized;
         _texts.Language = normalized;
         RefreshLocalizedUiState();
+    }
+
+    private static CopilotLocalizationTextMap CreateTexts(string language)
+    {
+        return new CopilotLocalizationTextMap
+        {
+            Language = language,
+        };
+    }
+
+    private static RootLocalizationTextMap CreateRootTexts(string language)
+    {
+        return new RootLocalizationTextMap("Root.Localization.Copilot")
+        {
+            Language = language,
+        };
     }
 
     private void OnUnifiedLanguageChanged(object? sender, UiLanguageChangedEventArgs e)

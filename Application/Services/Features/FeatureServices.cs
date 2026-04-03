@@ -376,7 +376,7 @@ public sealed class ShellFeatureService : IShellFeatureService
                     $"Language switched to {normalizedTarget}."));
         }
 
-        var next = UiLanguageCatalog.NextInCycle(currentLanguage);
+        var next = UiLanguageCatalog.NextInQuickCycle(currentLanguage);
 
         return Task.FromResult(
             UiOperationResult<string>.Ok(

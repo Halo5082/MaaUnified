@@ -32,6 +32,7 @@ public partial class TaskQueueView : UserControl
 
         if (VM is not null)
         {
+            control.ContextMenu.DataContext = null;
             control.ContextMenu.DataContext = VM;
         }
 
@@ -425,6 +426,7 @@ public partial class TaskQueueView : UserControl
             }
         }
 
+        rowControl.ContextMenu.DataContext = null;
         rowControl.ContextMenu.DataContext = VM;
         rowControl.ContextMenu.Open(rowControl);
     }

@@ -152,6 +152,108 @@ public sealed class SettingsModuleAK2FeatureTests
     }
 
     [Fact]
+    public async Task SaveStartPerformanceSettings_LaunchBehaviorChangedAndRestartConfirmed_ShouldRestartAndExit()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Runtime.AppLifecycleService = new SpyAppLifecycleService(
+            restartResult: UiOperationResult.Ok("Restart process launched."),
+            exitResult: UiOperationResult.Ok("Application shutdown requested."));
+        var dialogService = new ScriptedDialogService(DialogReturnSemantic.Confirm);
+        var vm = new SettingsPageViewModel(
+            fixture.Runtime,
+            new ConnectionGameSharedStateViewModel(),
+            dialogService: dialogService);
+        await vm.InitializeAsync();
+
+        vm.RunDirectly = true;
+
+        await vm.SaveStartPerformanceSettingsAsync();
+
+        Assert.Equal(1, dialogService.WarningConfirmCallCount);
+        var request = Assert.Single(dialogService.WarningConfirmRequests);
+        Assert.Equal(vm.RootTexts["Settings.Start.RestartDialog.Title"], request.Title);
+        Assert.Equal(1, Assert.IsType<SpyAppLifecycleService>(fixture.Runtime.AppLifecycleService).RestartCallCount);
+        Assert.Equal(1, Assert.IsType<SpyAppLifecycleService>(fixture.Runtime.AppLifecycleService).ExitCallCount);
+    }
+
+    [Fact]
+    public async Task SaveStartPerformanceSettings_LaunchBehaviorChangedAndRestartDeferred_ShouldSaveWithoutRestart()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Runtime.AppLifecycleService = new SpyAppLifecycleService(
+            restartResult: UiOperationResult.Ok("Restart process launched."),
+            exitResult: UiOperationResult.Ok("Application shutdown requested."));
+        var dialogService = new ScriptedDialogService(DialogReturnSemantic.Cancel);
+        var vm = new SettingsPageViewModel(
+            fixture.Runtime,
+            new ConnectionGameSharedStateViewModel(),
+            dialogService: dialogService);
+        await vm.InitializeAsync();
+
+        vm.MinimizeDirectly = true;
+
+        await vm.SaveStartPerformanceSettingsAsync();
+
+        Assert.Equal(1, dialogService.WarningConfirmCallCount);
+        Assert.Equal(0, Assert.IsType<SpyAppLifecycleService>(fixture.Runtime.AppLifecycleService).RestartCallCount);
+        Assert.Equal(0, Assert.IsType<SpyAppLifecycleService>(fixture.Runtime.AppLifecycleService).ExitCallCount);
+        Assert.Equal(vm.RootTexts["Settings.Start.RestartPending"], vm.StatusMessage);
+    }
+
+    [Fact]
+    public async Task SaveStartPerformanceSettings_LaunchBehaviorRestartPrompt_ShouldUseLocalizedRequest_AfterLanguageSwitch()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Runtime.AppLifecycleService = new SpyAppLifecycleService(
+            restartResult: UiOperationResult.Ok("Restart process launched."),
+            exitResult: UiOperationResult.Ok("Application shutdown requested."));
+        var dialogService = new ScriptedDialogService(DialogReturnSemantic.Cancel);
+        var vm = new SettingsPageViewModel(
+            fixture.Runtime,
+            new ConnectionGameSharedStateViewModel(),
+            dialogService: dialogService);
+        await vm.InitializeAsync();
+
+        vm.Language = "ja-jp";
+        vm.RunDirectly = true;
+
+        await vm.SaveStartPerformanceSettingsAsync();
+
+        var request = Assert.Single(dialogService.WarningConfirmRequests);
+        Assert.Equal("ja-jp", request.Language);
+        Assert.Equal(vm.RootTexts["Settings.Start.RestartDialog.Title"], request.Title);
+        Assert.Equal(vm.RootTexts["Settings.Start.RestartDialog.Message"], request.Message);
+        Assert.Equal(vm.RootTexts["Settings.Start.RestartDialog.Confirm"], request.ConfirmText);
+        Assert.Equal(vm.RootTexts["Settings.Start.RestartDialog.Cancel"], request.CancelText);
+    }
+
+    [Fact]
+    public async Task ShowSoftwareUpdateNotImplementedAsync_ShouldUseLocalizedDialogTexts()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        var dialogService = new ScriptedDialogService(DialogReturnSemantic.Cancel);
+        var vm = new SettingsPageViewModel(
+            fixture.Runtime,
+            new ConnectionGameSharedStateViewModel(),
+            dialogService: dialogService);
+        await vm.InitializeAsync();
+
+        vm.Language = "ko-kr";
+
+        await vm.ShowSoftwareUpdateNotImplementedAsync();
+
+        var request = Assert.Single(dialogService.WarningConfirmRequests);
+        Assert.Equal("ko-kr", request.Language);
+        Assert.Equal(vm.RootTexts["Settings.VersionUpdate.SoftwarePlaceholder.Title"], request.Title);
+        Assert.Equal(vm.RootTexts["Settings.VersionUpdate.SoftwarePlaceholder.Message"], request.Message);
+        Assert.Equal(vm.RootTexts["Settings.VersionUpdate.SoftwarePlaceholder.Confirm"], request.ConfirmText);
+        Assert.Equal(vm.RootTexts["Settings.VersionUpdate.SoftwarePlaceholder.Cancel"], request.CancelText);
+        Assert.Equal(
+            vm.RootTexts["Settings.VersionUpdate.SoftwarePlaceholder.Status"],
+            vm.VersionUpdateStatusMessage);
+    }
+
+    [Fact]
     public async Task SaveStartPerformanceSettings_GpuRestartRequest_ShouldKeepExistingPayloadLanguage_AfterLanguageSwitch()
     {
         await using var fixture = await RuntimeFixture.CreateAsync(gpuCapabilityService: new ScriptedWindowsGpuCapabilityService());

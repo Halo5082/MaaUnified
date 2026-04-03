@@ -24,7 +24,7 @@
           <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.VersionUpdate.Channel]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldSlimWidth}"
                     ItemsSource="{Binding VersionUpdateVersionTypeOptions}"
-                    SelectedItem="{Binding SelectedVersionUpdateVersionTypeOption}">
+                    SelectedItem="{Binding SelectedVersionUpdateVersionTypeOption, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:DisplayValueOption">
                 <TextBlock Text="{Binding Display}" />
@@ -37,7 +37,7 @@
           <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.VersionUpdate.Source]}" />
           <ComboBox Width="{DynamicResource MAA.Size.Settings.FieldSlimWidth}"
                     ItemsSource="{Binding VersionUpdateResourceSourceOptions}"
-                    SelectedItem="{Binding SelectedVersionUpdateResourceSourceOption}">
+                    SelectedItem="{Binding SelectedVersionUpdateResourceSourceOption, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:DisplayValueOption">
                 <TextBlock Text="{Binding Display}" />
@@ -79,7 +79,7 @@
           <TextBlock VerticalAlignment="Center" Text="{Binding RootTexts[Settings.VersionUpdate.ProxyType]}" />
           <ComboBox Grid.Column="1"
                     ItemsSource="{Binding VersionUpdateProxyTypeOptions}"
-                    SelectedItem="{Binding SelectedVersionUpdateProxyTypeOption}">
+                    SelectedItem="{Binding SelectedVersionUpdateProxyTypeOption, Mode=TwoWay}">
             <ComboBox.ItemTemplate>
               <DataTemplate x:DataType="vm:DisplayValueOption">
                 <TextBlock Text="{Binding Display}" />

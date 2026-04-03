@@ -297,39 +297,39 @@ public sealed class ToolboxModuleO3FeatureTests
     }
 
     [Fact]
-    public void ToolboxView_ShouldExposeAllToolActions_AndRemoveLegacyDemoActions()
+    public void ToolboxView_ShouldExposeAllToolActions_AndHideAdvancedSuiteEntry()
     {
         var root = GetMaaUnifiedRoot();
         var xaml = File.ReadAllText(Path.Combine(root, "App", "Features", "Advanced", "ToolboxView.axaml"));
 
-        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Recruit]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.OperBox]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Depot]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding RecruitTabTitle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding OperBoxTabTitle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding DepotTabTitle}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Classes=\"toolbox-nav\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding Segments}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Gacha]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Peep]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.MiniGame]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"{Binding Texts[Toolbox.Tab.Advanced]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("advanced:StageManagerView DataContext=\"{Binding StageManagerPage}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("advanced:OverlayView DataContext=\"{Binding OverlayPage}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("advanced:TrayIntegrationView DataContext=\"{Binding TrayIntegrationPage}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("advanced:RemoteControlCenterView DataContext=\"{Binding RemoteControlCenterPage}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("advanced:ExternalNotificationProvidersView DataContext=\"{Binding ExternalNotificationProvidersPage}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("advanced:WebApiView DataContext=\"{Binding WebApiPage}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Text=\"{Binding Texts[Toolbox.Recruit.FixedSixStar]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"{Binding Texts[Toolbox.Action.StartRecognition]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Text=\"{Binding Texts[Toolbox.OperBox.CopyToClipboard]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Text=\"{Binding Texts[Toolbox.Depot.ExportArkPlanner]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Text=\"{Binding Texts[Toolbox.Depot.ExportLolicon]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.DrawOnce]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.DrawTen]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.Disclaimer.Acknowledge]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Content=\"{Binding Texts[Toolbox.Gacha.Disclaimer.NoMore]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding GachaTabTitle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding PeepTabTitle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding MiniGameTabTitle}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Header=\"{Binding Texts[Toolbox.Tab.Advanced]}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("advanced:StageManagerView DataContext=\"{Binding StageManagerPage}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("advanced:OverlayView DataContext=\"{Binding OverlayPage}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("advanced:TrayIntegrationView DataContext=\"{Binding TrayIntegrationPage}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("advanced:RemoteControlCenterView DataContext=\"{Binding RemoteControlCenterPage}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("advanced:ExternalNotificationProvidersView DataContext=\"{Binding ExternalNotificationProvidersPage}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("advanced:WebApiView DataContext=\"{Binding WebApiPage}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding RecruitFixedSixStarText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding StartRecognitionText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding OperBoxCopyToClipboardText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding DepotExportArkPlannerText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding DepotExportLoliconText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding GachaDrawOnceText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding GachaDrawTenText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding GachaDisclaimerAcknowledgeText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding GachaDisclaimerNoMoreText}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("IsChecked=\"{Binding GachaShowDisclaimerNoMore}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding PeepCommandText}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding MiniGameCommandText}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Text=\"{Binding Texts[Toolbox.Section.ExecutionReview]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding ExecutionReviewTitle}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding ResultText}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding CurrentToolParameters}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding ExecutionHistory}\"", xaml, StringComparison.Ordinal);

@@ -73,7 +73,6 @@ public sealed class SettingsViewStructureContractTests
 
         var background = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "BackgroundSettingsView.axaml"));
         Assert.Contains("RootTexts[Settings.Background.ImagePath]", background, StringComparison.Ordinal);
-        Assert.Contains("RootTexts[Settings.Background.Note]", background, StringComparison.Ordinal);
         Assert.DoesNotContain("背景图片", background, StringComparison.Ordinal);
 
         var about = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "AboutSettingsView.axaml"));
@@ -81,6 +80,57 @@ public sealed class SettingsViewStructureContractTests
         Assert.Contains("RootTexts[Settings.Action.OpenDownload]", about, StringComparison.Ordinal);
         Assert.DoesNotContain("Content=\"社区\"", about, StringComparison.Ordinal);
         Assert.DoesNotContain("Content=\"下载页\"", about, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LocalizedSettingsCombos_ShouldKeepStableSelectionsAcrossLocalizedOptionReloads()
+    {
+        var root = GetMaaUnifiedRoot();
+
+        var gui = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "GuiSettingsView.axaml"));
+        Assert.Contains("SelectedItem=\"{Binding SelectedLanguageOption, Mode=TwoWay}\"", gui, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedOperNameLanguageOption, Mode=TwoWay}\"", gui, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedThemeOption, Mode=TwoWay}\"", gui, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedInverseClearModeOption, Mode=TwoWay}\"", gui, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding SelectedLanguageValue, Mode=TwoWay}\"", gui, StringComparison.Ordinal);
+
+        var game = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "GameSettingsView.axaml"));
+        Assert.Contains("SelectedItem=\"{Binding ConnectionGameSharedState.SelectedClientTypeOption, Mode=TwoWay}\"", game, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding ConnectionGameSharedState.ClientType}\"", game, StringComparison.Ordinal);
+
+        var background = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "BackgroundSettingsView.axaml"));
+        Assert.Contains("SelectedItem=\"{Binding SelectedBackgroundStretchModeOption, Mode=TwoWay}\"", background, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding BackgroundStretchMode}\"", background, StringComparison.Ordinal);
+
+        var versionUpdate = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "VersionUpdateSettingsView.axaml"));
+        Assert.Contains("SelectedItem=\"{Binding SelectedVersionUpdateVersionTypeOption, Mode=TwoWay}\"", versionUpdate, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedVersionUpdateResourceSourceOption, Mode=TwoWay}\"", versionUpdate, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedVersionUpdateProxyTypeOption, Mode=TwoWay}\"", versionUpdate, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding VersionUpdateVersionType}\"", versionUpdate, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding VersionUpdateResourceSource}\"", versionUpdate, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding VersionUpdateProxyType}\"", versionUpdate, StringComparison.Ordinal);
+
+        var connect = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "ConnectSettingsView.axaml"));
+        Assert.Contains("SelectedItem=\"{Binding SelectedConnectConfigOption, Mode=TwoWay}\"", connect, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedAttachWindowScreencapOption, Mode=TwoWay}\"", connect, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedAttachWindowMouseOption, Mode=TwoWay}\"", connect, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedAttachWindowKeyboardOption, Mode=TwoWay}\"", connect, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedTouchModeOption, Mode=TwoWay}\"", connect, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding SelectedConnectConfigValue}\"", connect, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding SelectedAttachWindowScreencapValue}\"", connect, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding SelectedAttachWindowMouseValue}\"", connect, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding SelectedAttachWindowKeyboardValue}\"", connect, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding SelectedTouchModeValue}\"", connect, StringComparison.Ordinal);
+
+        var timer = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "TimerSettingsView.axaml"));
+        Assert.Contains("SelectedItem=\"{Binding Profile, Mode=TwoWay}\"", timer, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValue=\"{Binding Profile}\"", timer, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedValueBinding=\"{Binding .}\"", timer, StringComparison.Ordinal);
+
+        var configManager = File.ReadAllText(Path.Combine(root, "App", "Features", "Settings", "ConfigurationManagerView.axaml"));
+        Assert.Contains("SelectedValueBinding=\"{Binding .}\"", configManager, StringComparison.Ordinal);
+        Assert.Contains("SelectedValue=\"{Binding ConfigurationManagerSelectedProfile}\"", configManager, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectedItem=\"{Binding ConfigurationManagerSelectedProfile}\"", configManager, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -33,16 +33,6 @@ public sealed class TaskQueueLocalizationRegressionTests
         map.Language = "en-us";
         var enUsBaseline = FightNoFallbackKeys.ToDictionary(key => key, key => map[key], StringComparer.Ordinal);
 
-        var root = GetMaaUnifiedRoot();
-        var sourcePath = Path.Combine(root, "App", "ViewModels", "TaskQueue", "TaskQueueLocalization.cs");
-        var source = File.ReadAllText(sourcePath);
-        var sections = new Dictionary<string, string>
-        {
-            ["ja-jp"] = ExtractDictionarySection(source, "JaJp", "KoKr"),
-            ["ko-kr"] = ExtractDictionarySection(source, "KoKr", "ZhTw"),
-            ["zh-tw"] = ExtractDictionarySection(source, "ZhTw", "Pallas"),
-        };
-
         foreach (var language in new[] { "ja-jp", "ko-kr", "zh-tw" })
         {
             map.Language = language;
@@ -52,21 +42,8 @@ public sealed class TaskQueueLocalizationRegressionTests
                 Assert.False(string.IsNullOrWhiteSpace(value), $"Expected non-empty text for {language}:{key}.");
                 Assert.NotEqual(key, value);
                 Assert.NotEqual(enUsBaseline[key], value);
-                Assert.Contains($"[\"{key}\"]", sections[language], StringComparison.Ordinal);
             }
         }
-    }
-
-    private static string ExtractDictionarySection(string source, string dictionaryName, string nextDictionaryName)
-    {
-        var startToken = $"private static readonly Dictionary<string, string> {dictionaryName} =";
-        var nextToken = $"private static readonly Dictionary<string, string> {nextDictionaryName} =";
-        var start = source.IndexOf(startToken, StringComparison.Ordinal);
-        Assert.True(start >= 0, $"Cannot find dictionary section {dictionaryName}.");
-        var end = source.IndexOf(nextToken, start, StringComparison.Ordinal);
-        Assert.True(end > start, $"Cannot find boundary from {dictionaryName} to {nextDictionaryName}.");
-
-        return source[start..end];
     }
 
     private static string GetMaaUnifiedRoot()

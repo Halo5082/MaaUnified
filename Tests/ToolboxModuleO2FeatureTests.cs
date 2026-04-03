@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Text.Json.Nodes;
+using Avalonia.Threading;
 using MAAUnified.App.ViewModels.Toolbox;
 using MAAUnified.Application.Models;
 using LegacyConfigurationKeys = MAAUnified.Compat.Constants.ConfigurationKeys;
@@ -46,7 +47,6 @@ public sealed class ToolboxModuleO2FeatureTests
         Assert.Equal(530, vm.RecruitLevel5Time);
         Assert.False(vm.RecruitAutoSetTime);
         Assert.False(vm.RecruitmentShowPotential);
-        Assert.Contains("advanced", vm.Tabs, StringComparer.Ordinal);
         Assert.True(vm.GachaShowDisclaimerNoMore);
         Assert.False(vm.GachaShowDisclaimer);
         Assert.Equal(37, vm.PeepTargetFps);
@@ -54,18 +54,14 @@ public sealed class ToolboxModuleO2FeatureTests
         Assert.Equal("D", vm.MiniGameSecretFrontEnding);
         Assert.Equal("游侠", vm.MiniGameSecretFrontEvent);
         Assert.Equal("MiniGame@SecretFront@Begin@EndingD@游侠", vm.GetMiniGameTask());
+        Assert.Empty(vm.OperBoxHaveList);
+        vm.SelectedTabIndex = 1;
+        Dispatcher.UIThread.RunJobs(null);
         Assert.Single(vm.OperBoxHaveList);
         Assert.Single(vm.DepotResult);
         Assert.Contains("char_003_kalts", vm.OperBoxExportText, StringComparison.Ordinal);
         Assert.Contains("@penguin-statistics/depot", vm.ArkPlannerResult, StringComparison.Ordinal);
         Assert.Contains("2001", vm.LoliconResult, StringComparison.Ordinal);
-        Assert.Equal("Official", vm.StageManagerPage.ClientType);
-        Assert.NotEmpty(vm.ExternalNotificationProvidersPage.Providers);
-        Assert.False(string.IsNullOrWhiteSpace(vm.TrayIntegrationPage.CapabilitySummary));
-        Assert.NotEmpty(vm.OverlayPage.Targets);
-        Assert.NotNull(vm.OverlayPage.SelectedTarget);
-        Assert.False(string.IsNullOrWhiteSpace(vm.WebApiPage.Host));
-        Assert.True(vm.WebApiPage.Port > 0);
     }
 
     [Fact]
@@ -81,6 +77,9 @@ public sealed class ToolboxModuleO2FeatureTests
         var vm = new ToolboxPageViewModel(fixture.Runtime, fixture.ConnectionState);
 
         await vm.InitializeAsync();
+        Assert.Empty(vm.OperBoxHaveList);
+        vm.SelectedTabIndex = 1;
+        Dispatcher.UIThread.RunJobs(null);
 
         Assert.NotNull(ToolboxAssetCatalog.ResolveOperatorEliteAssetPath(vm.OperBoxHaveList[0].Elite));
         Assert.NotNull(ToolboxAssetCatalog.ResolveOperatorPotentialAssetPath(vm.OperBoxHaveList[0].Potential));
@@ -114,6 +113,67 @@ public sealed class ToolboxModuleO2FeatureTests
         Assert.Equal("Not synced yet", vm.LastDepotSyncTimeText);
         Assert.Equal("Peek through MAA's eyes?", vm.PeepTip);
         Assert.Equal(expectedMiniGameTip, vm.MiniGameTip);
+    }
+
+    [Fact]
+    public async Task SetLanguage_ShouldNotifyLocalizedTextMapsForViewBindings()
+    {
+        await using var fixture = await ToolboxTestFixture.CreateAsync();
+        var vm = new ToolboxPageViewModel(fixture.Runtime, fixture.ConnectionState);
+        await vm.InitializeAsync();
+        var changed = new List<string?>();
+        vm.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        vm.SetLanguage("en-us");
+
+        Assert.Contains(nameof(ToolboxPageViewModel.Texts), changed);
+        Assert.Contains(nameof(ToolboxPageViewModel.RootTexts), changed);
+        Assert.Contains(nameof(ToolboxPageViewModel.RecruitTabTitle), changed);
+        Assert.Contains(nameof(ToolboxPageViewModel.ExecutionReviewTitle), changed);
+        Assert.Contains(string.Empty, changed);
+    }
+
+    [Fact]
+    public async Task SetLanguage_ShouldRefreshToolboxTextsAcrossMultipleLanguageSwitches()
+    {
+        var globalSeeds = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [LegacyConfigurationKeys.OperBoxData] = "[{\"id\":\"char_003_kalts\",\"name\":\"凯尔希\",\"rarity\":6,\"elite\":2,\"level\":90,\"own\":true,\"potential\":6}]",
+        };
+
+        await using var fixture = await ToolboxTestFixture.CreateAsync(globalSeeds);
+        var vm = new ToolboxPageViewModel(fixture.Runtime, fixture.ConnectionState);
+        await vm.InitializeAsync();
+        vm.SelectedTabIndex = 1;
+        Dispatcher.UIThread.RunJobs(null);
+
+        var zhTexts = vm.Texts;
+
+        vm.SetLanguage("en-us");
+
+        var enTexts = vm.Texts;
+        Assert.NotSame(zhTexts, enTexts);
+        Assert.Equal("Recruit Recognition", vm.Texts["Toolbox.Tab.Recruit"]);
+        Assert.Equal("Copy to clipboard", vm.Texts["Toolbox.OperBox.CopyToClipboard"]);
+        Assert.Equal(vm.Texts["Toolbox.Tab.Recruit"], vm.RecruitTabTitle);
+        Assert.Equal(vm.Texts["Toolbox.OperBox.CopyToClipboard"], vm.OperBoxCopyToClipboardText);
+        Assert.Equal(vm.Texts["Toolbox.Action.StartRecognition"], vm.StartRecognitionText);
+        Assert.Equal(vm.Texts["Toolbox.Section.ExecutionReview"], vm.ExecutionReviewTitle);
+        AssertHeaderMatchesLocalizedTemplate(vm.Texts["Toolbox.OperBox.Header.Owned"], vm.OperBoxHaveHeader);
+
+        vm.SetLanguage("ja-jp");
+
+        var jaTexts = vm.Texts;
+        Assert.NotSame(enTexts, jaTexts);
+        Assert.Equal("公開求人認識", vm.Texts["Toolbox.Tab.Recruit"]);
+        Assert.Equal("クリップボードにコピー", vm.Texts["Toolbox.OperBox.CopyToClipboard"]);
+        Assert.Equal("目標FPS", vm.Texts["Toolbox.Peep.TargetFps"]);
+        Assert.Equal(vm.Texts["Toolbox.Tab.Recruit"], vm.RecruitTabTitle);
+        Assert.Equal(vm.Texts["Toolbox.OperBox.CopyToClipboard"], vm.OperBoxCopyToClipboardText);
+        Assert.Equal(vm.Texts["Toolbox.Action.StartRecognition"], vm.StartRecognitionText);
+        Assert.Equal(vm.Texts["Toolbox.Section.ExecutionReview"], vm.ExecutionReviewTitle);
+        Assert.Equal(vm.Texts["Toolbox.Peep.TargetFps"], vm.PeepTargetFpsText);
+        AssertHeaderMatchesLocalizedTemplate(vm.Texts["Toolbox.OperBox.Header.Owned"], vm.OperBoxHaveHeader);
     }
 
     [Fact]

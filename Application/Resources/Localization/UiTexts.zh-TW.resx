@@ -1,0 +1,3988 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AsYourHeartDesires" xml:space="preserve">
+    <value>隨心所欲（三張隨機）</value>
+  </data>
+  <data name="Award.Award" xml:space="preserve">
+    <value>領取每日/每週任務獎勵</value>
+  </data>
+  <data name="Award.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Award.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Award.FreeGachaTip" xml:space="preserve">
+    <value>若不存在免費單抽，則不會抽取</value>
+  </data>
+  <data name="Award.GachaWarning" xml:space="preserve">
+    <value>該功能屬於危險功能，可能會造成誤抽
+按下 ｢{key=Confirm}｣ 鍵即視為您了解並願意承擔可能出現的風險</value>
+  </data>
+  <data name="Award.Mail" xml:space="preserve">
+    <value>領取所有郵件獎勵</value>
+  </data>
+  <data name="Award.Mining" xml:space="preserve">
+    <value>領取限時開採許可的每日合成玉獎勵</value>
+  </data>
+  <data name="Award.Orundum" xml:space="preserve">
+    <value>收集幸運牆的每日合成玉獎勵</value>
+  </data>
+  <data name="Award.Recruit" xml:space="preserve">
+    <value>進行限定池贈送的每日免費單抽</value>
+  </data>
+  <data name="Award.RecruitTip" xml:space="preserve">
+    <value>該功能屬於危險功能，可能會造成誤抽。</value>
+  </data>
+  <data name="Award.Special" xml:space="preserve">
+    <value>領取特殊贈送月卡獎勵</value>
+  </data>
+  <data name="Award.Title" xml:space="preserve">
+    <value>領取獎勵</value>
+  </data>
+  <data name="Common.ErrorPrefix" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="Common.LoadingTaskHint" xml:space="preserve">
+    <value>請先在左側任務列表中選擇對應任務。</value>
+  </data>
+  <data name="Common.ValidationIssues" xml:space="preserve">
+    <value>校驗資訊</value>
+  </data>
+  <data name="Common.WarningPrefix" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="Copilot.Button.Dislike" xml:space="preserve">
+    <value>倒讚</value>
+  </data>
+  <data name="Copilot.Button.Like" xml:space="preserve">
+    <value>按讚</value>
+  </data>
+  <data name="Copilot.Button.Paste" xml:space="preserve">
+    <value>貼上</value>
+  </data>
+  <data name="Copilot.Option.BattleList" xml:space="preserve">
+    <value>戰鬥列表</value>
+  </data>
+  <data name="Copilot.Status.AddEmptyTaskSuccess" xml:space="preserve">
+    <value>已新增空白作業。</value>
+  </data>
+  <data name="Copilot.Status.ClearSuccess" xml:space="preserve">
+    <value>已清空作業列表。</value>
+  </data>
+  <data name="Copilot.Status.MoveDownSuccess" xml:space="preserve">
+    <value>已將選中作業下移。</value>
+  </data>
+  <data name="Copilot.Status.MoveUpSuccess" xml:space="preserve">
+    <value>已將選中作業上移。</value>
+  </data>
+  <data name="Copilot.Status.RemoveSuccess" xml:space="preserve">
+    <value>已刪除選中作業。</value>
+  </data>
+  <data name="Copilot.Tab.Main" xml:space="preserve">
+    <value>主線/故事集/SideStory</value>
+  </data>
+  <data name="Copilot.Tab.Other" xml:space="preserve">
+    <value>其他活動</value>
+  </data>
+  <data name="Copilot.Tab.Paradox" xml:space="preserve">
+    <value>悖論模擬</value>
+  </data>
+  <data name="Copilot.Tab.Security" xml:space="preserve">
+    <value>保全派駐</value>
+  </data>
+  <data name="CurrentSanity" xml:space="preserve">
+    <value>理智: {0}/{1}  </value>
+  </data>
+  <data name="Custom.TaskNames" xml:space="preserve">
+    <value>任務名列表</value>
+  </data>
+  <data name="Custom.TaskNamesPreview" xml:space="preserve">
+    <value>格式化預覽</value>
+  </data>
+  <data name="Custom.Title" xml:space="preserve">
+    <value>自訂任務</value>
+  </data>
+  <data name="Dialog.Common.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Dialog.Common.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Dialog.Common.Refresh" xml:space="preserve">
+    <value>重新整理</value>
+  </data>
+  <data name="Dialog.Common.Refreshing" xml:space="preserve">
+    <value>重新整理中...</value>
+  </data>
+  <data name="Dialog.TextDialog.SectionTitle" xml:space="preserve">
+    <value>文字對話方塊</value>
+  </data>
+  <data name="Fight.AllowUseStoneSave" xml:space="preserve">
+    <value>允許吃源石保存狀態</value>
+  </data>
+  <data name="Fight.AllowUseStoneSaveWarning" xml:space="preserve">
+    <value>該功能屬於危險功能。按下 ｢{key=Confirm}｣ 鍵即視為您了解並願意承擔可能出現的風險。</value>
+  </data>
+  <data name="Fight.Annihilation.Chernobog" xml:space="preserve">
+    <value>切爾諾伯格</value>
+  </data>
+  <data name="Fight.Annihilation.Current" xml:space="preserve">
+    <value>當期剿滅</value>
+  </data>
+  <data name="Fight.Annihilation.LungmenDowntown" xml:space="preserve">
+    <value>龍門市區</value>
+  </data>
+  <data name="Fight.Annihilation.LungmenOutskirts" xml:space="preserve">
+    <value>龍門外環</value>
+  </data>
+  <data name="Fight.AnnihilationStage" xml:space="preserve">
+    <value>剿滅關卡</value>
+  </data>
+  <data name="Fight.AssignedMaterial" xml:space="preserve">
+    <value>指定材料</value>
+  </data>
+  <data name="Fight.DefaultStage" xml:space="preserve">
+    <value>目前/上次</value>
+  </data>
+  <data name="Fight.DrGrandet" xml:space="preserve">
+    <value>理智策略 DrGrandet</value>
+  </data>
+  <data name="Fight.DrGrandetTip" xml:space="preserve">
+    <value>在恢復理智確認介面等待，直到目前的 1 點理智恢復完成再立即確認。</value>
+  </data>
+  <data name="Fight.Drop.NotSelected" xml:space="preserve">
+    <value>不選擇</value>
+  </data>
+  <data name="Fight.DropCount" xml:space="preserve">
+    <value>目標數量</value>
+  </data>
+  <data name="Fight.DropId" xml:space="preserve">
+    <value>掉落物 ID</value>
+  </data>
+  <data name="Fight.EnableTargetDrop" xml:space="preserve">
+    <value>指定掉落</value>
+  </data>
+  <data name="Fight.EnableTimesLimit" xml:space="preserve">
+    <value>限制次數</value>
+  </data>
+  <data name="Fight.HideSeries" xml:space="preserve">
+    <value>隱藏代理倍率</value>
+  </data>
+  <data name="Fight.HideUnavailableStage" xml:space="preserve">
+    <value>隱藏不可用關卡</value>
+  </data>
+  <data name="Fight.Medicine" xml:space="preserve">
+    <value>理智藥數量</value>
+  </data>
+  <data name="Fight.NotSwitch" xml:space="preserve">
+    <value>不切換</value>
+  </data>
+  <data name="Fight.PerformBattles" xml:space="preserve">
+    <value>指定次數</value>
+  </data>
+  <data name="Fight.Series" xml:space="preserve">
+    <value>連戰</value>
+  </data>
+  <data name="Fight.SeriesTip" xml:space="preserve">
+    <value>• AUTO:
+自動辨識關卡最大代理倍率，保持最大代理倍率且使用理智藥後理智不溢出
+
+• 數值 (1~6):
+按設定倍率執行代理
+若目前理智不足以完成設定倍率 (如僅夠 5 次但設為 6 倍)，則無法進入戰鬥
+ 或者
+戰鬥次數不足以完成設定倍率 (如僅夠 5 次但設為 6 倍)，也將無法進入戰鬥
+
+• {key=NotSwitch}:
+不調整遊戲內代理倍率設定</value>
+  </data>
+  <data name="Fight.SpecifiedDropsTip" xml:space="preserve">
+    <value>此選項不會自動計算最優關卡</value>
+  </data>
+  <data name="Fight.Stage" xml:space="preserve">
+    <value>關卡</value>
+  </data>
+  <data name="Fight.StageReset.Current" xml:space="preserve">
+    <value>目前/上次</value>
+  </data>
+  <data name="Fight.StageReset.Ignore" xml:space="preserve">
+    <value>不切換</value>
+  </data>
+  <data name="Fight.StageResetMode" xml:space="preserve">
+    <value>重置模式</value>
+  </data>
+  <data name="Fight.StageSelect" xml:space="preserve">
+    <value>關卡選擇</value>
+  </data>
+  <data name="Fight.Stone" xml:space="preserve">
+    <value>源石數量</value>
+  </data>
+  <data name="Fight.Times" xml:space="preserve">
+    <value>次數</value>
+  </data>
+  <data name="Fight.Title" xml:space="preserve">
+    <value>刷理智</value>
+  </data>
+  <data name="Fight.UseAlternateStage" xml:space="preserve">
+    <value>啟用換圖</value>
+  </data>
+  <data name="Fight.UseCustomAnnihilation" xml:space="preserve">
+    <value>自訂剿滅</value>
+  </data>
+  <data name="Fight.UseExpiringMedicine" xml:space="preserve">
+    <value>使用即將過期理智藥</value>
+  </data>
+  <data name="Fight.UseMedicine" xml:space="preserve">
+    <value>使用理智藥</value>
+  </data>
+  <data name="Fight.UseStone" xml:space="preserve">
+    <value>使用源石</value>
+  </data>
+  <data name="Fight.UseStoneDisplay" xml:space="preserve">
+    <value>剩餘理智</value>
+  </data>
+  <data name="FirstMoveAdvantage" xml:space="preserve">
+    <value>先手必勝（先鋒、狙擊、特種）</value>
+  </data>
+  <data name="FlexibleDeployment" xml:space="preserve">
+    <value>靈活部署（先鋒、輔助、特種）</value>
+  </data>
+  <data name="Infrast.Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="Infrast.Default.153Time3" xml:space="preserve">
+    <value>153 一天 3 換</value>
+  </data>
+  <data name="Infrast.Default.153Time4" xml:space="preserve">
+    <value>153 一天 4 換</value>
+  </data>
+  <data name="Infrast.Default.243Time3" xml:space="preserve">
+    <value>243 一天 3 換</value>
+  </data>
+  <data name="Infrast.Default.243Time4" xml:space="preserve">
+    <value>243 一天 4 換</value>
+  </data>
+  <data name="Infrast.Default.333Time3" xml:space="preserve">
+    <value>333 一天 3 換</value>
+  </data>
+  <data name="Infrast.Default.UserDefined" xml:space="preserve">
+    <value>自定義</value>
+  </data>
+  <data name="Infrast.DefaultPreset" xml:space="preserve">
+    <value>內建配置</value>
+  </data>
+  <data name="Infrast.Drone.Chip" xml:space="preserve">
+    <value>製造站-晶片組</value>
+  </data>
+  <data name="Infrast.Drone.CombatRecord" xml:space="preserve">
+    <value>製造站-經驗書</value>
+  </data>
+  <data name="Infrast.Drone.Money" xml:space="preserve">
+    <value>貿易站-龍門幣</value>
+  </data>
+  <data name="Infrast.Drone.NotUse" xml:space="preserve">
+    <value>不使用無人機</value>
+  </data>
+  <data name="Infrast.Drone.OriginStone" xml:space="preserve">
+    <value>製造站-源石碎片</value>
+  </data>
+  <data name="Infrast.Drone.PureGold" xml:space="preserve">
+    <value>製造站-赤金</value>
+  </data>
+  <data name="Infrast.Drone.SyntheticJade" xml:space="preserve">
+    <value>貿易站-合成玉</value>
+  </data>
+  <data name="Infrast.Drones" xml:space="preserve">
+    <value>無人機策略</value>
+  </data>
+  <data name="Infrast.Error.CustomFileNotFound" xml:space="preserve">
+    <value>自定義基建配置檔案不存在：{0}</value>
+  </data>
+  <data name="Infrast.Error.ParseFailed" xml:space="preserve">
+    <value>自定義基建配置檔案解析錯誤！</value>
+  </data>
+  <data name="Infrast.Error.PlanOutOfRange" xml:space="preserve">
+    <value>自定義基建配置選擇超出索引範圍（{0}/{1}）。</value>
+  </data>
+  <data name="Infrast.Mode" xml:space="preserve">
+    <value>基建模式</value>
+  </data>
+  <data name="Infrast.Mode.Custom" xml:space="preserve">
+    <value>自定義基建配置</value>
+  </data>
+  <data name="Infrast.Mode.Normal" xml:space="preserve">
+    <value>一般模式</value>
+  </data>
+  <data name="Infrast.Mode.Rotation" xml:space="preserve">
+    <value>隊列輪換</value>
+  </data>
+  <data name="Infrast.ModeRotationTip" xml:space="preserve">
+    <value>使用隊列輪換需提前在遊戲中設定好隊列</value>
+  </data>
+  <data name="Infrast.ModeRotationToolTip" xml:space="preserve">
+    <value>「{key=InfrastModeRotation}」的換班邏輯與遊戲內基建右下角的「{key=InfrastModeRotation}」完全一致：
+當目前班次中任意幹員心情值為 0 時，會整隊替換為下一班幹員。
+若需自定義輪換班次，請使用「{key=InfrastModeCustom}」。</value>
+  </data>
+  <data name="Infrast.Plan" xml:space="preserve">
+    <value>計劃索引</value>
+  </data>
+  <data name="Infrast.Plan.Auto" xml:space="preserve">
+    <value>自動（按時間輪換）</value>
+  </data>
+  <data name="Infrast.Plan.AutoCurrent" xml:space="preserve">
+    <value>時間輪換 ({0})</value>
+  </data>
+  <data name="Infrast.Plan.DefaultName" xml:space="preserve">
+    <value>基建計劃 {0}</value>
+  </data>
+  <data name="Infrast.Plan.Display" xml:space="preserve">
+    <value>{0}（{1} 個時段）</value>
+  </data>
+  <data name="Infrast.Plan.Refresh" xml:space="preserve">
+    <value>刷新計劃</value>
+  </data>
+  <data name="Infrast.SelectAll" xml:space="preserve">
+    <value>全選</value>
+  </data>
+  <data name="Infrast.Status.LoadedPlans" xml:space="preserve">
+    <value>已載入 {0} 個計劃。</value>
+  </data>
+  <data name="Infrast.Title" xml:space="preserve">
+    <value>基建</value>
+  </data>
+  <data name="Issue.ClientTypeMissing" xml:space="preserve">
+    <value>客戶端類型不能為空。</value>
+  </data>
+  <data name="Issue.CustomTaskNameInvalid" xml:space="preserve">
+    <value>自訂任務名稱包含無法解析的結構化內容。</value>
+  </data>
+  <data name="Issue.CustomTaskNameUnknown" xml:space="preserve">
+    <value>自訂任務名稱未識別。</value>
+  </data>
+  <data name="Issue.CustomTaskNamesEmpty" xml:space="preserve">
+    <value>自訂任務名稱列表為空。</value>
+  </data>
+  <data name="Issue.CustomTaskNamesNormalized" xml:space="preserve">
+    <value>自訂任務名稱已標準化並去重。</value>
+  </data>
+  <data name="Issue.DelimitedInputParseFailed" xml:space="preserve">
+    <value>輸入看起來像結構化資料，請改用分隔字元純文字。</value>
+  </data>
+  <data name="Issue.FightDropMissing" xml:space="preserve">
+    <value>指定掉落時必須填寫掉落物 ID。</value>
+  </data>
+  <data name="Issue.FightSeriesOutOfRange" xml:space="preserve">
+    <value>連戰範圍需在 -1 到 6。</value>
+  </data>
+  <data name="Issue.FightStageMissing" xml:space="preserve">
+    <value>戰鬥關卡不能為空。</value>
+  </data>
+  <data name="Issue.FightTimesMayNotExhausted" xml:space="preserve">
+    <value>當前次數與連戰設定可能無法整除。</value>
+  </data>
+  <data name="Issue.FightTimesOutOfRange" xml:space="preserve">
+    <value>戰鬥次數不能小於 0。</value>
+  </data>
+  <data name="Issue.ReclamationClearStoreIgnoredInArchive" xml:space="preserve">
+    <value>有存檔模式會忽略清倉，已關閉。</value>
+  </data>
+  <data name="Issue.ReclamationIncrementModeOutOfRange" xml:space="preserve">
+    <value>增量模式僅支援 0/1，已自動修正。</value>
+  </data>
+  <data name="Issue.ReclamationModeInvalid" xml:space="preserve">
+    <value>生息模式不受支援。</value>
+  </data>
+  <data name="Issue.ReclamationNumCraftBatchesOutOfRange" xml:space="preserve">
+    <value>單次組裝輪數應在 0..99999，已自動修正。</value>
+  </data>
+  <data name="Issue.ReclamationThemeUnknown" xml:space="preserve">
+    <value>生息主題未知，已降級為 Tales。</value>
+  </data>
+  <data name="Issue.ReclamationToolNameInvalid" xml:space="preserve">
+    <value>工具列表包含無法解析的結構化內容。</value>
+  </data>
+  <data name="Issue.ReclamationToolsIgnoredInNoArchive" xml:space="preserve">
+    <value>無存檔模式會忽略工具列表，已清空。</value>
+  </data>
+  <data name="Issue.RecruitTimeOutOfRange" xml:space="preserve">
+    <value>招募時長需在 60..540 且步長為 10。</value>
+  </data>
+  <data name="Issue.RecruitTimesOutOfRange" xml:space="preserve">
+    <value>招募次數不能小於 0。</value>
+  </data>
+  <data name="Issue.RoguelikeDifficultyOutOfRange" xml:space="preserve">
+    <value>難度不能小於 -1，已自動修正。</value>
+  </data>
+  <data name="Issue.RoguelikeEliteTwoModeMismatch" xml:space="preserve">
+    <value>目前模式/主題/分隊不支援開局精二，已自動關閉。</value>
+  </data>
+  <data name="Issue.RoguelikeEliteTwoSupportConflict" xml:space="preserve">
+    <value>助戰與開局精二衝突，已自動關閉開局精二。</value>
+  </data>
+  <data name="Issue.RoguelikeFindPlaytimeTargetOutOfRange" xml:space="preserve">
+    <value>FindPlaytime 目標應在 1..3，已自動修正。</value>
+  </data>
+  <data name="Issue.RoguelikeFindPlaytimeThemeMismatch" xml:space="preserve">
+    <value>FindPlaytime 僅支援 JieGarden 主題，已自動降級。</value>
+  </data>
+  <data name="Issue.RoguelikeInvestmentsCountOutOfRange" xml:space="preserve">
+    <value>投資次數不能小於 0，已自動修正。</value>
+  </data>
+  <data name="Issue.RoguelikeModeInvalid" xml:space="preserve">
+    <value>肉鴿模式不受支援。</value>
+  </data>
+  <data name="Issue.RoguelikeOnlyEliteTwoRequiresEliteTwo" xml:space="preserve">
+    <value>僅開局精二依賴開局精二開關，已自動關閉。</value>
+  </data>
+  <data name="Issue.RoguelikeRefreshTraderThemeMismatch" xml:space="preserve">
+    <value>僅 Mizuki 主題支援骰子刷新商人，已自動關閉。</value>
+  </data>
+  <data name="Issue.RoguelikeStartFoldartalListTrimmed" xml:space="preserve">
+    <value>起始折紙列表超過 3 項，已截斷。</value>
+  </data>
+  <data name="Issue.RoguelikeStartWithSeedInvalid" xml:space="preserve">
+    <value>種子格式不合法，應為 `&lt;英數字&gt;,rogue_&lt;id&gt;,&lt;step&gt;`。</value>
+  </data>
+  <data name="Issue.RoguelikeStartsCountOutOfRange" xml:space="preserve">
+    <value>開局次數不能小於 0，已自動修正。</value>
+  </data>
+  <data name="Issue.RoguelikeThemeUnknown" xml:space="preserve">
+    <value>主題未知，已降級為 JieGarden。</value>
+  </data>
+  <data name="Issue.TaskFieldMissing" xml:space="preserve">
+    <value>配置缺少必填欄位。</value>
+  </data>
+  <data name="Issue.TaskFieldTypeInvalid" xml:space="preserve">
+    <value>欄位型別不正確，無法解析。</value>
+  </data>
+  <data name="Main.CloseConfirm.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Main.CloseConfirm.Confirm" xml:space="preserve">
+    <value>結束</value>
+  </data>
+  <data name="Main.CloseConfirm.Message" xml:space="preserve">
+    <value>確定要關閉程式嗎？</value>
+  </data>
+  <data name="Main.CloseConfirm.Title" xml:space="preserve">
+    <value>MAA 正在執行任務</value>
+  </data>
+  <data name="Main.CloseConfirm.Update.Message" xml:space="preserve">
+    <value>正在執行更新，此時關閉 MAA 可能導致資源毀損。
+確定要結束嗎？</value>
+  </data>
+  <data name="Main.CloseConfirm.Update.Title" xml:space="preserve">
+    <value>MAA 正在更新</value>
+  </data>
+  <data name="Main.RootPage.Failed.Copilot.Message" xml:space="preserve">
+    <value>Copilot 頁面未能完成初始化。</value>
+  </data>
+  <data name="Main.RootPage.Failed.Copilot.Title" xml:space="preserve">
+    <value>Copilot 初始化失敗</value>
+  </data>
+  <data name="Main.RootPage.Failed.FirstScreen.Message" xml:space="preserve">
+    <value>TaskQueue 首屏初始化失敗。</value>
+  </data>
+  <data name="Main.RootPage.Failed.FirstScreen.Title" xml:space="preserve">
+    <value>首屏初始化失敗</value>
+  </data>
+  <data name="Main.RootPage.Failed.Settings.Message" xml:space="preserve">
+    <value>Settings 頁面未能完成初始化。</value>
+  </data>
+  <data name="Main.RootPage.Failed.Settings.Title" xml:space="preserve">
+    <value>Settings 初始化失敗</value>
+  </data>
+  <data name="Main.RootPage.Failed.Toolbox.Message" xml:space="preserve">
+    <value>Toolbox 頁面未能完成初始化。</value>
+  </data>
+  <data name="Main.RootPage.Failed.Toolbox.Title" xml:space="preserve">
+    <value>Toolbox 初始化失敗</value>
+  </data>
+  <data name="Main.RootPage.Loading.Copilot.Message" xml:space="preserve">
+    <value>Copilot 頁面正在背景初始化。</value>
+  </data>
+  <data name="Main.RootPage.Loading.Copilot.Title" xml:space="preserve">
+    <value>正在背景初始化 Copilot</value>
+  </data>
+  <data name="Main.RootPage.Loading.FirstScreen.Message" xml:space="preserve">
+    <value>TaskQueue 頁面正在載入。</value>
+  </data>
+  <data name="Main.RootPage.Loading.FirstScreen.Title" xml:space="preserve">
+    <value>正在初始化首屏</value>
+  </data>
+  <data name="Main.RootPage.Loading.Settings.Message" xml:space="preserve">
+    <value>Settings 頁面正在背景初始化。</value>
+  </data>
+  <data name="Main.RootPage.Loading.Settings.Title" xml:space="preserve">
+    <value>正在背景初始化 Settings</value>
+  </data>
+  <data name="Main.RootPage.Loading.Toolbox.Message" xml:space="preserve">
+    <value>Toolbox 頁面正在背景初始化。</value>
+  </data>
+  <data name="Main.RootPage.Loading.Toolbox.Title" xml:space="preserve">
+    <value>正在背景初始化 Toolbox</value>
+  </data>
+  <data name="Main.RootPage.Pending.Background.Title" xml:space="preserve">
+    <value>頁面正在背景初始化</value>
+  </data>
+  <data name="Main.RootPage.Pending.Copilot.Message" xml:space="preserve">
+    <value>Copilot 頁面將在首屏完成後繼續載入。</value>
+  </data>
+  <data name="Main.RootPage.Pending.FirstScreen.Message" xml:space="preserve">
+    <value>TaskQueue 頁面正在載入。</value>
+  </data>
+  <data name="Main.RootPage.Pending.FirstScreen.Title" xml:space="preserve">
+    <value>正在初始化首屏</value>
+  </data>
+  <data name="Main.RootPage.Pending.Settings.Message" xml:space="preserve">
+    <value>Settings 頁面將在首屏完成後繼續載入。</value>
+  </data>
+  <data name="Main.RootPage.Pending.Toolbox.Message" xml:space="preserve">
+    <value>Toolbox 頁面將在首屏完成後繼續載入。</value>
+  </data>
+  <data name="Main.Tab.Copilot" xml:space="preserve">
+    <value>自動戰鬥</value>
+  </data>
+  <data name="Main.Tab.Settings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="Main.Tab.TaskQueue" xml:space="preserve">
+    <value>一鍵長草</value>
+  </data>
+  <data name="Main.Tab.Toolbox" xml:space="preserve">
+    <value>小工具</value>
+  </data>
+  <data name="Mall.Blacklist" xml:space="preserve">
+    <value>黑名單（子字串即可，分號分隔）</value>
+  </data>
+  <data name="Mall.BuyFirst" xml:space="preserve">
+    <value>優先購買（子字串即可，分號分隔）</value>
+  </data>
+  <data name="Mall.CreditFight" xml:space="preserve">
+    <value>借助戰打 OF-1 賺信用</value>
+  </data>
+  <data name="Mall.CreditFightOnce" xml:space="preserve">
+    <value>信用作戰每日一次</value>
+  </data>
+  <data name="Mall.CreditFightTip" xml:space="preserve">
+    <value>訪問好友後借助戰打一把 OF-1 賺 30 信用。
+關卡選擇為 ｢{key=DefaultStage}｣ 時此功能無效。
+別傳 ｢火藍之心｣ 關卡 OF-1 未解鎖時請勿勾選。</value>
+  </data>
+  <data name="Mall.Drink" xml:space="preserve">
+    <value>要來一杯美酒嗎🍷？博士</value>
+  </data>
+  <data name="Mall.ForceShopping" xml:space="preserve">
+    <value>信用溢出時無視黑名單</value>
+  </data>
+  <data name="Mall.Formation" xml:space="preserve">
+    <value>編隊</value>
+  </data>
+  <data name="Mall.Formation.Current" xml:space="preserve">
+    <value>當前</value>
+  </data>
+  <data name="Mall.OnlyDiscount" xml:space="preserve">
+    <value>只購買打折的信用商品</value>
+  </data>
+  <data name="Mall.OnlyDiscountTip" xml:space="preserve">
+    <value>⚠ 可能會導致信用點數溢出！仍然會購買未打折的商品！</value>
+  </data>
+  <data name="Mall.OnlyOnceADay" xml:space="preserve">
+    <value>一日只執行一次</value>
+  </data>
+  <data name="Mall.Reserve" xml:space="preserve">
+    <value>300 以下信用點數停止購買商品</value>
+  </data>
+  <data name="Mall.ReserveTip" xml:space="preserve">
+    <value>低於 300 信用點數也仍然會購買白名單物品！</value>
+  </data>
+  <data name="Mall.Shopping" xml:space="preserve">
+    <value>信用交易所自動購物</value>
+  </data>
+  <data name="Mall.Title" xml:space="preserve">
+    <value>獲取信用及購物</value>
+  </data>
+  <data name="Mall.UseFormation" xml:space="preserve">
+    <value>使用編隊</value>
+  </data>
+  <data name="Mall.VisitFriends" xml:space="preserve">
+    <value>訪問好友</value>
+  </data>
+  <data name="Mall.VisitOnce" xml:space="preserve">
+    <value>好友訪問每日一次</value>
+  </data>
+  <data name="MissionStart.FightTask" xml:space="preserve">
+    <value>開始行動 {0} 次，消耗 {1} 理智</value>
+  </data>
+  <data name="NotSwitch" xml:space="preserve">
+    <value>不切換</value>
+  </data>
+  <data name="OvercomingYourWeaknesses" xml:space="preserve">
+    <value>取長補短（近衛、輔助、醫療）</value>
+  </data>
+  <data name="PostAction.BackToHome" xml:space="preserve">
+    <value>返回模擬器主畫面</value>
+  </data>
+  <data name="PostAction.Cmd.BackToHome" xml:space="preserve">
+    <value>返回首頁命令</value>
+  </data>
+  <data name="PostAction.Cmd.ExitArknights" xml:space="preserve">
+    <value>關閉遊戲命令</value>
+  </data>
+  <data name="PostAction.Cmd.ExitEmulator" xml:space="preserve">
+    <value>關閉模擬器命令</value>
+  </data>
+  <data name="PostAction.Cmd.ExitSelf" xml:space="preserve">
+    <value>關閉 MAA 命令</value>
+  </data>
+  <data name="PostAction.Cmd.Watermark" xml:space="preserve">
+    <value>留空則僅記錄降級日誌</value>
+  </data>
+  <data name="PostAction.ExitArknights" xml:space="preserve">
+    <value>關閉 明日方舟</value>
+  </data>
+  <data name="PostAction.ExitEmulator" xml:space="preserve">
+    <value>關閉 模擬器</value>
+  </data>
+  <data name="PostAction.ExitSelf" xml:space="preserve">
+    <value>關閉 MAA</value>
+  </data>
+  <data name="PostAction.Hibernate" xml:space="preserve">
+    <value>休眠</value>
+  </data>
+  <data name="PostAction.HibernateTip" xml:space="preserve">
+    <value>需要在 Windows 電源選項中啟用休眠功能，否則該功能無效。</value>
+  </data>
+  <data name="PostAction.IfNoOther" xml:space="preserve">
+    <value>無其他 MAA 執行時</value>
+  </data>
+  <data name="PostAction.Once" xml:space="preserve">
+    <value>僅當次*</value>
+  </data>
+  <data name="PostAction.OnceTip" xml:space="preserve">
+    <value>勾選後將不儲存選項變更，下次 MAA 啟動或 {key=LinkStart} 後將復原
+取消勾選本選項後，其他選項狀態將會正常儲存
+右鍵點擊其他選項時，會同步勾選 / 取消勾選本選項</value>
+  </data>
+  <data name="PostAction.Shutdown" xml:space="preserve">
+    <value>關機</value>
+  </data>
+  <data name="PostAction.Sleep" xml:space="preserve">
+    <value>睡眠</value>
+  </data>
+  <data name="PostAction.Title" xml:space="preserve">
+    <value>任務完成後</value>
+  </data>
+  <data name="PostAction.Unsupported" xml:space="preserve">
+    <value>此動作目前平台不支援，將降級為記錄日誌。</value>
+  </data>
+  <data name="PostAction.Warn.IfNoOtherNeedsSystemAction" xml:space="preserve">
+    <value>｢無其他 MAA 執行時｣ 需要至少勾選一個系統動作（睡眠 / 休眠 / 關機）。</value>
+  </data>
+  <data name="PostAction.Warn.UnsupportedDowngrade" xml:space="preserve">
+    <value>目前選擇包含不可執行動作，將降級為記錄日誌。</value>
+  </data>
+  <data name="Reclamation.ClearStore" xml:space="preserve">
+    <value>清倉</value>
+  </data>
+  <data name="Reclamation.EarlyTip" xml:space="preserve">
+    <value>目前生息演算的支援仍處於中期階段，使用時請注意以下幾點：
+
+ 透過開局刷點數：（請注意：已有存檔可能會被刪除）
+  1. 點數刷滿後會輸出 ｢任務完成｣，自動停止任務。
+  2. 不要在生息演算的編隊中有{key=Operator}的情況下使用。
+  3. 請手動確認存檔情況，以免 MAA 刪除您的珍貴存檔。
+  4. 導航功能尚未完成，無法從生息演算以外的位置開始任務。
+  5. 若任務過程中報錯、點數未刷滿就顯示任務完成，請前往 GitHub 提交 Issue。
+
+ 有存檔時透過製造刷點數（進階設定）：
+  1. 要求為結算後的第一天，且後續三天沒有敵襲進入駐紮地。
+  2. 必須在進入大地圖後的介面開始（能看到駐紮地的介面）。
+  3. 若能製造的數量剛好是 99 的倍數會卡住，在存檔前可以先消耗掉一點，此問題日後會修復。</value>
+  </data>
+  <data name="Reclamation.IncrementMode" xml:space="preserve">
+    <value>增量模式</value>
+  </data>
+  <data name="Reclamation.Mode" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="Reclamation.NumCraftBatches" xml:space="preserve">
+    <value>回合合成批次</value>
+  </data>
+  <data name="Reclamation.Option.IncrementMode.Click" xml:space="preserve">
+    <value>連點</value>
+  </data>
+  <data name="Reclamation.Option.IncrementMode.Hold" xml:space="preserve">
+    <value>長按</value>
+  </data>
+  <data name="Reclamation.Option.Mode.Archive" xml:space="preserve">
+    <value>有存檔，透過組裝支援道具刷生息點數</value>
+  </data>
+  <data name="Reclamation.Option.Mode.NoArchive" xml:space="preserve">
+    <value>無存檔，透過進出關卡刷生息點數</value>
+  </data>
+  <data name="Reclamation.Option.Theme.FireClosed" xml:space="preserve">
+    <value>沙中之火 (活動未開放)</value>
+  </data>
+  <data name="Reclamation.Option.Theme.Tales" xml:space="preserve">
+    <value>沙洲遺聞</value>
+  </data>
+  <data name="Reclamation.Theme" xml:space="preserve">
+    <value>主題</value>
+  </data>
+  <data name="Reclamation.Title" xml:space="preserve">
+    <value>生息演算</value>
+  </data>
+  <data name="Reclamation.ToolToCraftPlaceholder" xml:space="preserve">
+    <value>螢光棒</value>
+  </data>
+  <data name="Reclamation.ToolToCraftTip" xml:space="preserve">
+    <value>支援道具名稱</value>
+  </data>
+  <data name="Reclamation.ToolsToCraft" xml:space="preserve">
+    <value>合成工具列表</value>
+  </data>
+  <data name="Recruit.AutoSelectLevel6" xml:space="preserve">
+    <value>自動選擇 6 星</value>
+  </data>
+  <data name="Recruit.AutoSelectLevel6FixedTime" xml:space="preserve">
+    <value>固定 09:00（六星必出）</value>
+  </data>
+  <data name="Recruit.ChooseLevel3" xml:space="preserve">
+    <value>選擇 3 星</value>
+  </data>
+  <data name="Recruit.ChooseLevel4" xml:space="preserve">
+    <value>選擇 4 星</value>
+  </data>
+  <data name="Recruit.ChooseLevel5" xml:space="preserve">
+    <value>選擇 5 星</value>
+  </data>
+  <data name="Recruit.ExtraTagsMode" xml:space="preserve">
+    <value>額外標籤策略</value>
+  </data>
+  <data name="Recruit.FirstTags" xml:space="preserve">
+    <value>優先標籤</value>
+  </data>
+  <data name="Recruit.ForceRefresh" xml:space="preserve">
+    <value>強制刷新</value>
+  </data>
+  <data name="Recruit.Level3Time" xml:space="preserve">
+    <value>3 星時長</value>
+  </data>
+  <data name="Recruit.Level4Time" xml:space="preserve">
+    <value>4 星時長</value>
+  </data>
+  <data name="Recruit.Level5Time" xml:space="preserve">
+    <value>5 星時長</value>
+  </data>
+  <data name="Recruit.Option.ExtraTags.Default" xml:space="preserve">
+    <value>預設不選擇額外的 Tags</value>
+  </data>
+  <data name="Recruit.Option.ExtraTags.RareOnly" xml:space="preserve">
+    <value>盡可能多選且只選高星 Tags</value>
+  </data>
+  <data name="Recruit.Option.ExtraTags.SelectAll" xml:space="preserve">
+    <value>選擇高星時總是選擇三個 Tags</value>
+  </data>
+  <data name="Recruit.Refresh" xml:space="preserve">
+    <value>自動刷新</value>
+  </data>
+  <data name="Recruit.SetTime" xml:space="preserve">
+    <value>設定時長</value>
+  </data>
+  <data name="Recruit.SkipRobot" xml:space="preserve">
+    <value>跳過支援機械</value>
+  </data>
+  <data name="Recruit.Times" xml:space="preserve">
+    <value>招募次數</value>
+  </data>
+  <data name="Recruit.Title" xml:space="preserve">
+    <value>自動公招</value>
+  </data>
+  <data name="Recruit.UseExpedited" xml:space="preserve">
+    <value>使用加急</value>
+  </data>
+  <data name="Roguelike.Collectible.Dice" xml:space="preserve">
+    <value>骰子</value>
+  </data>
+  <data name="Roguelike.Collectible.Hope" xml:space="preserve">
+    <value>希望</value>
+  </data>
+  <data name="Roguelike.Collectible.HotWater" xml:space="preserve">
+    <value>熱水壺</value>
+  </data>
+  <data name="Roguelike.Collectible.Ideas" xml:space="preserve">
+    <value>構想</value>
+  </data>
+  <data name="Roguelike.Collectible.Ingot" xml:space="preserve">
+    <value>源石錠</value>
+  </data>
+  <data name="Roguelike.Collectible.Key" xml:space="preserve">
+    <value>鑰匙</value>
+  </data>
+  <data name="Roguelike.Collectible.Random" xml:space="preserve">
+    <value>隨機</value>
+  </data>
+  <data name="Roguelike.Collectible.Shield" xml:space="preserve">
+    <value>護盾</value>
+  </data>
+  <data name="Roguelike.Collectible.Ticket" xml:space="preserve">
+    <value>票券</value>
+  </data>
+  <data name="Roguelike.CollectibleModeShopping" xml:space="preserve">
+    <value>刷開局模式啟用購物</value>
+  </data>
+  <data name="Roguelike.CollectibleModeSquad" xml:space="preserve">
+    <value>燒水分隊</value>
+  </data>
+  <data name="Roguelike.CoreChar" xml:space="preserve">
+    <value>核心幹員</value>
+  </data>
+  <data name="Roguelike.CoreCharTip" xml:space="preserve">
+    <value>不填寫則使用預設策略。</value>
+  </data>
+  <data name="Roguelike.DeepExplorationAutoIterate" xml:space="preserve">
+    <value>深入調查自動切換</value>
+  </data>
+  <data name="Roguelike.DelayAbortUntilCombatComplete" xml:space="preserve">
+    <value>肉鴿在戰鬥結束前延遲 ｢{key=Stop}｣ 動作</value>
+  </data>
+  <data name="Roguelike.Difficulty" xml:space="preserve">
+    <value>難度</value>
+  </data>
+  <data name="Roguelike.ExpectedCollapsalParadigms" xml:space="preserve">
+    <value>坍縮範式列表</value>
+  </data>
+  <data name="Roguelike.ExpectedCollapsalParadigmsTip" xml:space="preserve">
+    <value>用英文分號 ｢;｣ 隔開，留白將使用預設列表。</value>
+  </data>
+  <data name="Roguelike.FindPlayTimeTarget" xml:space="preserve">
+    <value>定向遊玩目標</value>
+  </data>
+  <data name="Roguelike.FirstFloorFoldartal" xml:space="preserve">
+    <value>凹第一層遠見密文板，不進行作戰</value>
+  </data>
+  <data name="Roguelike.InvestmentEnabled" xml:space="preserve">
+    <value>啟用投資</value>
+  </data>
+  <data name="Roguelike.InvestmentWithMoreScore" xml:space="preserve">
+    <value>投資優先分數</value>
+  </data>
+  <data name="Roguelike.InvestmentsCount" xml:space="preserve">
+    <value>投資次數上限</value>
+  </data>
+  <data name="Roguelike.JieGardenDifficultyTip" xml:space="preserve">
+    <value>解鎖 ｢{key=RoguelikeThemeJieGarden}｣ 相關科技後，{key=LeaderSquad}在進行 N3 及以上難度的探索時，會額外攜帶一個 ｢時光之末｣，可以利用其進行 ｢一戰一跳｣ 的存錢策略。
+若尚未解鎖該科技，請不要選擇 N3 及以上難度（包括 ｢MAX｣）進行探索；
+若希望啟用此機制，請確保選擇的難度為 N3 及以上（不包括 ｢{key=NotSwitch} (-1)｣）。</value>
+  </data>
+  <data name="Roguelike.Mode" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="Roguelike.MonthlySquadAutoIterate" xml:space="preserve">
+    <value>月度小隊自動切換</value>
+  </data>
+  <data name="Roguelike.MonthlySquadCheckComms" xml:space="preserve">
+    <value>月度小隊通訊</value>
+  </data>
+  <data name="Roguelike.MultiTaskSharedTip" xml:space="preserve">
+    <value>以下選項為多任務共用</value>
+  </data>
+  <data name="Roguelike.OnlyStartWithEliteTwo" xml:space="preserve">
+    <value>只凹 ｢{key=StartingCoreChar}｣ 直升精二，不進行作戰</value>
+  </data>
+  <data name="Roguelike.RefreshTraderWithDice" xml:space="preserve">
+    <value>使用骰子刷新商人</value>
+  </data>
+  <data name="Roguelike.Roles" xml:space="preserve">
+    <value>開局職業</value>
+  </data>
+  <data name="Roguelike.Squad" xml:space="preserve">
+    <value>開局分隊</value>
+  </data>
+  <data name="Roguelike.StartFoldartalList" xml:space="preserve">
+    <value>生活隊凹開局密文板</value>
+  </data>
+  <data name="Roguelike.StartFoldartalTip" xml:space="preserve">
+    <value>最多填寫三個，並用英文分號 ｢;｣ 隔開</value>
+  </data>
+  <data name="Roguelike.StartWithEliteTwo" xml:space="preserve">
+    <value>凹 ｢{key=StartingCoreChar}｣ 直升精二</value>
+  </data>
+  <data name="Roguelike.StartWithSeed" xml:space="preserve">
+    <value>使用指定種子開局</value>
+  </data>
+  <data name="Roguelike.StartWithSelectList" xml:space="preserve">
+    <value>刷開局期望獎勵</value>
+  </data>
+  <data name="Roguelike.StartsCount" xml:space="preserve">
+    <value>開局次數</value>
+  </data>
+  <data name="Roguelike.StopAtFinalBoss" xml:space="preserve">
+    <value>在第五層 BOSS 前暫停</value>
+  </data>
+  <data name="Roguelike.StopAtMaxLevel" xml:space="preserve">
+    <value>滿級後自動停止</value>
+  </data>
+  <data name="Roguelike.StopWhenInvestmentFull" xml:space="preserve">
+    <value>投資滿時停止</value>
+  </data>
+  <data name="Roguelike.Theme" xml:space="preserve">
+    <value>主題</value>
+  </data>
+  <data name="Roguelike.Title" xml:space="preserve">
+    <value>自動肉鴿</value>
+  </data>
+  <data name="Roguelike.UseNonfriendSupport" xml:space="preserve">
+    <value>使用非好友助戰</value>
+  </data>
+  <data name="Roguelike.UseSupport" xml:space="preserve">
+    <value>｢{key=StartingCoreChar}｣ 使用助戰</value>
+  </data>
+  <data name="Roguelike.UseSupportTip" xml:space="preserve">
+    <value>需先填寫 ｢{key=StartingCoreChar}｣</value>
+  </data>
+  <data name="RoguelikePlaytimeLing" xml:space="preserve">
+    <value>令 - 擲地有聲</value>
+  </data>
+  <data name="RoguelikePlaytimeNian" xml:space="preserve">
+    <value>年 - 三缺一</value>
+  </data>
+  <data name="RoguelikePlaytimeShu" xml:space="preserve">
+    <value>黍 - 種因得果</value>
+  </data>
+  <data name="RoguelikeStrategyCollapse" xml:space="preserve">
+    <value>刷坍縮範式，遇到非稀有坍縮範式後直接重開</value>
+  </data>
+  <data name="RoguelikeStrategyDeepExploration" xml:space="preserve">
+    <value>刷深入調查，盡可能穩定地打更多層數</value>
+  </data>
+  <data name="RoguelikeStrategyExp" xml:space="preserve">
+    <value>刷等級，盡可能穩定地打更多層數</value>
+  </data>
+  <data name="RoguelikeStrategyFindPlaytime" xml:space="preserve">
+    <value>刷常樂節點，第一層進洞，找不到需要的節點就重開</value>
+  </data>
+  <data name="RoguelikeStrategyGold" xml:space="preserve">
+    <value>刷源石錠，投資完成後自動退出</value>
+  </data>
+  <data name="RoguelikeStrategyLastReward" xml:space="preserve">
+    <value>刷開局，刷取熱水壺或精二{key=Operator}開局</value>
+  </data>
+  <data name="RoguelikeStrategyMonthlySquad" xml:space="preserve">
+    <value>刷月度小隊，盡可能穩定地打更多層數</value>
+  </data>
+  <data name="SanityReport" xml:space="preserve">
+    <value>理智會在 {DateTime} 回滿（{TimeDiff} 後）。</value>
+  </data>
+  <data name="Settings.About.Announcement.Dialog" xml:space="preserve">
+    <value>公告對話方塊</value>
+  </data>
+  <data name="Settings.About.Announcement.Save" xml:space="preserve">
+    <value>儲存公告狀態</value>
+  </data>
+  <data name="Settings.About.CheckAnnouncement" xml:space="preserve">
+    <value>查看公告</value>
+  </data>
+  <data name="Settings.About.Dialog.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Settings.About.Dialog.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Settings.About.Dialog.DoNotRemindThisAnnouncementAgain" xml:space="preserve">
+    <value>不再提醒此公告</value>
+  </data>
+  <data name="Settings.About.Dialog.DoNotShowAnnouncement" xml:space="preserve">
+    <value>不顯示公告</value>
+  </data>
+  <data name="Settings.About.Dialog.Title" xml:space="preserve">
+    <value>公告</value>
+  </data>
+  <data name="Settings.About.OpenCommunity" xml:space="preserve">
+    <value>開啟社群入口</value>
+  </data>
+  <data name="Settings.About.OpenDownload" xml:space="preserve">
+    <value>開啟下載頁</value>
+  </data>
+  <data name="Settings.About.OpenOfficialWebsite" xml:space="preserve">
+    <value>開啟官網</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementDialogCancelled" xml:space="preserve">
+    <value>公告彈窗已取消。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementDialogClosed" xml:space="preserve">
+    <value>公告彈窗已關閉。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementFlags" xml:space="preserve">
+    <value>不再提醒={0}; 不顯示={1}</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementInfoEmpty" xml:space="preserve">
+    <value>目前沒有公告內容。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementLoadFailed" xml:space="preserve">
+    <value>公告讀取失敗。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementSaveFailed" xml:space="preserve">
+    <value>公告狀態儲存失敗。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementSaveSucceeded" xml:space="preserve">
+    <value>公告狀態已儲存。</value>
+  </data>
+  <data name="Settings.About.Status.AnnouncementSummary" xml:space="preserve">
+    <value>公告狀態：{0}。{1}</value>
+  </data>
+  <data name="Settings.About.Status.OpenCommunitySucceeded" xml:space="preserve">
+    <value>已開啟社群入口。</value>
+  </data>
+  <data name="Settings.About.Status.OpenDownloadSucceeded" xml:space="preserve">
+    <value>已開啟下載頁。</value>
+  </data>
+  <data name="Settings.About.Status.OpenExternalFailed" xml:space="preserve">
+    <value>外部連結開啟失敗。</value>
+  </data>
+  <data name="Settings.About.Status.OpenOfficialWebsiteSucceeded" xml:space="preserve">
+    <value>已開啟官網。</value>
+  </data>
+  <data name="Settings.Achievement.Backup" xml:space="preserve">
+    <value>備份成就</value>
+  </data>
+  <data name="Settings.Achievement.Dialog" xml:space="preserve">
+    <value>成就對話方塊</value>
+  </data>
+  <data name="Settings.Achievement.Dialog.FilterWatermark" xml:space="preserve">
+    <value>搜尋成就</value>
+  </data>
+  <data name="Settings.Achievement.Dialog.ProgressFormat" xml:space="preserve">
+    <value>進度：{0}</value>
+  </data>
+  <data name="Settings.Achievement.Dialog.Snapshot" xml:space="preserve">
+    <value>成就對話快照</value>
+  </data>
+  <data name="Settings.Achievement.Initialize" xml:space="preserve">
+    <value>初始化成就</value>
+  </data>
+  <data name="Settings.Achievement.LockAll" xml:space="preserve">
+    <value>鎖定全部成就</value>
+  </data>
+  <data name="Settings.Achievement.LockAll.Refresh" xml:space="preserve">
+    <value>鎖定全部後重新整理</value>
+  </data>
+  <data name="Settings.Achievement.OpenGuide" xml:space="preserve">
+    <value>開啟成就指南</value>
+  </data>
+  <data name="Settings.Achievement.PopupAutoClose" xml:space="preserve">
+    <value>成就彈窗自動關閉</value>
+  </data>
+  <data name="Settings.Achievement.PopupDisabled" xml:space="preserve">
+    <value>停用成就彈窗</value>
+  </data>
+  <data name="Settings.Achievement.Refresh" xml:space="preserve">
+    <value>重新整理成就</value>
+  </data>
+  <data name="Settings.Achievement.Refresh.Snapshot" xml:space="preserve">
+    <value>重新整理成就快照</value>
+  </data>
+  <data name="Settings.Achievement.Restore" xml:space="preserve">
+    <value>載入備份</value>
+  </data>
+  <data name="Settings.Achievement.Restore.Refresh" xml:space="preserve">
+    <value>恢復成就後重新整理</value>
+  </data>
+  <data name="Settings.Achievement.Save" xml:space="preserve">
+    <value>儲存成就</value>
+  </data>
+  <data name="Settings.Achievement.Save.Refresh" xml:space="preserve">
+    <value>儲存成就後重新整理</value>
+  </data>
+  <data name="Settings.Achievement.StateChanged" xml:space="preserve">
+    <value>成就狀態已變更</value>
+  </data>
+  <data name="Settings.Achievement.Status.BackupFailed" xml:space="preserve">
+    <value>成就備份失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogCancelled" xml:space="preserve">
+    <value>成就清單彈窗已取消。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogClosed" xml:space="preserve">
+    <value>成就清單彈窗已關閉。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogConfirmed" xml:space="preserve">
+    <value>成就清單彈窗確認完成。</value>
+  </data>
+  <data name="Settings.Achievement.Status.DialogOpenFailed" xml:space="preserve">
+    <value>成就清單彈窗開啟失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.LockAllFailed" xml:space="preserve">
+    <value>批次重置成就失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.LockAllSucceeded" xml:space="preserve">
+    <value>已重置全部成就。</value>
+  </data>
+  <data name="Settings.Achievement.Status.OpenGuideFailed" xml:space="preserve">
+    <value>開啟成就說明失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.OpenGuideSucceeded" xml:space="preserve">
+    <value>已開啟成就說明。</value>
+  </data>
+  <data name="Settings.Achievement.Status.PolicySummary" xml:space="preserve">
+    <value>目前策略：禁用彈窗={0}；自動關閉={1}；已解鎖 {2}/{3}</value>
+  </data>
+  <data name="Settings.Achievement.Status.RefreshFailed" xml:space="preserve">
+    <value>成就設定重新整理失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.RefreshSucceeded" xml:space="preserve">
+    <value>成就設定已重新整理。</value>
+  </data>
+  <data name="Settings.Achievement.Status.RestoreFailed" xml:space="preserve">
+    <value>成就還原失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.SaveFailed" xml:space="preserve">
+    <value>成就設定儲存失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.SaveSucceeded" xml:space="preserve">
+    <value>成就設定儲存成功。</value>
+  </data>
+  <data name="Settings.Achievement.Status.UnlockAllFailed" xml:space="preserve">
+    <value>批次解鎖成就失敗。</value>
+  </data>
+  <data name="Settings.Achievement.Status.UnlockAllSucceeded" xml:space="preserve">
+    <value>已批次解鎖成就。</value>
+  </data>
+  <data name="Settings.Achievement.UnlockAll" xml:space="preserve">
+    <value>解鎖全部成就</value>
+  </data>
+  <data name="Settings.Achievement.UnlockAll.Refresh" xml:space="preserve">
+    <value>全部解鎖後重新整理</value>
+  </data>
+  <data name="Settings.Action.BuildIssueReport" xml:space="preserve">
+    <value>產生支援封包</value>
+  </data>
+  <data name="Settings.Action.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Settings.Action.CheckAnnouncement" xml:space="preserve">
+    <value>查看公告</value>
+  </data>
+  <data name="Settings.Action.CheckVersionUpdate" xml:space="preserve">
+    <value>檢查更新</value>
+  </data>
+  <data name="Settings.Action.ChooseAgain" xml:space="preserve">
+    <value>重新選擇</value>
+  </data>
+  <data name="Settings.Action.ClearImageCache" xml:space="preserve">
+    <value>清除圖片快取</value>
+  </data>
+  <data name="Settings.Action.Close" xml:space="preserve">
+    <value>關閉</value>
+  </data>
+  <data name="Settings.Action.Delete" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="Settings.Action.ImportAnyway" xml:space="preserve">
+    <value>強制匯入</value>
+  </data>
+  <data name="Settings.Action.ImportValidContent" xml:space="preserve">
+    <value>匯入可用內容</value>
+  </data>
+  <data name="Settings.Action.OpenAchievementGuide" xml:space="preserve">
+    <value>開啟成就說明</value>
+  </data>
+  <data name="Settings.Action.OpenCommunity" xml:space="preserve">
+    <value>社群</value>
+  </data>
+  <data name="Settings.Action.OpenDebugDirectory" xml:space="preserve">
+    <value>開啟日誌資料夾</value>
+  </data>
+  <data name="Settings.Action.OpenDownload" xml:space="preserve">
+    <value>下載頁</value>
+  </data>
+  <data name="Settings.Action.OpenOfficial" xml:space="preserve">
+    <value>MAA 官網</value>
+  </data>
+  <data name="Settings.Action.RefreshAchievement" xml:space="preserve">
+    <value>重新整理成就狀態</value>
+  </data>
+  <data name="Settings.Action.RefreshProfiles" xml:space="preserve">
+    <value>重新整理設定檔列表</value>
+  </data>
+  <data name="Settings.Action.RegisterHotkeys" xml:space="preserve">
+    <value>註冊快捷鍵</value>
+  </data>
+  <data name="Settings.Action.SaveAchievement" xml:space="preserve">
+    <value>儲存成就設定</value>
+  </data>
+  <data name="Settings.Action.SaveConnectionGame" xml:space="preserve">
+    <value>儲存連線/遊戲</value>
+  </data>
+  <data name="Settings.Action.SaveGui" xml:space="preserve">
+    <value>儲存介面設定</value>
+  </data>
+  <data name="Settings.Action.SaveNotification" xml:space="preserve">
+    <value>儲存通知設定</value>
+  </data>
+  <data name="Settings.Action.SaveRemote" xml:space="preserve">
+    <value>儲存遠端控制</value>
+  </data>
+  <data name="Settings.Action.SaveStartPerformance" xml:space="preserve">
+    <value>儲存啟動/效能</value>
+  </data>
+  <data name="Settings.Action.SaveTimer" xml:space="preserve">
+    <value>儲存排程設定</value>
+  </data>
+  <data name="Settings.Action.SaveVersionUpdate" xml:space="preserve">
+    <value>儲存更新設定</value>
+  </data>
+  <data name="Settings.Action.ShowAchievement" xml:space="preserve">
+    <value>查看成就</value>
+  </data>
+  <data name="Settings.Action.TestNotification" xml:space="preserve">
+    <value>測試通知發送</value>
+  </data>
+  <data name="Settings.Action.TestRemote" xml:space="preserve">
+    <value>測試連線</value>
+  </data>
+  <data name="Settings.Action.ValidateNotification" xml:space="preserve">
+    <value>驗證通知參數</value>
+  </data>
+  <data name="Settings.Background.BlurRadius" xml:space="preserve">
+    <value>背景模糊半徑</value>
+  </data>
+  <data name="Settings.Background.Dialog.SelectImage" xml:space="preserve">
+    <value>選擇背景圖片</value>
+  </data>
+  <data name="Settings.Background.ImagePath" xml:space="preserve">
+    <value>背景圖片</value>
+  </data>
+  <data name="Settings.Background.Note" xml:space="preserve">
+    <value>背景圖與模糊參數使用與 Windows 相容的設定鍵名。若路徑不存在，本次介面設定儲存將被阻擋。</value>
+  </data>
+  <data name="Settings.Background.Opacity" xml:space="preserve">
+    <value>背景不透明度</value>
+  </data>
+  <data name="Settings.Background.StretchMode" xml:space="preserve">
+    <value>背景填充模式</value>
+  </data>
+  <data name="Settings.ConfigurationManager.AutoSavedCurrent" xml:space="preserve">
+    <value>目前設定檔的變更會自動儲存</value>
+  </data>
+  <data name="Settings.ConfigurationManager.DeleteCurrent" xml:space="preserve">
+    <value>刪除目前設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DamagedFiles" xml:space="preserve">
+    <value>以下檔案已毀損：{0}。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DamagedFilesNoImport" xml:space="preserve">
+    <value>以下檔案已毀損，因此未匯入任何設定檔：{0}。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DeleteMessage" xml:space="preserve">
+    <value>確定要刪除設定檔「{0}」嗎？</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.DeleteTitle" xml:space="preserve">
+    <value>刪除設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ExportAllTitle" xml:space="preserve">
+    <value>匯出全部設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ExportCurrentTitle" xml:space="preserve">
+    <value>匯出目前設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ImportConfigTitle" xml:space="preserve">
+    <value>匯入設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ImportLegacyTitle" xml:space="preserve">
+    <value>匯入舊版設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Dialog.ImportTitle" xml:space="preserve">
+    <value>匯入設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ExportPathEmpty" xml:space="preserve">
+    <value>匯出路徑為空。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportFileNotFound" xml:space="preserve">
+    <value>匯入檔案不存在。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportNoUsableEntries" xml:space="preserve">
+    <value>匯入檔案中未找到可用設定項目。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportNoValidProfile" xml:space="preserve">
+    <value>匯入檔案中未找到有效設定檔。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Error.ImportPathEmpty" xml:space="preserve">
+    <value>匯入路徑為空。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportAll" xml:space="preserve">
+    <value>匯出全部設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportAll.FileNamePrefix" xml:space="preserve">
+    <value>全部設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportCurrent" xml:space="preserve">
+    <value>匯出目前設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ExportCurrent.FileNamePrefix" xml:space="preserve">
+    <value>目前設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import" xml:space="preserve">
+    <value>匯入設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.ContextRefresh" xml:space="preserve">
+    <value>匯入後重新整理列表</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.LegacyFilenameInvalid" xml:space="preserve">
+    <value>舊版設定檔檔名不正確，請選擇 gui.json 或 gui.new.json。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.LegacyInvalidFilesOnly" xml:space="preserve">
+    <value>所選檔案中包含檔名不正確的舊版設定檔。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.LegacyInvalidFilesWithMissing" xml:space="preserve">
+    <value>{0}，且另有檔名不正確的舊版設定檔。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.MissingLegacyParts" xml:space="preserve">
+    <value>請同時選擇 {0}。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.NoFilesSelected" xml:space="preserve">
+    <value>未選擇任何檔案。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.TooManyFiles" xml:space="preserve">
+    <value>舊版匯入最多支援兩個檔案；統一設定 JSON 僅支援單一檔案。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.UnifiedSingleFileOnly" xml:space="preserve">
+    <value>統一設定 JSON 僅支援單一檔案。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Import.UnrecognizedFiles" xml:space="preserve">
+    <value>無法辨識匯入檔案，請選擇匯出的設定 JSON、gui.json 或 gui.new.json。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ImportLegacy" xml:space="preserve">
+    <value>匯入舊版設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ImportLegacy.ContextRefresh" xml:space="preserve">
+    <value>舊版匯入後重新整理列表</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ImportLegacy.PendingConfirmation" xml:space="preserve">
+    <value>等待舊版匯入確認</value>
+  </data>
+  <data name="Settings.ConfigurationManager.NewProfileWatermark" xml:space="preserve">
+    <value>新設定檔名稱</value>
+  </data>
+  <data name="Settings.ConfigurationManager.ProfileName" xml:space="preserve">
+    <value>目前設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.SaveAsNew" xml:space="preserve">
+    <value>另存為新設定檔</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.AddFailed" xml:space="preserve">
+    <value>設定檔新增失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.AddSucceeded" xml:space="preserve">
+    <value>設定檔 `{0}` 已新增。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteFailed" xml:space="preserve">
+    <value>設定檔刪除失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteReloadedCurrent" xml:space="preserve">
+    <value>設定檔 `{0}` 已刪除，已重新載入設定檔 `{1}`。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteSucceeded" xml:space="preserve">
+    <value>設定檔 `{0}` 已刪除。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.DeleteSwitchedCurrent" xml:space="preserve">
+    <value>設定檔 `{0}` 已刪除，已切換至設定檔 `{1}`。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportAllFailed" xml:space="preserve">
+    <value>匯出全部設定檔失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportAllSucceeded" xml:space="preserve">
+    <value>全部設定檔已匯出到 `{0}`。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportCurrentFailed" xml:space="preserve">
+    <value>匯出目前設定檔失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ExportCurrentSucceeded" xml:space="preserve">
+    <value>目前設定檔已匯出到 `{0}`。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ImportFailed" xml:space="preserve">
+    <value>匯入設定檔失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ImportSucceeded" xml:space="preserve">
+    <value>已匯入 {0} 個設定檔。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ImportSucceededWithRename" xml:space="preserve">
+    <value>已匯入 {0} 個設定檔（{1} 個為避免衝突而重新命名）。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveDownFailed" xml:space="preserve">
+    <value>設定檔下移失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveDownSucceeded" xml:space="preserve">
+    <value>設定檔 `{0}` 已下移。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveUpFailed" xml:space="preserve">
+    <value>設定檔上移失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.MoveUpSucceeded" xml:space="preserve">
+    <value>設定檔 `{0}` 已上移。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ProfileListLoadFailed" xml:space="preserve">
+    <value>設定檔清單載入失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.ProfileListSynced" xml:space="preserve">
+    <value>設定檔清單已同步。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SaveCurrentFailed" xml:space="preserve">
+    <value>目前設定檔儲存失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SaveCurrentSucceeded" xml:space="preserve">
+    <value>目前設定檔已儲存。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SwitchFailed" xml:space="preserve">
+    <value>設定檔切換失敗。</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Status.SwitchSucceeded" xml:space="preserve">
+    <value>已切換至設定檔 `{0}`。</value>
+  </data>
+  <data name="Settings.Connect.AdbLiteEnabled" xml:space="preserve">
+    <value>使用 ADB Lite（實驗性功能）</value>
+  </data>
+  <data name="Settings.Connect.AdbPath" xml:space="preserve">
+    <value>ADB 路徑</value>
+  </data>
+  <data name="Settings.Connect.Address" xml:space="preserve">
+    <value>連線位址</value>
+  </data>
+  <data name="Settings.Connect.AddressTip" xml:space="preserve">
+    <value>格式：IP:連接埠，例如 127.0.0.1:5555</value>
+  </data>
+  <data name="Settings.Connect.AllowAdbHardRestart" xml:space="preserve">
+    <value>連線失敗後嘗試重啟 ADB</value>
+  </data>
+  <data name="Settings.Connect.AllowAdbRestart" xml:space="preserve">
+    <value>連線失敗後嘗試重啟 ADB 服務</value>
+  </data>
+  <data name="Settings.Connect.AlwaysAutoDetect" xml:space="preserve">
+    <value>每次重新偵測</value>
+  </data>
+  <data name="Settings.Connect.AttachWindowWarning" xml:space="preserve">
+    <value>附加視窗模式僅支援桌面視窗連線。</value>
+  </data>
+  <data name="Settings.Connect.AutoDetect" xml:space="preserve">
+    <value>自動偵測連線</value>
+  </data>
+  <data name="Settings.Connect.AutoDetectTip" xml:space="preserve">
+    <value>若連線失敗，可關閉自動偵測後手動輸入位址</value>
+  </data>
+  <data name="Settings.Connect.Configuration" xml:space="preserve">
+    <value>連線配置</value>
+  </data>
+  <data name="Settings.Connect.Dialog.ScreenshotPreview" xml:space="preserve">
+    <value>截圖預覽</value>
+  </data>
+  <data name="Settings.Connect.Dialog.SelectAdbPath" xml:space="preserve">
+    <value>選擇 ADB 路徑</value>
+  </data>
+  <data name="Settings.Connect.Error.AutoReplaceUnsupported" xml:space="preserve">
+    <value>目前系統不支援自動替換 ADB。</value>
+  </data>
+  <data name="Settings.Connect.Error.ConnectFailed" xml:space="preserve">
+    <value>連線失敗：{0}</value>
+  </data>
+  <data name="Settings.Connect.Error.ConnectionFailedShort" xml:space="preserve">
+    <value>連線失敗。</value>
+  </data>
+  <data name="Settings.Connect.Error.Details" xml:space="preserve">
+    <value>錯誤詳情：{0}</value>
+  </data>
+  <data name="Settings.Connect.Error.GetImageFailed" xml:space="preserve">
+    <value>截圖失敗</value>
+  </data>
+  <data name="Settings.Connect.Error.ReplaceAdbExtractedNotFound" xml:space="preserve">
+    <value>ADB 替換失敗：找不到解壓後的 adb 可執行檔。</value>
+  </data>
+  <data name="Settings.Connect.Error.ReplaceAdbFailed" xml:space="preserve">
+    <value>替換 ADB 失敗：{0}</value>
+  </data>
+  <data name="Settings.Connect.Error.ScreenshotTestException" xml:space="preserve">
+    <value>截圖測試異常：{0}</value>
+  </data>
+  <data name="Settings.Connect.Error.ScreenshotTestFailed" xml:space="preserve">
+    <value>截圖測試失敗：{0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathDirectoryMissingExecutable" xml:space="preserve">
+    <value>ADB 路徑是資料夾，但資料夾內未找到 adb 可執行檔：{0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathMissingDriveSlash" xml:space="preserve">
+    <value>ADB 路徑格式可能不正確（磁碟代號後缺少斜線）：{0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathNotFound" xml:space="preserve">
+    <value>ADB 路徑不存在：{0}</value>
+  </data>
+  <data name="Settings.Connect.Hint.AdbPathWindowsPathOnNonWindows" xml:space="preserve">
+    <value>目前系統是 {0}，但 ADB 路徑看起來像 Windows 路徑：{1}</value>
+  </data>
+  <data name="Settings.Connect.Hint.ConnectionAddressEmpty" xml:space="preserve">
+    <value>連線位址為空，請填寫「IP:連接埠」後再連線。</value>
+  </data>
+  <data name="Settings.Connect.InstanceId" xml:space="preserve">
+    <value>實例編號</value>
+  </data>
+  <data name="Settings.Connect.KeyboardInput" xml:space="preserve">
+    <value>鍵盤輸入方式</value>
+  </data>
+  <data name="Settings.Connect.KillAdbOnExit" xml:space="preserve">
+    <value>退出時釋放 ADB</value>
+  </data>
+  <data name="Settings.Connect.LdPlayer.EmulatorPath" xml:space="preserve">
+    <value>LDPlayer 模擬器路徑</value>
+  </data>
+  <data name="Settings.Connect.LdPlayer.EnableExtras" xml:space="preserve">
+    <value>啟用 LDPlayer Extras</value>
+  </data>
+  <data name="Settings.Connect.LdPlayer.ManualSetIndex" xml:space="preserve">
+    <value>手動設定實例編號</value>
+  </data>
+  <data name="Settings.Connect.MouseInput" xml:space="preserve">
+    <value>滑鼠輸入方式</value>
+  </data>
+  <data name="Settings.Connect.MuMu.BridgeConnection" xml:space="preserve">
+    <value>MuMu 網路橋接模式</value>
+  </data>
+  <data name="Settings.Connect.MuMu.EmulatorPath" xml:space="preserve">
+    <value>MuMu12 模擬器路徑</value>
+  </data>
+  <data name="Settings.Connect.MuMu.EnableExtras" xml:space="preserve">
+    <value>啟用 MuMu Extras</value>
+  </data>
+  <data name="Settings.Connect.ReplaceAdb" xml:space="preserve">
+    <value>強制替換 ADB</value>
+  </data>
+  <data name="Settings.Connect.ScreencapMethod" xml:space="preserve">
+    <value>截圖方式</value>
+  </data>
+  <data name="Settings.Connect.ScreenshotTest" xml:space="preserve">
+    <value>截圖測試</value>
+  </data>
+  <data name="Settings.Connect.Status.ConnectingEmulator" xml:space="preserve">
+    <value>正在連線模擬器...</value>
+  </data>
+  <data name="Settings.Connect.Status.DownloadingAdb" xml:space="preserve">
+    <value>正在下載 ADB...</value>
+  </data>
+  <data name="Settings.Connect.Status.ReplacedAdb" xml:space="preserve">
+    <value>已替換 ADB：{0}</value>
+  </data>
+  <data name="Settings.Connect.Status.ScreencapCost" xml:space="preserve">
+    <value>截圖耗時 min/avg/max(ms): {0} / {1} / {2} ({3})</value>
+  </data>
+  <data name="Settings.Connect.TouchMode" xml:space="preserve">
+    <value>觸控模式</value>
+  </data>
+  <data name="Settings.ExternalNotification.DefaultMessage" xml:space="preserve">
+    <value>這是 MAA 外部通知測試訊息。若你看見這段內容，代表通知發送成功。</value>
+  </data>
+  <data name="Settings.ExternalNotification.DefaultTitle" xml:space="preserve">
+    <value>MAA 外部通知測試</value>
+  </data>
+  <data name="Settings.ExternalNotification.EnableDetails" xml:space="preserve">
+    <value>輸出詳細資訊</value>
+  </data>
+  <data name="Settings.ExternalNotification.Enabled" xml:space="preserve">
+    <value>啟用的通知配置</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.InvalidParameters" xml:space="preserve">
+    <value>外部通知參數錯誤：{0} ({1})</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.NetworkFailure" xml:space="preserve">
+    <value>外部通知網路錯誤：{0} ({1})</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.ParameterFormatLine" xml:space="preserve">
+    <value>參數格式錯誤（第 {0} 行），應為 key=value：`{1}`</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.ParameterKeyEmpty" xml:space="preserve">
+    <value>參數格式錯誤（第 {0} 行），key 不能為空。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.ParseFailed" xml:space="preserve">
+    <value>解析通知服務參數失敗。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Error.Unsupported" xml:space="preserve">
+    <value>目前環境不支援此外部通知能力：{0} ({1})</value>
+  </data>
+  <data name="Settings.ExternalNotification.OnlyCompleteNote" xml:space="preserve">
+    <value>注意：外部通知功能預設僅在任務完成時發送摘要通知，可依需求啟用錯誤與逾時通知。</value>
+  </data>
+  <data name="Settings.ExternalNotification.ProviderParameters" xml:space="preserve">
+    <value>通知服務參數</value>
+  </data>
+  <data name="Settings.ExternalNotification.ProviderParametersNote" xml:space="preserve">
+    <value>請依通知服務文件填寫 JSON 參數。</value>
+  </data>
+  <data name="Settings.ExternalNotification.SendWhenComplete" xml:space="preserve">
+    <value>任務完成後發送通知</value>
+  </data>
+  <data name="Settings.ExternalNotification.SendWhenError" xml:space="preserve">
+    <value>任務出錯時發送通知</value>
+  </data>
+  <data name="Settings.ExternalNotification.SendWhenTimeout" xml:space="preserve">
+    <value>任務逾時時發送通知</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.OperationFailed" xml:space="preserve">
+    <value>外部通知操作失敗。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.PreparedUpdates" xml:space="preserve">
+    <value>已準備外部通知參數更新。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.SaveSucceeded" xml:space="preserve">
+    <value>外部通知設定儲存成功。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.TestSucceeded" xml:space="preserve">
+    <value>Provider `{0}` 測試通知發送成功。</value>
+  </data>
+  <data name="Settings.ExternalNotification.Status.ValidateSucceeded" xml:space="preserve">
+    <value>Provider `{0}` 參數驗證通過。</value>
+  </data>
+  <data name="Settings.ExternalNotification.TestMessage" xml:space="preserve">
+    <value>測試通知內容</value>
+  </data>
+  <data name="Settings.ExternalNotification.TestSend" xml:space="preserve">
+    <value>發送測試</value>
+  </data>
+  <data name="Settings.ExternalNotification.TestTitle" xml:space="preserve">
+    <value>測試通知標題</value>
+  </data>
+  <data name="Settings.GUI.InverseClearMode" xml:space="preserve">
+    <value>主畫面按鈕功能</value>
+  </data>
+  <data name="Settings.GUI.Language" xml:space="preserve">
+    <value>語言</value>
+  </data>
+  <data name="Settings.GUI.LogItemDateFormat" xml:space="preserve">
+    <value>日期格式字串</value>
+  </data>
+  <data name="Settings.GUI.LogItemDateFormat.PreviewCaption" xml:space="preserve">
+    <value>預覽</value>
+  </data>
+  <data name="Settings.GUI.MinimizeToTray" xml:space="preserve">
+    <value>最小化時隱藏到托盤</value>
+  </data>
+  <data name="Settings.GUI.Note" xml:space="preserve">
+    <value>隱藏與選單行為保持與 Windows 用戶端一致。已啟用 GUI 自動儲存。</value>
+  </data>
+  <data name="Settings.GUI.OperNameLanguage" xml:space="preserve">
+    <value>幹員名稱顯示語言</value>
+  </data>
+  <data name="Settings.GUI.Theme" xml:space="preserve">
+    <value>介面主題</value>
+  </data>
+  <data name="Settings.GUI.UseSoftwareRendering" xml:space="preserve">
+    <value>使用軟體渲染</value>
+  </data>
+  <data name="Settings.GUI.UseTray" xml:space="preserve">
+    <value>顯示托盤圖示</value>
+  </data>
+  <data name="Settings.GUI.WindowTitleScrollable" xml:space="preserve">
+    <value>視窗標題滾動</value>
+  </data>
+  <data name="Settings.Game.BlockSleep" xml:space="preserve">
+    <value>執行任務時阻止休眠</value>
+  </data>
+  <data name="Settings.Game.BlockSleepWithScreenOn" xml:space="preserve">
+    <value>阻止休眠時保持螢幕常亮</value>
+  </data>
+  <data name="Settings.Game.ClientType" xml:space="preserve">
+    <value>用戶端類型</value>
+  </data>
+  <data name="Settings.Game.DeploymentWithPause" xml:space="preserve">
+    <value>暫停下幹員（自動戰鬥相關）（不穩定，暫不推薦開啟）</value>
+  </data>
+  <data name="Settings.Game.EnablePenguin" xml:space="preserve">
+    <value>回報企鵝物流</value>
+  </data>
+  <data name="Settings.Game.EnableYituliu" xml:space="preserve">
+    <value>回報一圖流</value>
+  </data>
+  <data name="Settings.Game.EndsWithScript" xml:space="preserve">
+    <value>結束後腳本</value>
+  </data>
+  <data name="Settings.Game.EndsWithScriptTip" xml:space="preserve">
+    <value>任務結束後執行</value>
+  </data>
+  <data name="Settings.Game.PenguinId" xml:space="preserve">
+    <value>企鵝物流回報 ID（僅數字部分）</value>
+  </data>
+  <data name="Settings.Game.ReminderIntervalMinutes" xml:space="preserve">
+    <value>提醒間隔時間（分鐘）</value>
+  </data>
+  <data name="Settings.Game.StartsWithScript" xml:space="preserve">
+    <value>開始前腳本</value>
+  </data>
+  <data name="Settings.Game.StartsWithScriptTip" xml:space="preserve">
+    <value>任務開始前執行</value>
+  </data>
+  <data name="Settings.Game.TaskTimeoutMinutes" xml:space="preserve">
+    <value>任務逾時時間（分鐘）</value>
+  </data>
+  <data name="Settings.Game.UseScriptOnCopilot" xml:space="preserve">
+    <value>自動戰鬥時啟用上述腳本</value>
+  </data>
+  <data name="Settings.Game.UseScriptOnManualStop" xml:space="preserve">
+    <value>手動暫停時啟用上述腳本</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Capturing" xml:space="preserve">
+    <value>等待錄入...</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Error.RequireModifier" xml:space="preserve">
+    <value>至少需要一個修飾鍵。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Error.UnsupportedKey" xml:space="preserve">
+    <value>暫不支援該按鍵：{0}</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Guide" xml:space="preserve">
+    <value>錄入規則：至少按下一個修飾鍵與一個普通鍵才會提交；Esc 取消；Backspace/Delete 清空綁定。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Prompt" xml:space="preserve">
+    <value>請按下快捷鍵...</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.ReRecord" xml:space="preserve">
+    <value>重新錄入</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Record" xml:space="preserve">
+    <value>錄入</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Status.Cancelled" xml:space="preserve">
+    <value>已取消錄入。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Status.ClearedPending" xml:space="preserve">
+    <value>已清空綁定，點擊「註冊熱鍵」後生效。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Status.UpdatedPending" xml:space="preserve">
+    <value>已更新快捷鍵，點擊「註冊熱鍵」後生效。</value>
+  </data>
+  <data name="Settings.Hotkey.Capture.Unbound" xml:space="preserve">
+    <value>未綁定</value>
+  </data>
+  <data name="Settings.Hotkey.Error.PersistenceFailed" xml:space="preserve">
+    <value>熱鍵已更新，但持久化失敗：{0}</value>
+  </data>
+  <data name="Settings.Hotkey.Scope.Global" xml:space="preserve">
+    <value>全域</value>
+  </data>
+  <data name="Settings.Hotkey.Scope.Unsupported" xml:space="preserve">
+    <value>不支援</value>
+  </data>
+  <data name="Settings.Hotkey.Scope.WindowScoped" xml:space="preserve">
+    <value>視窗級</value>
+  </data>
+  <data name="Settings.Hotkey.Source.Manual" xml:space="preserve">
+    <value>手動註冊</value>
+  </data>
+  <data name="Settings.Hotkey.Source.Startup" xml:space="preserve">
+    <value>啟動自動註冊</value>
+  </data>
+  <data name="Settings.Hotkey.Status.AppliedAll" xml:space="preserve">
+    <value>{0}: 已套用 {1} 個熱鍵。</value>
+  </data>
+  <data name="Settings.Hotkey.Status.AppliedPartial" xml:space="preserve">
+    <value>{0}: 已套用 {1}/{2} 個熱鍵。</value>
+  </data>
+  <data name="Settings.Hotkey.Status.PersistenceFailed" xml:space="preserve">
+    <value>{0}: 熱鍵已更新，但持久化失敗。</value>
+  </data>
+  <data name="Settings.Hotkey.Status.RegisterFailed" xml:space="preserve">
+    <value>{0}: 熱鍵註冊失敗。</value>
+  </data>
+  <data name="Settings.Hotkey.Title.LinkStart" xml:space="preserve">
+    <value>[熱鍵] Link start/stop</value>
+  </data>
+  <data name="Settings.Hotkey.Title.ShowGui" xml:space="preserve">
+    <value>[熱鍵] 顯示/收起 MAA</value>
+  </data>
+  <data name="Settings.IssueReport.Build" xml:space="preserve">
+    <value>產生問題報告</value>
+  </data>
+  <data name="Settings.IssueReport.ClearImageCache" xml:space="preserve">
+    <value>清除圖片快取</value>
+  </data>
+  <data name="Settings.IssueReport.DeveloperMode" xml:space="preserve">
+    <value>開發者模式</value>
+  </data>
+  <data name="Settings.IssueReport.DeveloperModeNote" xml:space="preserve">
+    <value>啟用後會顯示除錯操作，僅建議排障時使用。</value>
+  </data>
+  <data name="Settings.IssueReport.Faq" xml:space="preserve">
+    <value>常見問題</value>
+  </data>
+  <data name="Settings.IssueReport.IssueEntry" xml:space="preserve">
+    <value>問題回報入口</value>
+  </data>
+  <data name="Settings.IssueReport.OpenDebugDirectory" xml:space="preserve">
+    <value>開啟偵錯目錄</value>
+  </data>
+  <data name="Settings.IssueReport.OpenEntry" xml:space="preserve">
+    <value>開啟回報入口</value>
+  </data>
+  <data name="Settings.IssueReport.OpenHelp" xml:space="preserve">
+    <value>開啟說明文件</value>
+  </data>
+  <data name="Settings.IssueReport.OpenRuntimeLogWindow" xml:space="preserve">
+    <value>開啟執行日誌視窗</value>
+  </data>
+  <data name="Settings.IssueReport.PreflightNote" xml:space="preserve">
+    <value>提交回報前請先閱讀 FAQ，附上日誌壓縮包可更快定位問題。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.BuildFailed" xml:space="preserve">
+    <value>生成支援包失敗。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.BuildSucceeded" xml:space="preserve">
+    <value>支援包已生成：{0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheAlreadyEmpty" xml:space="preserve">
+    <value>圖像快取目錄為空：{0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheClearFailed" xml:space="preserve">
+    <value>清理圖像快取失敗。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheClearFailedWithReason" xml:space="preserve">
+    <value>清理圖像快取失敗：{0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.ImageCacheCleared" xml:space="preserve">
+    <value>圖像快取已清理：檔案 {0} 個，目錄 {1} 個。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenDebugDirectoryFailed" xml:space="preserve">
+    <value>開啟 debug 目錄失敗。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenDebugDirectorySucceeded" xml:space="preserve">
+    <value>已開啟目錄：{0}</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenEntryFailed" xml:space="preserve">
+    <value>開啟 Issue 入口失敗。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenEntrySucceeded" xml:space="preserve">
+    <value>已開啟 Issue 入口。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenHelpFailed" xml:space="preserve">
+    <value>開啟說明文件失敗。</value>
+  </data>
+  <data name="Settings.IssueReport.Status.OpenHelpSucceeded" xml:space="preserve">
+    <value>已開啟說明文件。</value>
+  </data>
+  <data name="Settings.Performance.Gpu.CustomDescription" xml:space="preserve">
+    <value>GPU 描述</value>
+  </data>
+  <data name="Settings.Performance.Gpu.CustomInstancePath" xml:space="preserve">
+    <value>GPU 執行個體路徑</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Option.Disabled" xml:space="preserve">
+    <value>不使用</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartRequired" xml:space="preserve">
+    <value>修改後通常需要重新啟動應用程式才會生效。</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Select" xml:space="preserve">
+    <value>GPU 選擇</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Status.Unsupported" xml:space="preserve">
+    <value>目前平台暫不支援 GPU OCR，僅 Windows 版本會套用此設定。</value>
+  </data>
+  <data name="Settings.RemoteControl.DeviceIdentity" xml:space="preserve">
+    <value>裝置 ID</value>
+  </data>
+  <data name="Settings.RemoteControl.DeviceIdentityWatermark" xml:space="preserve">
+    <value>例如：workstation-a</value>
+  </data>
+  <data name="Settings.RemoteControl.Error.InvalidParameters" xml:space="preserve">
+    <value>遠端控制參數錯誤：{0} ({1})</value>
+  </data>
+  <data name="Settings.RemoteControl.Error.NetworkFailure" xml:space="preserve">
+    <value>遠端控制連線檢查失敗：{0} ({1})</value>
+  </data>
+  <data name="Settings.RemoteControl.Error.Unsupported" xml:space="preserve">
+    <value>目前環境不支援遠端控制連線測試：{0} ({1})</value>
+  </data>
+  <data name="Settings.RemoteControl.GetTaskEndpoint" xml:space="preserve">
+    <value>取得任務端點 (GET)</value>
+  </data>
+  <data name="Settings.RemoteControl.GetTaskEndpointWatermark" xml:space="preserve">
+    <value>https://example.com/api/task/get</value>
+  </data>
+  <data name="Settings.RemoteControl.PollIntervalMs" xml:space="preserve">
+    <value>輪詢間隔 (ms)</value>
+  </data>
+  <data name="Settings.RemoteControl.ReportTaskEndpoint" xml:space="preserve">
+    <value>回報任務端點 (REPORT)</value>
+  </data>
+  <data name="Settings.RemoteControl.ReportTaskEndpointWatermark" xml:space="preserve">
+    <value>https://example.com/api/task/report</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.SaveFailed" xml:space="preserve">
+    <value>遠端控制設定儲存失敗。</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.SaveSucceeded" xml:space="preserve">
+    <value>遠端控制設定儲存成功。</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.TestFailed" xml:space="preserve">
+    <value>連線測試失敗。</value>
+  </data>
+  <data name="Settings.RemoteControl.Status.TestSucceeded" xml:space="preserve">
+    <value>連線測試成功！{0}</value>
+  </data>
+  <data name="Settings.RemoteControl.UserIdentity" xml:space="preserve">
+    <value>使用者 ID</value>
+  </data>
+  <data name="Settings.RemoteControl.UserIdentityWatermark" xml:space="preserve">
+    <value>例如：doctor-001</value>
+  </data>
+  <data name="Settings.RemoteControl.Warning" xml:space="preserve">
+    <value>注意：隨意輸入未知來源的位址可能會導致您的帳號遭受損失。</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.BatchEmpty" xml:space="preserve">
+    <value>未提供任何設定項。</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.ProfileMissing" xml:space="preserve">
+    <value>目前設定檔 `{0}` 不存在。</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.SaveFailed" xml:space="preserve">
+    <value>儲存設定失敗：{0}</value>
+  </data>
+  <data name="Settings.SaveScoped.Error.SettingKeyMissing" xml:space="preserve">
+    <value>設定項鍵名不能為空。</value>
+  </data>
+  <data name="Settings.SaveScoped.Status.BatchSavedSummary" xml:space="preserve">
+    <value>設定批次儲存完成：全域={0}，設定檔={1}</value>
+  </data>
+  <data name="Settings.SaveScoped.Status.SavedCount" xml:space="preserve">
+    <value>已儲存 {0} 個設定項。</value>
+  </data>
+  <data name="Settings.Section.About" xml:space="preserve">
+    <value>關於我們</value>
+  </data>
+  <data name="Settings.Section.Achievement" xml:space="preserve">
+    <value>成就設定</value>
+  </data>
+  <data name="Settings.Section.Background" xml:space="preserve">
+    <value>背景設定</value>
+  </data>
+  <data name="Settings.Section.ConfigurationManager" xml:space="preserve">
+    <value>切換設定</value>
+  </data>
+  <data name="Settings.Section.Connect" xml:space="preserve">
+    <value>連線設定</value>
+  </data>
+  <data name="Settings.Section.ExternalNotification" xml:space="preserve">
+    <value>外部通知</value>
+  </data>
+  <data name="Settings.Section.GUI" xml:space="preserve">
+    <value>介面設定</value>
+  </data>
+  <data name="Settings.Section.Game" xml:space="preserve">
+    <value>遊戲設定</value>
+  </data>
+  <data name="Settings.Section.HotKey" xml:space="preserve">
+    <value>快捷鍵設定</value>
+  </data>
+  <data name="Settings.Section.IssueReport" xml:space="preserve">
+    <value>問題回報</value>
+  </data>
+  <data name="Settings.Section.Performance" xml:space="preserve">
+    <value>效能設定</value>
+  </data>
+  <data name="Settings.Section.RemoteControl" xml:space="preserve">
+    <value>遠端控制</value>
+  </data>
+  <data name="Settings.Section.Start" xml:space="preserve">
+    <value>啟動設定</value>
+  </data>
+  <data name="Settings.Section.Timer" xml:space="preserve">
+    <value>排程執行</value>
+  </data>
+  <data name="Settings.Section.VersionUpdate" xml:space="preserve">
+    <value>更新設定</value>
+  </data>
+  <data name="Settings.Start.ApplyOnNextExecution" xml:space="preserve">
+    <value>將在下次執行時生效</value>
+  </data>
+  <data name="Settings.Start.ApplyOnNextLaunch" xml:space="preserve">
+    <value>將在下次啟動時生效</value>
+  </data>
+  <data name="Settings.Start.AutoOpenEmulator" xml:space="preserve">
+    <value>自動啟動模擬器</value>
+  </data>
+  <data name="Settings.Start.AutoStartMaa" xml:space="preserve">
+    <value>開機自動啟動 MAA</value>
+  </data>
+  <data name="Settings.Start.AutoStartMaaTip" xml:space="preserve">
+    <value>僅在系統支援開機自啟時生效</value>
+  </data>
+  <data name="Settings.Start.Dialog.SelectEmulatorPathCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Settings.Start.Dialog.SelectEmulatorPathConfirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Settings.Start.Dialog.SelectEmulatorPathTitle" xml:space="preserve">
+    <value>選擇模擬器路徑</value>
+  </data>
+  <data name="Settings.Start.EmulatorExtraArgs" xml:space="preserve">
+    <value>模擬器額外參數</value>
+  </data>
+  <data name="Settings.Start.EmulatorExtraArgsTip" xml:space="preserve">
+    <value>傳遞給模擬器啟動命令的參數</value>
+  </data>
+  <data name="Settings.Start.EmulatorPath" xml:space="preserve">
+    <value>模擬器路徑</value>
+  </data>
+  <data name="Settings.Start.EmulatorPathTip" xml:space="preserve">
+    <value>啟動模擬器時使用此路徑</value>
+  </data>
+  <data name="Settings.Start.EmulatorWaitSeconds" xml:space="preserve">
+    <value>啟動等待秒數</value>
+  </data>
+  <data name="Settings.Start.EmulatorWaitSecondsNote" xml:space="preserve">
+    <value>用於等待模擬器完全啟動後再連線</value>
+  </data>
+  <data name="Settings.Start.MinimizeDirectly" xml:space="preserve">
+    <value>啟動後直接最小化</value>
+  </data>
+  <data name="Settings.Start.RetryOnDisconnected" xml:space="preserve">
+    <value>連線中斷後重試</value>
+  </data>
+  <data name="Settings.Start.RetryOnDisconnectedTip" xml:space="preserve">
+    <value>建議搭配自動偵測連線位址使用</value>
+  </data>
+  <data name="Settings.Start.RunDirectly" xml:space="preserve">
+    <value>啟動後自動開始任務</value>
+  </data>
+  <data name="Settings.Start.SelectButton" xml:space="preserve">
+    <value>選擇</value>
+  </data>
+  <data name="Settings.Start.Status.EmulatorPathSelectionCancelled" xml:space="preserve">
+    <value>模擬器路徑選擇已取消。</value>
+  </data>
+  <data name="Settings.Start.Status.EmulatorPathSelectionClosed" xml:space="preserve">
+    <value>模擬器路徑選擇對話方塊已關閉。</value>
+  </data>
+  <data name="Settings.Start.Status.EmulatorPathUpdated" xml:space="preserve">
+    <value>模擬器路徑已更新：{0}</value>
+  </data>
+  <data name="Settings.StartPerformance.Normalize" xml:space="preserve">
+    <value>重設啟動/效能設定</value>
+  </data>
+  <data name="Settings.StartPerformance.Status.SyncCoreInstanceOptionsFailed" xml:space="preserve">
+    <value>同步核心執行個體設定失敗：{0} {1}</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.EmulatorPathNotFound" xml:space="preserve">
+    <value>模擬器路徑不存在：{0}</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.EmulatorPathRequired" xml:space="preserve">
+    <value>啟用自動啟動模擬器時必須設定模擬器路徑。</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.EmulatorWaitSecondsOutOfRange" xml:space="preserve">
+    <value>模擬器等待秒數必須在 {0}-{1} 範圍內。</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.GpuFallbackApplied" xml:space="preserve">
+    <value>目前平台不支援 GPU OCR，已移除不相容 GPU 設定並回退為 CPU OCR。</value>
+  </data>
+  <data name="Settings.StartPerformance.Validation.Passed" xml:space="preserve">
+    <value>啟動/效能設定驗證通過。</value>
+  </data>
+  <data name="Settings.State.Saved" xml:space="preserve">
+    <value>已儲存</value>
+  </data>
+  <data name="Settings.State.Saving" xml:space="preserve">
+    <value>儲存中...</value>
+  </data>
+  <data name="Settings.Timer.CustomConfig" xml:space="preserve">
+    <value>自定義配置選擇</value>
+  </data>
+  <data name="Settings.Timer.ForceScheduledStart" xml:space="preserve">
+    <value>強制定時啟動</value>
+  </data>
+  <data name="Settings.Timer.ShowWindowBeforeForceScheduledStart" xml:space="preserve">
+    <value>強制定時啟動前顯示視窗</value>
+  </data>
+  <data name="Settings.Timer.SlotLabel" xml:space="preserve">
+    <value>定時任務</value>
+  </data>
+  <data name="Settings.VersionUpdate.AutoDownload" xml:space="preserve">
+    <value>自動下載更新包</value>
+  </data>
+  <data name="Settings.VersionUpdate.AutoInstall" xml:space="preserve">
+    <value>自動安裝更新包</value>
+  </data>
+  <data name="Settings.VersionUpdate.Changelog" xml:space="preserve">
+    <value>更新日誌</value>
+  </data>
+  <data name="Settings.VersionUpdate.Channel" xml:space="preserve">
+    <value>更新通道</value>
+  </data>
+  <data name="Settings.VersionUpdate.Copy" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="Settings.VersionUpdate.Dialog.Cancel" xml:space="preserve">
+    <value>稍後</value>
+  </data>
+  <data name="Settings.VersionUpdate.Dialog.Confirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Settings.VersionUpdate.Dialog.Title" xml:space="preserve">
+    <value>版本更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.ForceGithub" xml:space="preserve">
+    <value>強制使用 GitHub</value>
+  </data>
+  <data name="Settings.VersionUpdate.MirrorCdk" xml:space="preserve">
+    <value>Mirror醬 CDK</value>
+  </data>
+  <data name="Settings.VersionUpdate.MirrorSite" xml:space="preserve">
+    <value>Mirror醬</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelBuildTime" xml:space="preserve">
+    <value>建置時間</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelCoreVersion" xml:space="preserve">
+    <value>核心版本</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelResourceTime" xml:space="preserve">
+    <value>資源時間</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelResourceVersion" xml:space="preserve">
+    <value>資源版本</value>
+  </data>
+  <data name="Settings.VersionUpdate.PanelUiVersion" xml:space="preserve">
+    <value>UI 版本</value>
+  </data>
+  <data name="Settings.VersionUpdate.ProxyAddress" xml:space="preserve">
+    <value>代理位址</value>
+  </data>
+  <data name="Settings.VersionUpdate.ProxyAddressWatermark" xml:space="preserve">
+    <value>&lt;IP&gt;:&lt;Port&gt;</value>
+  </data>
+  <data name="Settings.VersionUpdate.ProxyType" xml:space="preserve">
+    <value>代理類型</value>
+  </data>
+  <data name="Settings.VersionUpdate.ResourceApi" xml:space="preserve">
+    <value>資源 API</value>
+  </data>
+  <data name="Settings.VersionUpdate.ResourceRepository" xml:space="preserve">
+    <value>資源倉庫</value>
+  </data>
+  <data name="Settings.VersionUpdate.ResourceUpdate" xml:space="preserve">
+    <value>資源更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.ScheduledCheck" xml:space="preserve">
+    <value>定時檢查更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwareUpdate" xml:space="preserve">
+    <value>軟體更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.Source" xml:space="preserve">
+    <value>更新來源</value>
+  </data>
+  <data name="Settings.VersionUpdate.StartupCheck" xml:space="preserve">
+    <value>啟動時檢查更新</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.CheckFailed" xml:space="preserve">
+    <value>檢查更新失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.DialogCancelled" xml:space="preserve">
+    <value>版本更新對話方塊已取消。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.DialogClosed" xml:space="preserve">
+    <value>版本更新對話方塊已關閉。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.DialogConfirmed" xml:space="preserve">
+    <value>版本更新對話方塊確認完成。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.MirrorCdkExpired" xml:space="preserve">
+    <value>MirrorChyan CDK 已過期。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.MirrorCdkExpiredAt" xml:space="preserve">
+    <value>MirrorChyan CDK 已過期（{0:yyyy-MM-dd HH:mm}）。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.MirrorCdkRemainingDays" xml:space="preserve">
+    <value>MirrorChyan CDK 剩餘 {0:F1} 天（至 {1:yyyy-MM-dd HH:mm}）。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenChangelogFailed" xml:space="preserve">
+    <value>開啟更新日誌失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenChangelogSucceeded" xml:space="preserve">
+    <value>已開啟更新日誌。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenMirrorChyanFailed" xml:space="preserve">
+    <value>開啟 MirrorChyan 失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenMirrorChyanSucceeded" xml:space="preserve">
+    <value>已開啟 MirrorChyan。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenResourceRepositoryFailed" xml:space="preserve">
+    <value>開啟資源倉庫失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.OpenResourceRepositorySucceeded" xml:space="preserve">
+    <value>已開啟資源倉庫。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.PersistFailed" xml:space="preserve">
+    <value>版本更新結果已刷新，但儲存到設定失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.PersistFailedSuffix" xml:space="preserve">
+    <value>結果儲存失敗</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.ResourceUpdateFailed" xml:space="preserve">
+    <value>更新資源失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveChannelFailed" xml:space="preserve">
+    <value>版本更新通道設定儲存失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveChannelSucceeded" xml:space="preserve">
+    <value>版本更新通道設定儲存成功。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveProxyFailed" xml:space="preserve">
+    <value>版本更新代理設定儲存失敗。</value>
+  </data>
+  <data name="Settings.VersionUpdate.Status.SaveProxySucceeded" xml:space="preserve">
+    <value>版本更新代理設定儲存成功。</value>
+  </data>
+  <data name="SlowAndSteadyWinsTheRace" xml:space="preserve">
+    <value>穩紮穩打（重裝、術師、狙擊）</value>
+  </data>
+  <data name="StartUp.AccountName" xml:space="preserve">
+    <value>帳號</value>
+  </data>
+  <data name="StartUp.AccountSwitch" xml:space="preserve">
+    <value>帳號切換</value>
+  </data>
+  <data name="StartUp.AccountSwitchManualRun" xml:space="preserve">
+    <value>立即切換</value>
+  </data>
+  <data name="StartUp.AccountSwitchTip" xml:space="preserve">
+    <value>需要切換到的帳號，留空以停用。
+輸入登入介面顯示的內容，如 ｢123****4567｣，可輸入 ｢123****4567｣ 或 ｢4567｣ 或 ｢23****45｣
+僅支援官服、B服，不支援登入帳號。</value>
+  </data>
+  <data name="StartUp.AdbPath" xml:space="preserve">
+    <value>ADB 路徑</value>
+  </data>
+  <data name="StartUp.AttachKeyboard" xml:space="preserve">
+    <value>AttachWindow-鍵盤</value>
+  </data>
+  <data name="StartUp.AttachMouse" xml:space="preserve">
+    <value>AttachWindow-觸控</value>
+  </data>
+  <data name="StartUp.AttachScreencap" xml:space="preserve">
+    <value>AttachWindow-截圖</value>
+  </data>
+  <data name="StartUp.AutoDetect" xml:space="preserve">
+    <value>自動偵測連線</value>
+  </data>
+  <data name="StartUp.AutoDetectConnectionTip" xml:space="preserve">
+    <value>每次偵測完成後會自動取消勾選，若需要重新偵測可再次勾選</value>
+  </data>
+  <data name="StartUp.ClientType" xml:space="preserve">
+    <value>客戶端</value>
+  </data>
+  <data name="StartUp.ConnectAddress" xml:space="preserve">
+    <value>連線位址</value>
+  </data>
+  <data name="StartUp.ConnectConfig" xml:space="preserve">
+    <value>連線預設</value>
+  </data>
+  <data name="StartUp.ConnectionAddressTip" xml:space="preserve">
+    <value>若遇到問題可嘗試手動修改</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.PostWithCursor" xml:space="preserve">
+    <value>PostMsg-CursorPos（半背景，短暫搶滑鼠）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.PostWithWindowPos" xml:space="preserve">
+    <value>PostMsg-WindowPos（全背景，不搶滑鼠，視窗可能亂飛但不影響使用，建議最小化）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.Seize" xml:space="preserve">
+    <value>Seize（前台，完全搶滑鼠）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.SendWithCursor" xml:space="preserve">
+    <value>SendMsg-CursorPos（半背景，短暫搶滑鼠）</value>
+  </data>
+  <data name="StartUp.Option.AttachInput.SendWithWindowPos" xml:space="preserve">
+    <value>SendMsg-WindowPos（全背景，不搶滑鼠，視窗可能亂飛但不影響使用，建議最小化）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.DesktopWindow" xml:space="preserve">
+    <value>DesktopWindow（前台，不可遮擋）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.FramePool" xml:space="preserve">
+    <value>FramePool（背景，高效，可最小化）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.PrintWindow" xml:space="preserve">
+    <value>PrintWindow（背景，穩定，可最小化）</value>
+  </data>
+  <data name="StartUp.Option.AttachScreencap.ScreenDC" xml:space="preserve">
+    <value>ScreenDC（背景，備用，不可最小化）</value>
+  </data>
+  <data name="StartUp.Option.ClientType.Bilibili" xml:space="preserve">
+    <value>Bilibili 服</value>
+  </data>
+  <data name="StartUp.Option.ClientType.Official" xml:space="preserve">
+    <value>官服</value>
+  </data>
+  <data name="StartUp.Option.ClientType.Txwy" xml:space="preserve">
+    <value>繁中服 (txwy)</value>
+  </data>
+  <data name="StartUp.Option.ClientType.YoStarEN" xml:space="preserve">
+    <value>國際服 (YostarEN)</value>
+  </data>
+  <data name="StartUp.Option.ClientType.YoStarJP" xml:space="preserve">
+    <value>日服 (YostarJP)</value>
+  </data>
+  <data name="StartUp.Option.ClientType.YoStarKR" xml:space="preserve">
+    <value>韓服 (YostarKR)</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.BlueStacks" xml:space="preserve">
+    <value>藍疊模擬器</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.Compatible" xml:space="preserve">
+    <value>相容模式</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.General" xml:space="preserve">
+    <value>通用模式</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.GeneralWithoutScreencapErr" xml:space="preserve">
+    <value>通用模式（阻擋異常輸出）</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.LDPlayer" xml:space="preserve">
+    <value>雷電模擬器</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.MuMuEmulator12" xml:space="preserve">
+    <value>MuMu 模擬器 12</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.Nox" xml:space="preserve">
+    <value>夜神模擬器</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.PC" xml:space="preserve">
+    <value>PC 端</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.SecondResolution" xml:space="preserve">
+    <value>第二解析度</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.WSA" xml:space="preserve">
+    <value>WSA 舊版本</value>
+  </data>
+  <data name="StartUp.Option.ConnectConfig.XYAZ" xml:space="preserve">
+    <value>逍遙模擬器</value>
+  </data>
+  <data name="StartUp.Option.TouchMode.AdbTouch" xml:space="preserve">
+    <value>ADB Input（不推薦使用）</value>
+  </data>
+  <data name="StartUp.Option.TouchMode.MaaTouch" xml:space="preserve">
+    <value>MaaTouch（實驗功能）</value>
+  </data>
+  <data name="StartUp.Option.TouchMode.MiniTouch" xml:space="preserve">
+    <value>Minitouch（預設）</value>
+  </data>
+  <data name="StartUp.Select" xml:space="preserve">
+    <value>選擇</value>
+  </data>
+  <data name="StartUp.StartGameEnabled" xml:space="preserve">
+    <value>是否啟動用戶端</value>
+  </data>
+  <data name="StartUp.Title" xml:space="preserve">
+    <value>開始喚醒</value>
+  </data>
+  <data name="StartUp.TouchMode" xml:space="preserve">
+    <value>觸控模式</value>
+  </data>
+  <data name="TaskQueue.Error.BlockingValidation" xml:space="preserve">
+    <value>任務 `{0}` 存在阻斷校驗項：{1}</value>
+  </data>
+  <data name="TaskQueue.Module.Award" xml:space="preserve">
+    <value>領取獎勵</value>
+  </data>
+  <data name="TaskQueue.Module.Custom" xml:space="preserve">
+    <value>自訂任務</value>
+  </data>
+  <data name="TaskQueue.Module.Fight" xml:space="preserve">
+    <value>理智作戰</value>
+  </data>
+  <data name="TaskQueue.Module.Infrast" xml:space="preserve">
+    <value>基建換班</value>
+  </data>
+  <data name="TaskQueue.Module.Mall" xml:space="preserve">
+    <value>信用收支</value>
+  </data>
+  <data name="TaskQueue.Module.PostAction" xml:space="preserve">
+    <value>完成後</value>
+  </data>
+  <data name="TaskQueue.Module.Reclamation" xml:space="preserve">
+    <value>生息演算</value>
+  </data>
+  <data name="TaskQueue.Module.Recruit" xml:space="preserve">
+    <value>自動公招</value>
+  </data>
+  <data name="TaskQueue.Module.Roguelike" xml:space="preserve">
+    <value>自動肉鴿</value>
+  </data>
+  <data name="TaskQueue.Module.StartUp" xml:space="preserve">
+    <value>開始喚醒</value>
+  </data>
+  <data name="TaskQueue.Module.TaskQueue" xml:space="preserve">
+    <value>任務佇列</value>
+  </data>
+  <data name="TaskQueue.Root.AdvancedSettings" xml:space="preserve">
+    <value>進階設定</value>
+  </data>
+  <data name="TaskQueue.Root.Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="TaskQueue.Root.Delete" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="TaskQueue.Root.GeneralSettings" xml:space="preserve">
+    <value>常規設定</value>
+  </data>
+  <data name="TaskQueue.Root.LeftClick" xml:space="preserve">
+    <value>左鍵</value>
+  </data>
+  <data name="TaskQueue.Root.LogsTitle" xml:space="preserve">
+    <value>日誌</value>
+  </data>
+  <data name="TaskQueue.Root.MoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="TaskQueue.Root.MoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerCancelStatus" xml:space="preserve">
+    <value>已取消選擇目標視窗。</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerClosedStatus" xml:space="preserve">
+    <value>目標視窗選擇對話方塊已關閉。</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerConfirm" xml:space="preserve">
+    <value>確定</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerRefresh" xml:space="preserve">
+    <value>重新整理</value>
+  </data>
+  <data name="TaskQueue.Root.OverlayTargetPickerTitle" xml:space="preserve">
+    <value>選擇視窗</value>
+  </data>
+  <data name="TaskQueue.Root.Rename" xml:space="preserve">
+    <value>重新命名</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogCancelStatus" xml:space="preserve">
+    <value>已取消重新命名。</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogClosedStatus" xml:space="preserve">
+    <value>重新命名對話方塊已關閉。</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogConfirm" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogPrompt" xml:space="preserve">
+    <value>請輸入新的任務名稱：</value>
+  </data>
+  <data name="TaskQueue.Root.RenameDialogTitle" xml:space="preserve">
+    <value>重新命名任務 {0}</value>
+  </data>
+  <data name="TaskQueue.Root.RightClick" xml:space="preserve">
+    <value>右鍵</value>
+  </data>
+  <data name="TaskQueue.Root.SelectAll" xml:space="preserve">
+    <value>全選</value>
+  </data>
+  <data name="TaskQueue.Root.TaskConfigTitle" xml:space="preserve">
+    <value>任務設定</value>
+  </data>
+  <data name="TaskQueue.Root.TaskListTitle" xml:space="preserve">
+    <value>任務列表</value>
+  </data>
+  <data name="TaskQueue.Root.TaskSettings" xml:space="preserve">
+    <value>任務設定</value>
+  </data>
+  <data name="TaskQueue.SelectionHint" xml:space="preserve">
+    <value>請從左側任務列表選擇一個任務以編輯其設定。</value>
+  </data>
+  <data name="TaskQueue.Validation.BlockingCount" xml:space="preserve">
+    <value>存在 {0} 條阻斷錯誤。</value>
+  </data>
+  <data name="TaskQueue.Validation.Clean" xml:space="preserve">
+    <value>校驗通過。</value>
+  </data>
+  <data name="TaskQueue.Validation.LoadFailed" xml:space="preserve">
+    <value>讀取校驗報告失敗。</value>
+  </data>
+  <data name="TaskQueue.Validation.WarningCount" xml:space="preserve">
+    <value>存在 {0} 條預警。</value>
+  </data>
+  <data name="Toolbox.Action.LinkStart" xml:space="preserve">
+    <value>Link Start！</value>
+  </data>
+  <data name="Toolbox.Action.PeepStart" xml:space="preserve">
+    <value>窺屏！</value>
+  </data>
+  <data name="Toolbox.Action.PeepStop" xml:space="preserve">
+    <value>停止！</value>
+  </data>
+  <data name="Toolbox.Action.PeepStopStrong" xml:space="preserve">
+    <value>停止！！！！！</value>
+  </data>
+  <data name="Toolbox.Action.StartRecognition" xml:space="preserve">
+    <value>開始辨識</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Fallback.None" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Provider.Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Summary" xml:space="preserve">
+    <value>提供者：{0}；支援：{1}；回退：{2}</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Supported.False" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="Toolbox.Advanced.Capability.Supported.True" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="Toolbox.Advanced.EntryDescription" xml:space="preserve">
+    <value>聚合入口：關卡管理、懸浮窗、托盤、遠端控制、通知 Provider 與 WebApi 相容設定。</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.DefaultMessage" xml:space="preserve">
+    <value>進階外部通知測試</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.DefaultTitle" xml:space="preserve">
+    <value>MAA 測試</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.MessageBody" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.MessageTitle" xml:space="preserve">
+    <value>標題</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Parameters" xml:space="preserve">
+    <value>參數(JSON)</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Parameters.Watermark" xml:space="preserve">
+    <value>key=value;key2=value2</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Provider" xml:space="preserve">
+    <value>Provider</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.RefreshProviders" xml:space="preserve">
+    <value>重新整理 Provider</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.SendTest" xml:space="preserve">
+    <value>發送測試</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Title" xml:space="preserve">
+    <value>外部通知 Provider</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.ValidateParameters" xml:space="preserve">
+    <value>驗證參數</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.ReloadTargets" xml:space="preserve">
+    <value>重新整理目標</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.TargetWindow" xml:space="preserve">
+    <value>目標視窗</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.Title" xml:space="preserve">
+    <value>懸浮窗</value>
+  </data>
+  <data name="Toolbox.Advanced.Overlay.ToggleVisibility" xml:space="preserve">
+    <value>切換顯示</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.GetTaskEndpoint" xml:space="preserve">
+    <value>GetTask Endpoint</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.GetTaskEndpoint.Watermark" xml:space="preserve">
+    <value>https://example.com/get-task</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.PollInterval" xml:space="preserve">
+    <value>輪詢間隔 (ms)</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.ReportEndpoint" xml:space="preserve">
+    <value>Report Endpoint</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.ReportEndpoint.Watermark" xml:space="preserve">
+    <value>https://example.com/report</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.Save" xml:space="preserve">
+    <value>儲存</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.TestConnectivity" xml:space="preserve">
+    <value>連線測試</value>
+  </data>
+  <data name="Toolbox.Advanced.RemoteControl.Title" xml:space="preserve">
+    <value>遠端控制中心</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.AutoIterate" xml:space="preserve">
+    <value>自動輪轉</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.ClientType" xml:space="preserve">
+    <value>客戶端</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.LastSelectedStage" xml:space="preserve">
+    <value>上次關卡</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.LocalResources" xml:space="preserve">
+    <value>本地資源</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.RefreshLocal" xml:space="preserve">
+    <value>重新整理本地</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.RefreshWeb" xml:space="preserve">
+    <value>重新整理 Web</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Save" xml:space="preserve">
+    <value>儲存</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.StageCodes" xml:space="preserve">
+    <value>關卡列表</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.StageCodes.Watermark" xml:space="preserve">
+    <value>每行一個或用逗號分隔，例如 1-7, CE-5</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Title" xml:space="preserve">
+    <value>關卡管理</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Validate" xml:space="preserve">
+    <value>驗證</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.WebResources" xml:space="preserve">
+    <value>Web 資源</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.ExternalNotification" xml:space="preserve">
+    <value>外部通知</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.Overlay" xml:space="preserve">
+    <value>懸浮窗</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.RemoteControl" xml:space="preserve">
+    <value>遠端控制</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.StageManager" xml:space="preserve">
+    <value>關卡管理</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.Tray" xml:space="preserve">
+    <value>托盤整合</value>
+  </data>
+  <data name="Toolbox.Advanced.Tab.WebApi" xml:space="preserve">
+    <value>WebApi(相容)</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.ApplyVisibility" xml:space="preserve">
+    <value>套用可見性</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.DefaultMessageBody" xml:space="preserve">
+    <value>托盤整合測試。</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.DefaultMessageTitle" xml:space="preserve">
+    <value>MAAUnified</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.MessageBody" xml:space="preserve">
+    <value>通知內容</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.MessageTitle" xml:space="preserve">
+    <value>通知標題</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.RefreshCapability" xml:space="preserve">
+    <value>重新整理能力</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.SendMessage" xml:space="preserve">
+    <value>發送托盤通知</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.SyncMenuState" xml:space="preserve">
+    <value>同步選單狀態</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.Title" xml:space="preserve">
+    <value>托盤整合</value>
+  </data>
+  <data name="Toolbox.Advanced.Tray.Visible" xml:space="preserve">
+    <value>托盤可見</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.AccessToken" xml:space="preserve">
+    <value>Access Token</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Enabled" xml:space="preserve">
+    <value>啟用 WebApi</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Host" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Port" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.RefreshStatus" xml:space="preserve">
+    <value>重新整理狀態</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.RunningStatus" xml:space="preserve">
+    <value>執行狀態</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.SaveConfig" xml:space="preserve">
+    <value>儲存設定</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.StartService" xml:space="preserve">
+    <value>啟動服務</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Status.Running" xml:space="preserve">
+    <value>執行中</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Status.Stopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.StopService" xml:space="preserve">
+    <value>停止服務</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Title" xml:space="preserve">
+    <value>WebApi(相容)</value>
+  </data>
+  <data name="Toolbox.Advanced.WebApi.Warning" xml:space="preserve">
+    <value>此面板用於相容舊版 WebApi 接入。僅在你明確需要外部呼叫時啟用，並建議配置存取權杖。</value>
+  </data>
+  <data name="Toolbox.Depot.ExportArkPlanner" xml:space="preserve">
+    <value>匯出至企鵝物流刷圖規劃</value>
+  </data>
+  <data name="Toolbox.Depot.ExportLolicon" xml:space="preserve">
+    <value>匯出至明日方舟工具箱</value>
+  </data>
+  <data name="Toolbox.Depot.LastSync" xml:space="preserve">
+    <value>上次同步時間: {0}</value>
+  </data>
+  <data name="Toolbox.Depot.NeverSynced" xml:space="preserve">
+    <value>尚未同步</value>
+  </data>
+  <data name="Toolbox.Error.BusyWithTool" xml:space="preserve">
+    <value>目前正在執行 `{0}`，請先停止後再開啟窺屏。</value>
+  </data>
+  <data name="Toolbox.Error.ConnectionFailed" xml:space="preserve">
+    <value>連線失敗。</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionCancelled" xml:space="preserve">
+    <value>工具執行已取消：{0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionFailed" xml:space="preserve">
+    <value>工具執行失敗：{0}</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionFailedDefault" xml:space="preserve">
+    <value>工具執行失敗。</value>
+  </data>
+  <data name="Toolbox.Error.ExecutionFailedWithCode" xml:space="preserve">
+    <value>工具執行失敗：{0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.GachaDisclaimerRequired" xml:space="preserve">
+    <value>請先確認抽卡風險提示。</value>
+  </data>
+  <data name="Toolbox.Error.InvalidParameters" xml:space="preserve">
+    <value>工具參數錯誤：{0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.OwnerRunning" xml:space="preserve">
+    <value>目前已有 `{0}` 正在執行。</value>
+  </data>
+  <data name="Toolbox.Error.RecruitFailed" xml:space="preserve">
+    <value>招募辨識失敗，請檢查目前畫面與連線狀態。</value>
+  </data>
+  <data name="Toolbox.Error.ToolExecutionCancelled" xml:space="preserve">
+    <value>工具執行已取消。</value>
+  </data>
+  <data name="Toolbox.Error.ToolNotSupported" xml:space="preserve">
+    <value>目前工具不支援：{0} ({1})</value>
+  </data>
+  <data name="Toolbox.Error.ToolboxBusy" xml:space="preserve">
+    <value>Toolbox 目前已有任務執行中，請先停止。</value>
+  </data>
+  <data name="Toolbox.ExecutionReview.HistoryLabel" xml:space="preserve">
+    <value>歷史記錄</value>
+  </data>
+  <data name="Toolbox.ExecutionReview.ParametersLabel" xml:space="preserve">
+    <value>參數快照</value>
+  </data>
+  <data name="Toolbox.ExecutionReview.ResultLabel" xml:space="preserve">
+    <value>最近結果</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Acknowledge" xml:space="preserve">
+    <value>知道了</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Body" xml:space="preserve">
+    <value>抽卡工具會直接操作目前客戶端。請確認這不是你的主帳號，並確保模擬器已進入對應抽卡畫面。</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Emphasis" xml:space="preserve">
+    <value>真正的抽卡</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.Lead" xml:space="preserve">
+    <value>請注意，這是</value>
+  </data>
+  <data name="Toolbox.Gacha.Disclaimer.NoMore" xml:space="preserve">
+    <value>下次不再提示</value>
+  </data>
+  <data name="Toolbox.Gacha.DrawOnce" xml:space="preserve">
+    <value>尋訪一次</value>
+  </data>
+  <data name="Toolbox.Gacha.DrawTen" xml:space="preserve">
+    <value>尋訪十次</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.1" xml:space="preserve">
+    <value>抽卡執行中，已自動開啟窺屏。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.2" xml:space="preserve">
+    <value>抽卡過程可在本頁直接停止。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.3" xml:space="preserve">
+    <value>若窺屏 FPS 過高，可適度降低目標 FPS。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.4" xml:space="preserve">
+    <value>若模擬器卡頓，建議先檢查截圖方式與連線品質。</value>
+  </data>
+  <data name="Toolbox.Gacha.Tip.5" xml:space="preserve">
+    <value>抽卡使用自訂任務鏈，結束時會自動收尾。</value>
+  </data>
+  <data name="Toolbox.History.ReadFailedEmpty" xml:space="preserve">
+    <value>讀取執行歷史失敗：設定為空。</value>
+  </data>
+  <data name="Toolbox.History.ReadFailedWithReason" xml:space="preserve">
+    <value>讀取執行歷史失敗：{0}</value>
+  </data>
+  <data name="Toolbox.MiniGame.CurrentTask" xml:space="preserve">
+    <value>目前任務：{0}</value>
+  </data>
+  <data name="Toolbox.MiniGame.Ending" xml:space="preserve">
+    <value>結局</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.None" xml:space="preserve">
+    <value>不選擇</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.Phantom" xml:space="preserve">
+    <value>詭影迷蹤</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.Ranger" xml:space="preserve">
+    <value>遊俠</value>
+  </data>
+  <data name="Toolbox.MiniGame.Event.SupportPlatform" xml:space="preserve">
+    <value>支援作戰平台</value>
+  </data>
+  <data name="Toolbox.MiniGame.EventPriority" xml:space="preserve">
+    <value>優先系列事件</value>
+  </data>
+  <data name="Toolbox.MiniGame.Name" xml:space="preserve">
+    <value>小遊戲名稱</value>
+  </data>
+  <data name="Toolbox.OperBox.CopyToClipboard" xml:space="preserve">
+    <value>複製到剪貼簿</value>
+  </data>
+  <data name="Toolbox.OperBox.Header.NotOwned" xml:space="preserve">
+    <value>未持有 ({0})</value>
+  </data>
+  <data name="Toolbox.OperBox.Header.Owned" xml:space="preserve">
+    <value>已持有 ({0})</value>
+  </data>
+  <data name="Toolbox.OperBox.Subtitle.NotOwned" xml:space="preserve">
+    <value>{0}★ / 未持有</value>
+  </data>
+  <data name="Toolbox.OperBox.Subtitle.Owned" xml:space="preserve">
+    <value>{0}★ / 精英 {1} / 等級 {2} / 潛能 {3}</value>
+  </data>
+  <data name="Toolbox.Peep.TargetFps" xml:space="preserve">
+    <value>目標幀率</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect3" xml:space="preserve">
+    <value>自動選擇 3 星 Tags</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect4" xml:space="preserve">
+    <value>自動選擇 4 星 Tags</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect5" xml:space="preserve">
+    <value>自動選擇 5 星 Tags</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSelect6" xml:space="preserve">
+    <value>自動選擇 6 星 Tags</value>
+  </data>
+  <data name="Toolbox.Recruit.AutoSetTime" xml:space="preserve">
+    <value>自動設定時間</value>
+  </data>
+  <data name="Toolbox.Recruit.FixedSixStar" xml:space="preserve">
+    <value>固定 09:00（六星必出）</value>
+  </data>
+  <data name="Toolbox.Recruit.ResultLine" xml:space="preserve">
+    <value>{0}★ Tags：{1}</value>
+  </data>
+  <data name="Toolbox.Recruit.ShowPotential" xml:space="preserve">
+    <value>顯示幹員潛能（4/5/6★ Tags）</value>
+  </data>
+  <data name="Toolbox.Recruit.Suffix.Max" xml:space="preserve">
+    <value>（MAX）</value>
+  </data>
+  <data name="Toolbox.Recruit.Suffix.New" xml:space="preserve">
+    <value>（NEW）</value>
+  </data>
+  <data name="Toolbox.Recruit.TagsDetected" xml:space="preserve">
+    <value>已辨識招募標籤。</value>
+  </data>
+  <data name="Toolbox.Recruit.TagsDetectedWithList" xml:space="preserve">
+    <value>已辨識標籤：{0}</value>
+  </data>
+  <data name="Toolbox.Section.ExecutionReview" xml:space="preserve">
+    <value>執行回顧</value>
+  </data>
+  <data name="Toolbox.Status.ConnectingEmulator" xml:space="preserve">
+    <value>正在連線模擬器...</value>
+  </data>
+  <data name="Toolbox.Status.CopiedToClipboard" xml:space="preserve">
+    <value>已複製到剪貼簿</value>
+  </data>
+  <data name="Toolbox.Status.CurrentToolStopped" xml:space="preserve">
+    <value>已停止目前工具。</value>
+  </data>
+  <data name="Toolbox.Status.MiniGameStarting" xml:space="preserve">
+    <value>小遊戲任務啟動中...</value>
+  </data>
+  <data name="Toolbox.Status.PeepStarted" xml:space="preserve">
+    <value>已開啟窺屏。</value>
+  </data>
+  <data name="Toolbox.Status.PeepStopped" xml:space="preserve">
+    <value>已停止窺屏。</value>
+  </data>
+  <data name="Toolbox.Status.RecognitionCompleted" xml:space="preserve">
+    <value>辨識完成。</value>
+  </data>
+  <data name="Toolbox.Status.Recognizing" xml:space="preserve">
+    <value>辨識中...</value>
+  </data>
+  <data name="Toolbox.Status.ToolCompleted" xml:space="preserve">
+    <value>工具執行完成。</value>
+  </data>
+  <data name="Toolbox.Status.ToolStarted" xml:space="preserve">
+    <value>{0}已啟動。</value>
+  </data>
+  <data name="Toolbox.Status.ToolStopped" xml:space="preserve">
+    <value>工具已停止。</value>
+  </data>
+  <data name="Toolbox.Status.WaitingForExecution" xml:space="preserve">
+    <value>等待執行工具。</value>
+  </data>
+  <data name="Toolbox.Tab.Advanced" xml:space="preserve">
+    <value>進階工具</value>
+  </data>
+  <data name="Toolbox.Tab.Depot" xml:space="preserve">
+    <value>倉庫辨識</value>
+  </data>
+  <data name="Toolbox.Tab.Gacha" xml:space="preserve">
+    <value>抽卡</value>
+  </data>
+  <data name="Toolbox.Tab.MiniGame" xml:space="preserve">
+    <value>小遊戲</value>
+  </data>
+  <data name="Toolbox.Tab.OperBox" xml:space="preserve">
+    <value>幹員辨識</value>
+  </data>
+  <data name="Toolbox.Tab.Peep" xml:space="preserve">
+    <value>窺屏</value>
+  </data>
+  <data name="Toolbox.Tab.Recruit" xml:space="preserve">
+    <value>招募辨識</value>
+  </data>
+  <data name="Toolbox.Tip.DepotRecognition" xml:space="preserve">
+    <value>此功能仍在測試階段，請先確認結果正確再使用。若有誤，歡迎打包 debug/depot 資料夾並提交 issue ~</value>
+  </data>
+  <data name="Toolbox.Tip.GachaInit" xml:space="preserve">
+    <value>在羅德島竟然有這麼多志同道合的志士。是的，詩歌！戰爭！自由！能在歷史洪流中匯聚眾人的力量，為這片大地的改變而奮鬥。這些悲壯又非凡的故事，值得被傳頌。</value>
+  </data>
+  <data name="Toolbox.Tip.MiniGameNameEmpty" xml:space="preserve">
+    <value>在上方選擇小遊戲後開始執行。</value>
+  </data>
+  <data name="Toolbox.Tip.OperBoxRecognition" xml:space="preserve">
+    <value>特別關注會影響幹員辨識準確率，如有辨識錯誤請自行判斷。</value>
+  </data>
+  <data name="Toolbox.Tip.Peep" xml:space="preserve">
+    <value>看看牛牛眼中的世界？</value>
+  </data>
+  <data name="Toolbox.Tip.RecruitPotential" xml:space="preserve">
+    <value>請先使用「幹員辨識」取得幹員資訊。</value>
+  </data>
+  <data name="Toolbox.Tip.RecruitRecognition" xml:space="preserve">
+    <value>小提示：和主介面的自動公招是兩個獨立功能，請先手動打開遊戲公招 Tags 畫面再使用~</value>
+  </data>
+  <data name="Toolbox.ToolName.Depot" xml:space="preserve">
+    <value>倉庫辨識</value>
+  </data>
+  <data name="Toolbox.ToolName.Gacha" xml:space="preserve">
+    <value>抽卡</value>
+  </data>
+  <data name="Toolbox.ToolName.MiniGame" xml:space="preserve">
+    <value>小遊戲</value>
+  </data>
+  <data name="Toolbox.ToolName.OperBox" xml:space="preserve">
+    <value>幹員辨識</value>
+  </data>
+  <data name="Toolbox.ToolName.Recruit" xml:space="preserve">
+    <value>招募辨識</value>
+  </data>
+  <data name="Toolbox.ToolName.VideoRecognition" xml:space="preserve">
+    <value>窺屏</value>
+  </data>
+  <data name="Toolbox.Validation.DepotTopNInvalid" xml:space="preserve">
+    <value>倉庫 TopN 必須在 1 到 500 之間。</value>
+  </data>
+  <data name="Toolbox.Validation.GachaDrawCountInvalid" xml:space="preserve">
+    <value>抽卡次數僅支援 1 或 10。</value>
+  </data>
+  <data name="Toolbox.Validation.MiniGameSecretFrontEndingInvalid" xml:space="preserve">
+    <value>當小遊戲任務為 MiniGame@SecretFront 時，結局必須是 A~E 之一。</value>
+  </data>
+  <data name="Toolbox.Validation.MiniGameTaskNameEmpty" xml:space="preserve">
+    <value>小遊戲任務名稱不可為空。</value>
+  </data>
+  <data name="Toolbox.Validation.OperBoxModeInvalid" xml:space="preserve">
+    <value>幹員辨識模式僅支援 owned 或 all。</value>
+  </data>
+  <data name="Toolbox.Validation.PeepFpsInvalid" xml:space="preserve">
+    <value>窺屏目標幀率必須在 1 到 60 之間。</value>
+  </data>
+  <data name="Toolbox.Validation.RecruitSelectAtLeastOne" xml:space="preserve">
+    <value>至少需要選擇一個星級進行公招計算。</value>
+  </data>
+  <data name="Toolbox.Validation.RecruitTimeInvalid" xml:space="preserve">
+    <value>招募時間必須為 60 到 540 之間的 10 分鐘整數倍。</value>
+  </data>
+  <data name="Toolbox.Warning.GachaMessage" xml:space="preserve">
+    <value>此功能屬於高風險功能，可能造成誤抽。
+按下「確認」即視為你了解並願意承擔可能風險。</value>
+  </data>
+  <data name="Unbreakable" xml:space="preserve">
+    <value>堅不可摧（重裝、術師、醫療）</value>
+  </data>
+  <data name="ActingCommandError" xml:space="preserve">
+    <value>代理指揮失誤</value>
+  </data>
+  <data name="AlgorithmBadge" xml:space="preserve">
+    <value>繁榮證章</value>
+  </data>
+  <data name="AlgorithmConstructionPoint" xml:space="preserve">
+    <value>建造點數</value>
+  </data>
+  <data name="AlgorithmFinish" xml:space="preserve">
+    <value>演算結束</value>
+  </data>
+  <data name="BattleFormation" xml:space="preserve">
+    <value>開始編隊</value>
+  </data>
+  <data name="BattleFormationOperUnavailable" xml:space="preserve">
+    <value>{key=Operator}不可用：{0}，原因：{1}</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.Elite" xml:space="preserve">
+    <value>精英化不足</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.Level" xml:space="preserve">
+    <value>等級不足</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.Module" xml:space="preserve">
+    <value>所需模組未解鎖</value>
+  </data>
+  <data name="BattleFormationOperUnavailable.SkillLevel" xml:space="preserve">
+    <value>技能等級不足</value>
+  </data>
+  <data name="BattleFormationParseFailed" xml:space="preserve">
+    <value>編隊解析失敗</value>
+  </data>
+  <data name="BattleFormationSelected" xml:space="preserve">
+    <value>選擇{key=Operator}: </value>
+  </data>
+  <data name="BegunToExplore" xml:space="preserve">
+    <value>已開始探索</value>
+  </data>
+  <data name="BulletTime" xml:space="preserve">
+    <value>進入子彈時間</value>
+  </data>
+  <data name="Choose" xml:space="preserve">
+    <value>選擇</value>
+  </data>
+  <data name="CloseArknightsFailed" xml:space="preserve">
+    <value>遊戲關閉失敗</value>
+  </data>
+  <data name="ClueExchangeUnlocked" xml:space="preserve">
+    <value>已開啟線索交流</value>
+  </data>
+  <data name="CombatError" xml:space="preserve">
+    <value>戰鬥出錯</value>
+  </data>
+  <data name="CombatOps" xml:space="preserve">
+    <value>關卡: 普通作戰</value>
+  </data>
+  <data name="CompleteCombat" xml:space="preserve">
+    <value>完成戰鬥</value>
+  </data>
+  <data name="CompleteTask" xml:space="preserve">
+    <value>完成任務: </value>
+  </data>
+  <data name="ConnectingToEmulator" xml:space="preserve">
+    <value>正在連線模擬器……</value>
+  </data>
+  <data name="ContinueRefresh" xml:space="preserve">
+    <value>無招聘許可，繼續嘗試刷新 Tags</value>
+  </data>
+  <data name="Copilot.Action.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="Copilot.Action.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Copilot.Button.Add" xml:space="preserve">
+    <value>新增</value>
+  </data>
+  <data name="Copilot.Button.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Copilot.Button.Confirm" xml:space="preserve">
+    <value>確定</value>
+  </data>
+  <data name="Copilot.Button.Delete" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="Copilot.Button.ImportBatch" xml:space="preserve">
+    <value>批次匯入</value>
+  </data>
+  <data name="Copilot.Error.ListEmptyStageName" xml:space="preserve">
+    <value>存在關卡名稱為空的作業</value>
+  </data>
+  <data name="Copilot.Error.ValidateTabMismatch" xml:space="preserve">
+    <value>目前選擇的作業與標籤頁類型不符</value>
+  </data>
+  <data name="Copilot.FilePicker.SelectTask.Title" xml:space="preserve">
+    <value>選擇作業</value>
+  </data>
+  <data name="Copilot.Input.PathOrCodeWatermark" xml:space="preserve">
+    <value>作業路徑 / 神秘代碼</value>
+  </data>
+  <data name="Copilot.Input.StageNameWatermark" xml:space="preserve">
+    <value>關卡名稱</value>
+  </data>
+  <data name="Copilot.Option.AutoSquad" xml:space="preserve">
+    <value>自動編隊</value>
+  </data>
+  <data name="Copilot.Option.LoopTimes" xml:space="preserve">
+    <value>循環次數</value>
+  </data>
+  <data name="Copilot.Option.Module.None" xml:space="preserve">
+    <value>不使用模組</value>
+  </data>
+  <data name="Copilot.Option.SupportUnitUsage.FillGap" xml:space="preserve">
+    <value>僅用於補漏</value>
+  </data>
+  <data name="Copilot.Option.SupportUnitUsage.Random" xml:space="preserve">
+    <value>隨機</value>
+  </data>
+  <data name="Copilot.Option.UseFormation" xml:space="preserve">
+    <value>使用編隊</value>
+  </data>
+  <data name="Copilot.Option.UseSupportUnit" xml:space="preserve">
+    <value>借助戰</value>
+  </data>
+  <data name="Copilot.Rating.Prompt" xml:space="preserve">
+    <value>作業怎麼樣？評價一下吧！</value>
+  </data>
+  <data name="Copilot.Tab.Display.Other" xml:space="preserve">
+    <value>其他活動</value>
+  </data>
+  <data name="Copilot.Tab.Display.Paradox" xml:space="preserve">
+    <value>悖論模擬</value>
+  </data>
+  <data name="Copilot.Tab.Display.Security" xml:space="preserve">
+    <value>保全派駐</value>
+  </data>
+  <data name="Copilot.Tip.AddList" xml:space="preserve">
+    <value>左鍵加入普通難度
+右鍵加入突襲難度</value>
+  </data>
+  <data name="Copilot.Tip.ClearList" xml:space="preserve">
+    <value>左鍵清除所有任務
+右鍵清除未啟用任務</value>
+  </data>
+  <data name="Copilot.Tip.File" xml:space="preserve">
+    <value>作業檔可以直接用滑鼠拖進來喔 (oﾟvﾟ)ノ</value>
+  </data>
+  <data name="Copilot.Tip.ImportBatch" xml:space="preserve">
+    <value>批次匯入</value>
+  </data>
+  <data name="Copilot.Tip.Paste" xml:space="preserve">
+    <value>讀取剪貼簿並新增為作業</value>
+  </data>
+  <data name="Copilot.Tip.PasteSet" xml:space="preserve">
+    <value>讀取剪貼簿並新增為作業集</value>
+  </data>
+  <data name="Copilot.Tip.StageName" xml:space="preserve">
+    <value>關卡名稱，例如：1-7</value>
+  </data>
+  <data name="Copilot.Tip.UseSupportUnit" xml:space="preserve">
+    <value>缺一個還勉強可以，缺兩個以上還是換份作業吧</value>
+  </data>
+  <data name="CopilotUserAdditionalNameInvalid" xml:space="preserve">
+    <value>追加自定義{key=Operator}名稱無效：{0}，請檢查拼寫</value>
+  </data>
+  <data name="CreditFight" xml:space="preserve">
+    <value>借助戰打 OF-1 賺信用</value>
+  </data>
+  <data name="CurTimes" xml:space="preserve">
+    <value>目前次數</value>
+  </data>
+  <data name="CurrentStage" xml:space="preserve">
+    <value>目前關卡: {0}</value>
+  </data>
+  <data name="CurrentSteps" xml:space="preserve">
+    <value>目前步驟：{0} {1}</value>
+  </data>
+  <data name="DeepExplorationNotUnlockedComplain" xml:space="preserve">
+    <value>深入調查未解鎖</value>
+  </data>
+  <data name="Deploy" xml:space="preserve">
+    <value>部署</value>
+  </data>
+  <data name="Dialog.Error.CloseButton" xml:space="preserve">
+    <value>關閉</value>
+  </data>
+  <data name="Dialog.Error.CopyButton" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="Dialog.Error.IssueReportButton" xml:space="preserve">
+    <value>問題回饋</value>
+  </data>
+  <data name="Dialog.Warning.CancelButton" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Dialog.Warning.ConfirmButton" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="Dialog.Warning.Title" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="DreadfulFoe" xml:space="preserve">
+    <value>關卡: 險路惡敵</value>
+  </data>
+  <data name="DropRecognitionError" xml:space="preserve">
+    <value>掉落辨識錯誤</value>
+  </data>
+  <data name="ElapsedTime" xml:space="preserve">
+    <value>經過時間：{0}ms</value>
+  </data>
+  <data name="EmergencyOps" xml:space="preserve">
+    <value>關卡: 緊急作戰</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>出現錯誤</value>
+  </data>
+  <data name="ExpiringMedicineUsed" xml:space="preserve">
+    <value>已使用 48 小時內過期的理智藥</value>
+  </data>
+  <data name="ExplorationAbandoned" xml:space="preserve">
+    <value>已放棄本次探索</value>
+  </data>
+  <data name="FailedToOpenClient" xml:space="preserve">
+    <value>開啟用戶端失敗，請檢查設定檔</value>
+  </data>
+  <data name="FightCompleted" xml:space="preserve">
+    <value>戰鬥完成</value>
+  </data>
+  <data name="FightFailed" xml:space="preserve">
+    <value>戰鬥失敗</value>
+  </data>
+  <data name="FightMissionFailedAndStop" xml:space="preserve">
+    <value>代理失敗次數已達上限，任務已停止</value>
+  </data>
+  <data name="FightTimesUnused" xml:space="preserve">
+    <value>已完成 {0} 次戰鬥，下次將執行 {1} 倍率代理，進入後將完成 {2} 次戰鬥，超過 {3} 次限制，不進入戰鬥</value>
+  </data>
+  <data name="FilterTruth" xml:space="preserve">
+    <value>節點: 去偽存真</value>
+  </data>
+  <data name="First-ClassSquad" xml:space="preserve">
+    <value>高規格分隊</value>
+  </data>
+  <data name="FurnitureDrop" xml:space="preserve">
+    <value>傢俱</value>
+  </data>
+  <data name="GameDrop" xml:space="preserve">
+    <value>遊戲斷線，重新連線</value>
+  </data>
+  <data name="GameDropNoRestart" xml:space="preserve">
+    <value>遊戲斷線，不重新連線，停止任務</value>
+  </data>
+  <data name="GatheringSquad" xml:space="preserve">
+    <value>集群分隊</value>
+  </data>
+  <data name="GiveUpUploadingPenguins" xml:space="preserve">
+    <value>放棄上傳企鵝物流</value>
+  </data>
+  <data name="HasReturned" xml:space="preserve">
+    <value>已返回</value>
+  </data>
+  <data name="IS2NewSquad1" xml:space="preserve">
+    <value>心勝於物分隊</value>
+  </data>
+  <data name="IS2NewSquad2" xml:space="preserve">
+    <value>物盡其用分隊</value>
+  </data>
+  <data name="IS2NewSquad3" xml:space="preserve">
+    <value>以人為本分隊</value>
+  </data>
+  <data name="IS3NewSquad1" xml:space="preserve">
+    <value>永恆狩獵分隊</value>
+  </data>
+  <data name="IS3NewSquad2" xml:space="preserve">
+    <value>生活至上分隊</value>
+  </data>
+  <data name="IS3NewSquad3" xml:space="preserve">
+    <value>科學主義分隊</value>
+  </data>
+  <data name="IS3NewSquad4" xml:space="preserve">
+    <value>特訓分隊</value>
+  </data>
+  <data name="IS4NewSquad1" xml:space="preserve">
+    <value>魂靈護送分隊</value>
+  </data>
+  <data name="IS4NewSquad2" xml:space="preserve">
+    <value>博聞廣記分隊</value>
+  </data>
+  <data name="IS4NewSquad3" xml:space="preserve">
+    <value>藍圖測繪分隊</value>
+  </data>
+  <data name="IS4NewSquad4" xml:space="preserve">
+    <value>因地制宜分隊</value>
+  </data>
+  <data name="IS4NewSquad5" xml:space="preserve">
+    <value>異想天開分隊</value>
+  </data>
+  <data name="IS4NewSquad6" xml:space="preserve">
+    <value>點刺成錠分隊</value>
+  </data>
+  <data name="IS4NewSquad7" xml:space="preserve">
+    <value>擬態學者分隊</value>
+  </data>
+  <data name="IS4NewSquad8" xml:space="preserve">
+    <value>專業人士分隊</value>
+  </data>
+  <data name="IS5NewSquad1" xml:space="preserve">
+    <value>高台突破分隊</value>
+  </data>
+  <data name="IS5NewSquad10" xml:space="preserve">
+    <value>知學分隊（待 DLC II 開放）</value>
+  </data>
+  <data name="IS5NewSquad11" xml:space="preserve">
+    <value>商賈分隊（待 DLC II 開放）</value>
+  </data>
+  <data name="IS5NewSquad2" xml:space="preserve">
+    <value>地面突破分隊</value>
+  </data>
+  <data name="IS5NewSquad3" xml:space="preserve">
+    <value>遊客分隊</value>
+  </data>
+  <data name="IS5NewSquad4" xml:space="preserve">
+    <value>司歲台分隊</value>
+  </data>
+  <data name="IS5NewSquad5" xml:space="preserve">
+    <value>天師府分隊</value>
+  </data>
+  <data name="IS5NewSquad6" xml:space="preserve">
+    <value>花團錦簇分隊（待 DLC I 開放）</value>
+  </data>
+  <data name="IS5NewSquad7" xml:space="preserve">
+    <value>棋行險著分隊（待 DLC I 開放）</value>
+  </data>
+  <data name="IS5NewSquad8" xml:space="preserve">
+    <value>歲影回音分隊（待 DLC I 開放）</value>
+  </data>
+  <data name="IS5NewSquad9" xml:space="preserve">
+    <value>代理人分隊（待 DLC II 開放）</value>
+  </data>
+  <data name="Infrast.ReceptionSend" xml:space="preserve">
+    <value>贈送線索</value>
+  </data>
+  <data name="Infrast.Select" xml:space="preserve">
+    <value>選擇</value>
+  </data>
+  <data name="InfrastDormDoubleConfirmed" xml:space="preserve">
+    <value>{key=Operator}衝突</value>
+  </data>
+  <data name="LabelsRefreshed" xml:space="preserve">
+    <value>已刷新標籤</value>
+  </data>
+  <data name="LeaderSquad" xml:space="preserve">
+    <value>指揮分隊</value>
+  </data>
+  <data name="Main.Menu.Exit" xml:space="preserve">
+    <value>結束</value>
+  </data>
+  <data name="Main.Menu.Restart" xml:space="preserve">
+    <value>重新啟動</value>
+  </data>
+  <data name="Main.Menu.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="Main.Menu.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Mall.InfrastReceptionClueExchange" xml:space="preserve">
+    <value>進行線索交流</value>
+  </data>
+  <data name="Mall.InfrastReceptionMessageBoardReceive" xml:space="preserve">
+    <value>會客室資訊板收取信用</value>
+  </data>
+  <data name="Mall.InfrastReceptionSendClue" xml:space="preserve">
+    <value>贈送線索</value>
+  </data>
+  <data name="MedicineUsed" xml:space="preserve">
+    <value>已使用理智藥</value>
+  </data>
+  <data name="MedicineUsedTimes" xml:space="preserve">
+    <value>藥: {0}  </value>
+  </data>
+  <data name="MedicineUsedTimesWithExpiring" xml:space="preserve">
+    <value>藥: {0}，{1} (即將過期)  </value>
+  </data>
+  <data name="MissingOperators" xml:space="preserve">
+    <value>缺少以下{key=Operator}組的{key=Operator}：</value>
+  </data>
+  <data name="MissionStart" xml:space="preserve">
+    <value>已開始行動</value>
+  </data>
+  <data name="NoDrop" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="NoRecruitmentPermit" xml:space="preserve">
+    <value>無招聘許可，已返回</value>
+  </data>
+  <data name="NotEnoughStaff" xml:space="preserve">
+    <value>可用{key=Operator}不足</value>
+  </data>
+  <data name="Operator" xml:space="preserve">
+    <value>幹員</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Exit" xml:space="preserve">
+    <value>結束</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Restart" xml:space="preserve">
+    <value>重新啟動</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="ProductChanged" xml:space="preserve">
+    <value>產物已切換</value>
+  </data>
+  <data name="ProductIncorrect" xml:space="preserve">
+    <value>產物與配置不符。</value>
+  </data>
+  <data name="ProductUnknown" xml:space="preserve">
+    <value>無法辨識的產物</value>
+  </data>
+  <data name="ReclamationPisModeError" xml:space="preserve">
+    <value>目前任務模式需要您擁有可合成道具的存檔。請考慮切換模式。</value>
+  </data>
+  <data name="ReclamationPnsModeError" xml:space="preserve">
+    <value>目前使用無存檔任務模式。請手動刪除現有存檔後再嘗試。若您希望保留存檔，請考慮切換模式。</value>
+  </data>
+  <data name="RecruitConfirm" xml:space="preserve">
+    <value>已確認招募</value>
+  </data>
+  <data name="RecruitingResults" xml:space="preserve">
+    <value>公招辨識結果：</value>
+  </data>
+  <data name="Refreshed" xml:space="preserve">
+    <value>目前欄位已刷新</value>
+  </data>
+  <data name="ResearchSquad" xml:space="preserve">
+    <value>研究分隊</value>
+  </data>
+  <data name="Retreat" xml:space="preserve">
+    <value>撤退</value>
+  </data>
+  <data name="RoguelikeCollectibleModeSquad" xml:space="preserve">
+    <value>燒水分隊</value>
+  </data>
+  <data name="RoguelikeFindPlaytimeTarget" xml:space="preserve">
+    <value>目標常樂節點</value>
+  </data>
+  <data name="RoguelikeGamePass" xml:space="preserve">
+    <value>肉鴿通關啦！</value>
+  </data>
+  <data name="RoguelikeSpecialItemBought" xml:space="preserve">
+    <value>購買了特殊商品！</value>
+  </data>
+  <data name="RoguelikeThemeJieGarden" xml:space="preserve">
+    <value>界園</value>
+  </data>
+  <data name="RoguelikeThemeMizuki" xml:space="preserve">
+    <value>水月</value>
+  </data>
+  <data name="RoguelikeThemePhantom" xml:space="preserve">
+    <value>傀影</value>
+  </data>
+  <data name="RoguelikeThemeSami" xml:space="preserve">
+    <value>薩米</value>
+  </data>
+  <data name="RoguelikeThemeSarkaz" xml:space="preserve">
+    <value>薩卡茲</value>
+  </data>
+  <data name="RoomGroupsMatch" xml:space="preserve">
+    <value>符合編組：</value>
+  </data>
+  <data name="RoomGroupsMatchFailed" xml:space="preserve">
+    <value>符合{key=Operator}編組失敗，編組列表：</value>
+  </data>
+  <data name="RoomOperators" xml:space="preserve">
+    <value>首選{key=Operator}：</value>
+  </data>
+  <data name="RoutingRestartTooManyBattles" xml:space="preserve">
+    <value>前方戰鬥數：{0}，重新規劃路線</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>正在執行中……</value>
+  </data>
+  <data name="SSSGamePass" xml:space="preserve">
+    <value>保全通關啦！</value>
+  </data>
+  <data name="SafeHouse" xml:space="preserve">
+    <value>節點: 安全的角落</value>
+  </data>
+  <data name="Series" xml:space="preserve">
+    <value>代理倍率</value>
+  </data>
+  <data name="Settings.ConfigurationManager.Switch" xml:space="preserve">
+    <value>切換配置</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.Fill" xml:space="preserve">
+    <value>非等比例填滿</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.None" xml:space="preserve">
+    <value>保持原比例</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.Uniform" xml:space="preserve">
+    <value>等比例縮放</value>
+  </data>
+  <data name="Settings.Option.BackgroundStretch.UniformToFill" xml:space="preserve">
+    <value>等比例填滿（裁剪）</value>
+  </data>
+  <data name="Settings.Option.InverseClear.Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="Settings.Option.InverseClear.Inverse" xml:space="preserve">
+    <value>反向選取</value>
+  </data>
+  <data name="Settings.Option.InverseClear.Switchable" xml:space="preserve">
+    <value>可切換</value>
+  </data>
+  <data name="Settings.Option.OperNameLanguage.Client" xml:space="preserve">
+    <value>跟隨遊戲用戶端</value>
+  </data>
+  <data name="Settings.Option.OperNameLanguage.MAA" xml:space="preserve">
+    <value>跟隨 MAA</value>
+  </data>
+  <data name="Settings.Option.ResourceSource.Github" xml:space="preserve">
+    <value>全域來源</value>
+  </data>
+  <data name="Settings.Option.ResourceSource.MirrorChyan" xml:space="preserve">
+    <value>MirrorChyan</value>
+  </data>
+  <data name="Settings.Option.Theme.Dark" xml:space="preserve">
+    <value>深色模式</value>
+  </data>
+  <data name="Settings.Option.Theme.Light" xml:space="preserve">
+    <value>淺色模式</value>
+  </data>
+  <data name="Settings.Option.Theme.SyncWithOs" xml:space="preserve">
+    <value>與系統同步</value>
+  </data>
+  <data name="Settings.Option.UpdateVersion.Beta" xml:space="preserve">
+    <value>公測版</value>
+  </data>
+  <data name="Settings.Option.UpdateVersion.Nightly" xml:space="preserve">
+    <value>內測版</value>
+  </data>
+  <data name="Settings.Option.UpdateVersion.Stable" xml:space="preserve">
+    <value>穩定版</value>
+  </data>
+  <data name="Settings.Performance.Gpu.Option.SystemDefault" xml:space="preserve">
+    <value>系統預設 GPU</value>
+  </data>
+  <data name="SkillDaemon" xml:space="preserve">
+    <value>開始掛機</value>
+  </data>
+  <data name="SkillUsage" xml:space="preserve">
+    <value>切換技能用法</value>
+  </data>
+  <data name="SpearheadSquad" xml:space="preserve">
+    <value>矛頭分隊</value>
+  </data>
+  <data name="SpecialForceSquad" xml:space="preserve">
+    <value>特勤分隊</value>
+  </data>
+  <data name="StageInfoError" xml:space="preserve">
+    <value>關卡辨識錯誤</value>
+  </data>
+  <data name="StartCombat" xml:space="preserve">
+    <value>開始戰鬥: </value>
+  </data>
+  <data name="StartTask" xml:space="preserve">
+    <value>開始任務: </value>
+  </data>
+  <data name="StartingCoreChar" xml:space="preserve">
+    <value>開局{key=Operator}</value>
+  </data>
+  <data name="StartingCoreCharTip" xml:space="preserve">
+    <value>不填寫則使用預設策略。</value>
+  </data>
+  <data name="StartingRoles" xml:space="preserve">
+    <value>開局職業組</value>
+  </data>
+  <data name="StartingSquad" xml:space="preserve">
+    <value>開局分隊</value>
+  </data>
+  <data name="StartsWithScript" xml:space="preserve">
+    <value>開始前腳本</value>
+  </data>
+  <data name="StoneUsed" xml:space="preserve">
+    <value>已使用源石</value>
+  </data>
+  <data name="StoneUsedTimes" xml:space="preserve">
+    <value>石: {0}  </value>
+  </data>
+  <data name="SupportSquad" xml:space="preserve">
+    <value>後勤分隊</value>
+  </data>
+  <data name="SwitchSpeed" xml:space="preserve">
+    <value>切換倍速</value>
+  </data>
+  <data name="TacticalAssaultOperative" xml:space="preserve">
+    <value>突擊戰術分隊</value>
+  </data>
+  <data name="TacticalDestructionOperative" xml:space="preserve">
+    <value>破壞戰術分隊</value>
+  </data>
+  <data name="TacticalFortificationOperative" xml:space="preserve">
+    <value>堡壘戰術分隊</value>
+  </data>
+  <data name="TacticalRangedOperative" xml:space="preserve">
+    <value>遠程戰術分隊</value>
+  </data>
+  <data name="TaskError" xml:space="preserve">
+    <value>任務出錯: </value>
+  </data>
+  <data name="TaskQueue.Root.Add" xml:space="preserve">
+    <value>新增</value>
+  </data>
+  <data name="TaskQueue.Root.Inverse" xml:space="preserve">
+    <value>反向選取</value>
+  </data>
+  <data name="TaskQueue.Root.LinkStart" xml:space="preserve">
+    <value>Link Start!</value>
+  </data>
+  <data name="TaskQueue.Root.PostActionNone" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="TaskQueue.Root.PostActionTitle" xml:space="preserve">
+    <value>任務完成後</value>
+  </data>
+  <data name="TaskQueue.Root.Start" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="TaskQueue.Root.Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="TaskQueue.Status.Error" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="TheEx" xml:space="preserve">
+    <value>無獎勵關卡，已停止</value>
+  </data>
+  <data name="ThisFacility" xml:space="preserve">
+    <value>目前設施：</value>
+  </data>
+  <data name="TotalDrop" xml:space="preserve">
+    <value>掉落統計：</value>
+  </data>
+  <data name="Trader" xml:space="preserve">
+    <value>節點: 詭意行商</value>
+  </data>
+  <data name="TrainingCompleted" xml:space="preserve">
+    <value>訓練完成</value>
+  </data>
+  <data name="TrainingIdle" xml:space="preserve">
+    <value>訓練室空閒中</value>
+  </data>
+  <data name="TrainingLevel" xml:space="preserve">
+    <value>專精等級</value>
+  </data>
+  <data name="TrainingTimeLeft" xml:space="preserve">
+    <value>剩餘時間</value>
+  </data>
+  <data name="UnitTime" xml:space="preserve">
+    <value>次</value>
+  </data>
+  <data name="UpperLimit" xml:space="preserve">
+    <value>投資已達上限</value>
+  </data>
+  <data name="UseSkill" xml:space="preserve">
+    <value>使用技能</value>
+  </data>
+  <data name="Visiting" xml:space="preserve">
+    <value>訪問好友</value>
+  </data>
+  <data name="Copilot.Popup.UserAdditionalTitle" xml:space="preserve">
+    <value>追加自定義{key=Operator}</value>
+  </data>
+  <data name="Copilot.Tip.AutoSquad" xml:space="preserve">
+    <value>自動編隊可能無法辨識 ｢特別關注｣ 的{key=Operator}</value>
+  </data>
+  <data name="Copilot.Tip.BattleList" xml:space="preserve">
+    <value>僅支援以下模式：
+  1. {key=MainStage}：同一章節內導航
+  2. {key=SideStory}：目前頁面內導航（普通/EX/S 不能互跳）
+  3. {key=StoryCollection}：目前頁面內導航
+  4. {key=ParadoxSimulation}：從{key=Operator}列表啟動
+請在對應介面啟動，不支援跨章節導航
+
+當 ｢{key=UseCopilotList}｣ 啟用後，選擇單一作業時會自動新增至 ｢{key=CopilotList}｣</value>
+  </data>
+  <data name="Copilot.Tip.IgnoreRequirements" xml:space="preserve">
+    <value>部分作業需要特定技能等級、模組等作為前置條件。
+勾選此項將跳過這些檢查，但可能導致作業無法正常執行。
+幹員精英化等級無法跳過；若跳過任何需求，戰鬥完成後將不再為作業自動點贊。</value>
+  </data>
+  <data name="Copilot.Tip.UserAdditionalFormat" xml:space="preserve">
+    <value>使用 ｢;｣ 作為分隔符，用 ｢,｣ 分隔{key=Operator}姓名和技能，例如：史爾特爾,3;艾雅法拉,1</value>
+  </data>
+  <data name="Infrast.ContinueTraining" xml:space="preserve">
+    <value>訓練完成後繼續嘗試專精目前技能</value>
+  </data>
+  <data name="Infrast.CustomPlanToolTip" xml:space="preserve">
+    <value>若 ｢{key=CustomInfrastPlan}｣ 存在執行時間，則在 ｢{key=Base}｣ 任務開始前或任務執行時不會自動切換，將保持 {key=LinkStart} 狀態，僅於空閒或任務完成後才會切換。</value>
+  </data>
+  <data name="Infrast.File" xml:space="preserve">
+    <value>自定義基建配置檔案</value>
+  </data>
+  <data name="Infrast.NotStationed" xml:space="preserve">
+    <value>不將已進駐的{key=Operator}放入宿舍</value>
+  </data>
+  <data name="Infrast.NotStationedTip" xml:space="preserve">
+    <value>勾選則不會將艾麗妮等{key=Operator}從訓練室移除，但也會導致加工站{key=Operator}不能進入宿舍。</value>
+  </data>
+  <data name="Infrast.ReceptionBoard" xml:space="preserve">
+    <value>會客室資訊板收取信用</value>
+  </data>
+  <data name="Infrast.ReceptionExchange" xml:space="preserve">
+    <value>進行線索交流</value>
+  </data>
+  <data name="Infrast.Replenish" xml:space="preserve">
+    <value>源石碎片自動補貨</value>
+  </data>
+  <data name="Infrast.Threshold" xml:space="preserve">
+    <value>基建工作心情閾值</value>
+  </data>
+  <data name="Infrast.ThresholdTip" xml:space="preserve">
+    <value>若啟用自定義換班，該欄位僅針對自動填充 (autofill) 和{key=Operator}編組的房間有效</value>
+  </data>
+  <data name="Infrast.Trust" xml:space="preserve">
+    <value>宿舍空位蹭信賴</value>
+  </data>
+  <data name="Mall.ReceptionOptionsRequireInfrast" xml:space="preserve">
+    <value>以下功能需在{key=Infrast}中設定並執行</value>
+  </data>
+  <data name="Recruit.SelectStrategy" xml:space="preserve">
+    <value>公招多選 Tags 的策略</value>
+  </data>
+  <data name="TaskQueue.Root.WaitAndStop" xml:space="preserve">
+    <value>等待 &amp; 停止</value>
+  </data>
+  <data name="TaskQueue.Root.Waiting" xml:space="preserve">
+    <value>正在等待目前任務結束……</value>
+  </data>
+  <data name="TaskQueue.Root.DailyStageLabel" xml:space="preserve">
+    <value>今日關卡小提示:</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.ForceShow" xml:space="preserve">
+    <value>強制顯示 MAA</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.HideTray" xml:space="preserve">
+    <value>隱藏工作列圖示</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.SwitchLanguage" xml:space="preserve">
+    <value>切換語言 🌐</value>
+  </data>
+  <data name="PlatformCapability.TrayMenu.ToggleOverlay" xml:space="preserve">
+    <value>開啟 / 關閉日誌浮動視窗</value>
+  </data>
+  <data name="Copilot.Button.Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="Copilot.FilePicker.ImportBatch.Title" xml:space="preserve">
+    <value>批次匯入</value>
+  </data>
+  <data name="Copilot.List.InlineJsonHint" xml:space="preserve">
+    <value>內嵌 JSON</value>
+  </data>
+  <data name="Copilot.List.RaidLabel" xml:space="preserve">
+    <value>突襲</value>
+  </data>
+  <data name="Copilot.Input.OperatorNameWatermark" xml:space="preserve">
+    <value>{key=Operator}名稱</value>
+  </data>
+  <data name="Copilot.Option.AddTrust" xml:space="preserve">
+    <value>補充低信賴 {key=Operator}</value>
+  </data>
+  <data name="Copilot.Option.AddUserAdditional" xml:space="preserve">
+    <value>追加自定義{key=Operator}</value>
+  </data>
+  <data name="Copilot.Option.IgnoreRequirements" xml:space="preserve">
+    <value>忽略{key=Operator}屬性要求</value>
+  </data>
+  <data name="Copilot.Option.UseSanityPotion" xml:space="preserve">
+    <value>吃理智藥</value>
+  </data>
+  <data name="PostAction.Clear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="TaskQueue.Status.Running" xml:space="preserve">
+    <value>正在執行中……</value>
+  </data>
+  <data name="TaskQueue.Root.ToggleOverlay" xml:space="preserve">
+    <value>開啟 / 關閉日誌浮動視窗</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Confirm" xml:space="preserve">
+    <value>重新啟動</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Message" xml:space="preserve">
+    <value>是否立刻重開以套用更改？</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Confirm" xml:space="preserve">
+    <value>重新啟動</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Message" xml:space="preserve">
+    <value>是否立刻重開以套用更改？</value>
+  </data>
+  <data name="Achievement.NewBadgeText" xml:space="preserve">
+    <value>新</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Cancel" xml:space="preserve">
+    <value>關閉</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Confirm" xml:space="preserve">
+    <value>我知道了</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Prompt" xml:space="preserve">
+    <value>偵測到設定版本落後於最新 schema。
+目前版本: v{0}
+最新版本: v{1}
+
+{2}
+建議動作: {3}
+儲存時會先備份為 avalonia.json.schema-v{0}.bak.&lt;timestamp&gt;，再寫入最新 schema。</value>
+  </data>
+  <data name="Main.SchemaMigration.Dialog.Title" xml:space="preserve">
+    <value>設定版本遷移提示</value>
+  </data>
+  <data name="PostAction.Dialog.ConfirmNow" xml:space="preserve">
+    <value>立即執行</value>
+  </data>
+  <data name="PostAction.Dialog.Message.Hibernate" xml:space="preserve">
+    <value>任務完成後將在 {0} 秒後執行休眠，期間可以取消。</value>
+  </data>
+  <data name="PostAction.Dialog.Message.Shutdown" xml:space="preserve">
+    <value>任務完成後將在 {0} 秒後執行關機，期間可以取消。</value>
+  </data>
+  <data name="PostAction.Dialog.Message.Sleep" xml:space="preserve">
+    <value>任務完成後將在 {0} 秒後執行睡眠，期間可以取消。</value>
+  </data>
+  <data name="PostAction.Dialog.Title.Hibernate" xml:space="preserve">
+    <value>確認休眠</value>
+  </data>
+  <data name="PostAction.Dialog.Title.Shutdown" xml:space="preserve">
+    <value>確認關機</value>
+  </data>
+  <data name="PostAction.Dialog.Title.Sleep" xml:space="preserve">
+    <value>確認睡眠</value>
+  </data>
+  <data name="Settings.GUI.SoftwareRendering.RestartDialog.Title" xml:space="preserve">
+    <value>重新啟動 MAA</value>
+  </data>
+  <data name="Settings.Performance.Gpu.RestartDialog.Title" xml:space="preserve">
+    <value>重新載入 MAA</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Cancel" xml:space="preserve">
+    <value>稍後</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Confirm" xml:space="preserve">
+    <value>立即重新啟動</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Message" xml:space="preserve">
+    <value>啟動設定已儲存。是否現在重新啟動 MAA 以套用這些變更？</value>
+  </data>
+  <data name="Settings.Start.RestartDialog.Title" xml:space="preserve">
+    <value>重新啟動 MAA</value>
+  </data>
+  <data name="Settings.Start.RestartLaunched" xml:space="preserve">
+    <value>已開始重新啟動。</value>
+  </data>
+  <data name="Settings.Start.RestartManualClose" xml:space="preserve">
+    <value>已啟動新的執行個體。請關閉目前執行個體以完成重新啟動。</value>
+  </data>
+  <data name="Settings.Start.RestartPending" xml:space="preserve">
+    <value>啟動設定已儲存。請稍後重新啟動 MAA 以套用這些變更。</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Cancel" xml:space="preserve">
+    <value>稍後</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Confirm" xml:space="preserve">
+    <value>立即重新啟動</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Message" xml:space="preserve">
+    <value>軟體更新套件已下載完成。是否現在重新啟動 MAA 以套用更新？</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartDialog.Title" xml:space="preserve">
+    <value>更新套件已準備好</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartLaunched" xml:space="preserve">
+    <value>已開始重新啟動以套用軟體更新。</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartManualClose" xml:space="preserve">
+    <value>新的執行個體已啟動，請關閉目前執行個體以繼續套用更新。</value>
+  </data>
+  <data name="Settings.VersionUpdate.RestartPending" xml:space="preserve">
+    <value>更新套件已下載完成，請稍後重新啟動 MAA 以套用更新。</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Cancel" xml:space="preserve">
+    <value>關閉</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Confirm" xml:space="preserve">
+    <value>知道了</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Message" xml:space="preserve">
+    <value>MAA Unified 尚未實作軟體更新。請繼續使用 WPF 版本處理軟體更新。</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Status" xml:space="preserve">
+    <value>MAA Unified 尚未實作軟體更新。</value>
+  </data>
+  <data name="Settings.VersionUpdate.SoftwarePlaceholder.Title" xml:space="preserve">
+    <value>軟體更新</value>
+  </data>
+</root>

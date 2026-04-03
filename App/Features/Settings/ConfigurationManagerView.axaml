@@ -10,7 +10,8 @@
       <TextBlock Classes="settings-field-caption" Text="{Binding RootTexts[Settings.ConfigurationManager.ProfileName]}" />
       <ComboBox Width="{DynamicResource MAA.Size.Settings.ColumnWidth}"
                 ItemsSource="{Binding ConfigurationProfiles}"
-                SelectedItem="{Binding ConfigurationManagerSelectedProfile}"
+                SelectedValueBinding="{Binding .}"
+                SelectedValue="{Binding ConfigurationManagerSelectedProfile}"
                 SelectionChanged="OnConfigurationProfileSelectionChanged" />
     </StackPanel>
 

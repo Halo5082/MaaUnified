@@ -10,6 +10,7 @@ public sealed class AvaloniaJsonConfigStore : IUnifiedConfigStore
         WriteIndented = true,
         PropertyNameCaseInsensitive = true,
     };
+    private const FileShare SharedConfigReadShare = FileShare.ReadWrite | FileShare.Delete;
 
     public AvaloniaJsonConfigStore(string baseDirectory)
     {
@@ -33,15 +34,53 @@ public sealed class AvaloniaJsonConfigStore : IUnifiedConfigStore
             return null;
         }
 
-        await using var stream = File.OpenRead(ConfigPath);
+        await using var stream = new FileStream(
+            ConfigPath,
+            FileMode.Open,
+            FileAccess.Read,
+            SharedConfigReadShare,
+            bufferSize: 4096,
+            FileOptions.Asynchronous);
         return await JsonSerializer.DeserializeAsync<UnifiedConfig>(stream, _serializerOptions, cancellationToken);
     }
 
     public async Task SaveAsync(UnifiedConfig config, CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(ConfigDirectory);
-        await using var stream = File.Create(ConfigPath);
-        await JsonSerializer.SerializeAsync(stream, config, _serializerOptions, cancellationToken);
+        var tempPath = Path.Combine(
+            ConfigDirectory,
+            $"{Path.GetFileName(ConfigPath)}.tmp.{Environment.ProcessId}.{Guid.NewGuid():N}");
+
+        try
+        {
+            await using (var stream = new FileStream(
+                tempPath,
+                FileMode.CreateNew,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 4096,
+                FileOptions.Asynchronous))
+            {
+                await JsonSerializer.SerializeAsync(stream, config, _serializerOptions, cancellationToken);
+                await stream.FlushAsync(cancellationToken);
+            }
+
+            if (Exists())
+            {
+                File.Move(tempPath, ConfigPath, overwrite: true);
+            }
+            else
+            {
+                File.Move(tempPath, ConfigPath);
+            }
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+        }
     }
 
     public Task BackupAsync(string suffix, CancellationToken cancellationToken = default)

@@ -235,7 +235,85 @@ public sealed partial class SettingsPageViewModel
         if (ShouldPromptForGpuRestart(persistedSnapshot, readBackSnapshot))
         {
             await PromptForGpuRestartAsync(cancellationToken);
+            return;
         }
+
+        if (ShouldPromptForLaunchBehaviorRestart(persistedSnapshot, readBackSnapshot))
+        {
+            await PromptForLaunchBehaviorRestartAsync(cancellationToken);
+        }
+    }
+
+    private static bool ShouldPromptForLaunchBehaviorRestart(
+        StartPerformanceSettingsSnapshot previousSnapshot,
+        StartPerformanceSettingsSnapshot currentSnapshot)
+    {
+        return previousSnapshot.RunDirectly != currentSnapshot.RunDirectly
+               || previousSnapshot.MinimizeDirectly != currentSnapshot.MinimizeDirectly;
+    }
+
+    private async Task PromptForLaunchBehaviorRestartAsync(CancellationToken cancellationToken)
+    {
+        var chrome = CreateSettingsDialogChrome(
+            texts => new DialogChromeSnapshot(
+                title: texts.GetOrDefault("Settings.Start.RestartDialog.Title", "Restart MAA"),
+                confirmText: texts.GetOrDefault("Settings.Start.RestartDialog.Confirm", "Restart Now"),
+                cancelText: texts.GetOrDefault("Settings.Start.RestartDialog.Cancel", "Later")));
+        var chromeSnapshot = chrome.GetSnapshot();
+        var request = new WarningConfirmDialogRequest(
+            Title: chromeSnapshot.Title,
+            Message: RootTexts.GetOrDefault(
+                "Settings.Start.RestartDialog.Message",
+                "Startup settings were saved. Restart MAA now to apply these changes?"),
+            ConfirmText: chromeSnapshot.ConfirmText ?? RootTexts.GetOrDefault("Settings.Start.RestartDialog.Confirm", "Restart Now"),
+            CancelText: chromeSnapshot.CancelText ?? RootTexts.GetOrDefault("Settings.Start.RestartDialog.Cancel", "Later"),
+            Language: Language,
+            Chrome: chrome);
+        var dialogResult = await _dialogService.ShowWarningConfirmAsync(
+            request,
+            "Settings.Save.StartPerformance.LaunchBehaviorRestartPrompt",
+            cancellationToken);
+
+        if (dialogResult.Return != DialogReturnSemantic.Confirm)
+        {
+            StatusMessage = RootTexts.GetOrDefault(
+                "Settings.Start.RestartPending",
+                "Startup settings were saved. Restart MAA later to apply these changes.");
+            LastErrorMessage = string.Empty;
+            await RecordEventAsync(
+                "Settings.Save.StartPerformance.LaunchBehaviorRestartPrompt",
+                $"deferred; return={dialogResult.Return}",
+                cancellationToken);
+            return;
+        }
+
+        var restartResult = await Runtime.AppLifecycleService.RestartAsync(cancellationToken);
+        if (!await ApplyResultAsync(restartResult, "Settings.Save.StartPerformance.LaunchBehaviorRestart", cancellationToken))
+        {
+            return;
+        }
+
+        StatusMessage = RootTexts.GetOrDefault(
+            "Settings.Start.RestartLaunched",
+            "Restart has started.");
+        await RecordEventAsync(
+            "Settings.Save.StartPerformance.LaunchBehaviorRestart",
+            "restart-launched",
+            cancellationToken);
+
+        if (!Runtime.AppLifecycleService.SupportsExit)
+        {
+            StatusMessage = RootTexts.GetOrDefault(
+                "Settings.Start.RestartManualClose",
+                "A new instance has started. Close the current instance to finish restarting.");
+            return;
+        }
+
+        await ApplyResultAsync(
+            Runtime.AppLifecycleService.ExitAsync,
+            "Settings.Save.StartPerformance.LaunchBehaviorRestart.Exit",
+            UiErrorCode.AppExitFailed,
+            cancellationToken);
     }
 
     private CoreInstanceOptions BuildCurrentCoreInstanceOptions()

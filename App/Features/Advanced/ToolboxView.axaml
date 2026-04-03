@@ -1,6 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:advanced="clr-namespace:MAAUnified.App.Features.Advanced"
              xmlns:controls="clr-namespace:MAAUnified.App.Controls"
              x:Class="MAAUnified.App.Features.Advanced.ToolboxView">
   <Grid RowDefinitions="*,Auto">
@@ -8,7 +7,7 @@
                 Classes="toolbox-nav"
                 SelectedIndex="{Binding SelectedTabIndex}"
                 Margin="{DynamicResource MAA.Thickness.MarginSectionVertical}">
-      <TabItem Header="{Binding Texts[Toolbox.Tab.Recruit]}">
+      <TabItem Header="{Binding RecruitTabTitle}">
         <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
               RowDefinitions="*,Auto">
           <ScrollViewer Grid.Row="0"
@@ -62,13 +61,13 @@
                         Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
                         VerticalAlignment="Center">
               <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
-                        Content="{Binding Texts[Toolbox.Recruit.AutoSetTime]}"
+                        Content="{Binding RecruitAutoSetTimeText}"
                         IsChecked="{Binding RecruitAutoSetTime}" />
               <StackPanel Orientation="Horizontal">
                 <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxWrapMargin}"
                           IsChecked="{Binding RecruitmentShowPotential}">
                   <TextBlock MaxWidth="{DynamicResource MAA.Size.Toolbox.RecruitPotentialTextMaxWidth}"
-                             Text="{Binding Texts[Toolbox.Recruit.ShowPotential]}"
+                             Text="{Binding RecruitShowPotentialText}"
                              TextWrapping="Wrap" />
                 </CheckBox>
                 <controls:TooltipHint Tip="{Binding RecruitPotentialTip}" />
@@ -83,7 +82,7 @@
                           Spacing="{DynamicResource MAA.Spacing.Small}">
                 <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
                           VerticalAlignment="Bottom"
-                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect3]}"
+                          Content="{Binding RecruitAutoSelect3Text}"
                           IsChecked="{Binding ChooseLevel3}" />
                 <StackPanel Orientation="Horizontal"
                             Spacing="{DynamicResource MAA.Spacing.Small}"
@@ -106,7 +105,7 @@
                           Spacing="{DynamicResource MAA.Spacing.Small}">
                 <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
                           VerticalAlignment="Bottom"
-                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect4]}"
+                          Content="{Binding RecruitAutoSelect4Text}"
                           IsChecked="{Binding ChooseLevel4}" />
                 <StackPanel Orientation="Horizontal"
                             Spacing="{DynamicResource MAA.Spacing.Small}"
@@ -129,7 +128,7 @@
                           Spacing="{DynamicResource MAA.Spacing.Small}">
                 <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
                           VerticalAlignment="Bottom"
-                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect5]}"
+                          Content="{Binding RecruitAutoSelect5Text}"
                           IsChecked="{Binding ChooseLevel5}" />
                 <StackPanel Orientation="Horizontal"
                             Spacing="{DynamicResource MAA.Spacing.Small}"
@@ -152,14 +151,14 @@
                           Spacing="{DynamicResource MAA.Spacing.Small}">
                 <CheckBox Margin="{DynamicResource MAA.Thickness.Toolbox.CheckboxMargin}"
                           VerticalAlignment="Bottom"
-                          Content="{Binding Texts[Toolbox.Recruit.AutoSelect6]}"
+                          Content="{Binding RecruitAutoSelect6Text}"
                           IsChecked="{Binding ChooseLevel6}" />
                 <StackPanel Orientation="Horizontal"
                             Spacing="{DynamicResource MAA.Spacing.Small}"
                             IsVisible="{Binding ShowRecruitAutoSetTimeControls}">
                   <TextBlock VerticalAlignment="Center"
                              Classes="subtle"
-                             Text="{Binding Texts[Toolbox.Recruit.FixedSixStar]}" />
+                             Text="{Binding RecruitFixedSixStarText}" />
                 </StackPanel>
               </StackPanel>
             </StackPanel>
@@ -169,13 +168,13 @@
                     Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                     Margin="{DynamicResource MAA.Thickness.Toolbox.InnerHorizontalMargin}"
                     Classes="wpf-button"
-                    Content="{Binding Texts[Toolbox.Action.StartRecognition]}"
+                    Content="{Binding StartRecognitionText}"
                     Click="OnRecruitStartClick" />
           </Grid>
         </Grid>
       </TabItem>
 
-      <TabItem Header="{Binding Texts[Toolbox.Tab.OperBox]}">
+      <TabItem Header="{Binding OperBoxTabTitle}">
         <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
               RowDefinitions="Auto,*,Auto">
         <TextBlock Grid.Row="0"
@@ -303,7 +302,7 @@
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
                   Click="OnOperBoxExportClick">
-            <TextBlock Text="{Binding Texts[Toolbox.OperBox.CopyToClipboard]}"
+            <TextBlock Text="{Binding OperBoxCopyToClipboardText}"
                        TextAlignment="Center"
                        TextWrapping="Wrap" />
           </Button>
@@ -311,13 +310,13 @@
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
-                  Content="{Binding Texts[Toolbox.Action.StartRecognition]}"
+                  Content="{Binding StartRecognitionText}"
                   Click="OnOperBoxStartClick" />
         </StackPanel>
       </Grid>
       </TabItem>
 
-      <TabItem Header="{Binding Texts[Toolbox.Tab.Depot]}">
+      <TabItem Header="{Binding DepotTabTitle}">
         <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
               RowDefinitions="Auto,*,Auto">
         <StackPanel Grid.Row="0">
@@ -378,7 +377,7 @@
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
                   Click="OnDepotExportArkPlannerClick">
-            <TextBlock Text="{Binding Texts[Toolbox.Depot.ExportArkPlanner]}"
+            <TextBlock Text="{Binding DepotExportArkPlannerText}"
                        TextAlignment="Center"
                        TextWrapping="Wrap" />
           </Button>
@@ -387,7 +386,7 @@
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
                   Click="OnDepotExportLoliconClick">
-            <TextBlock Text="{Binding Texts[Toolbox.Depot.ExportLolicon]}"
+            <TextBlock Text="{Binding DepotExportLoliconText}"
                        TextAlignment="Center"
                        TextWrapping="Wrap" />
           </Button>
@@ -395,13 +394,13 @@
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonWideMargin}"
                   Classes="wpf-button"
-                  Content="{Binding Texts[Toolbox.Action.StartRecognition]}"
+                  Content="{Binding StartRecognitionText}"
                   Click="OnDepotStartClick" />
         </StackPanel>
       </Grid>
       </TabItem>
 
-      <TabItem Header="{Binding Texts[Toolbox.Tab.Gacha]}">
+      <TabItem Header="{Binding GachaTabTitle}">
         <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
               RowDefinitions="Auto,*,Auto">
         <TextBlock Grid.Row="0"
@@ -450,7 +449,7 @@
                          TextAlignment="Center"
                          FontSize="{DynamicResource MAA.FontSize.Toolbox.WarningLead}"
                          FontWeight="Bold"
-                         Text="{Binding Texts[Toolbox.Gacha.Disclaimer.Lead]}"
+                         Text="{Binding GachaDisclaimerLeadText}"
                          TextWrapping="Wrap" />
               <TextBlock x:Name="GachaDisclaimerEmphasisText"
                          Margin="{DynamicResource MAA.Thickness.Toolbox.WarningEmphasisMargin}"
@@ -458,7 +457,7 @@
                          TextAlignment="Center"
                          FontSize="{DynamicResource MAA.FontSize.Toolbox.WarningEmphasis}"
                          FontWeight="Bold"
-                         Text="{Binding Texts[Toolbox.Gacha.Disclaimer.Emphasis]}"
+                         Text="{Binding GachaDisclaimerEmphasisText}"
                          TextWrapping="Wrap">
                   <TextBlock.Foreground>
                     <LinearGradientBrush StartPoint="0%,50%"
@@ -485,20 +484,20 @@
                          HorizontalAlignment="Center"
                          TextAlignment="Center"
                          Classes="long-wrap"
-                         Text="{Binding Texts[Toolbox.Gacha.Disclaimer.Body]}" />
+                         Text="{Binding GachaDisclaimerBodyText}" />
 
               <Button Width="{DynamicResource MAA.Size.Toolbox.WarningButtonWidth}"
                       Height="{DynamicResource MAA.Size.Toolbox.WarningButtonHeight}"
                       Margin="{DynamicResource MAA.Thickness.Toolbox.WarningButtonMargin}"
                       HorizontalAlignment="Center"
                       Classes="wpf-button"
-                      Content="{Binding Texts[Toolbox.Gacha.Disclaimer.Acknowledge]}"
+                      Content="{Binding GachaDisclaimerAcknowledgeText}"
                       Click="OnGachaAgreeDisclaimerClick" />
 
               <CheckBox Margin="{DynamicResource MAA.Thickness.ItemPadding}"
                         HorizontalAlignment="Center"
                         VerticalContentAlignment="Center"
-                        Content="{Binding Texts[Toolbox.Gacha.Disclaimer.NoMore]}"
+                        Content="{Binding GachaDisclaimerNoMoreText}"
                         IsChecked="{Binding GachaShowDisclaimerNoMore}" />
             </StackPanel>
           </Border>
@@ -513,13 +512,13 @@
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonMediumMargin}"
                   Classes="wpf-button"
-                  Content="{Binding Texts[Toolbox.Gacha.DrawOnce]}"
+                  Content="{Binding GachaDrawOnceText}"
                   Click="OnGachaOnceClick" />
           <Button Width="{DynamicResource MAA.Size.Toolbox.ActionButtonWidth}"
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
                   Margin="{DynamicResource MAA.Thickness.Toolbox.ButtonMediumMargin}"
                   Classes="wpf-button"
-                  Content="{Binding Texts[Toolbox.Gacha.DrawTen]}"
+                  Content="{Binding GachaDrawTenText}"
                   Click="OnGachaTenTimesClick" />
           <Button Width="{DynamicResource MAA.Size.Toolbox.ActionButtonWidth}"
                   Height="{DynamicResource MAA.Size.Toolbox.ActionButtonHeight}"
@@ -531,7 +530,7 @@
       </Grid>
       </TabItem>
 
-      <TabItem Header="{Binding Texts[Toolbox.Tab.Peep]}">
+      <TabItem Header="{Binding PeepTabTitle}">
         <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
               RowDefinitions="*,Auto">
         <TextBlock Grid.Row="0"
@@ -577,7 +576,7 @@
                   Click="OnPeepCommandClick" />
           <StackPanel VerticalAlignment="Center">
             <TextBlock HorizontalAlignment="Center"
-                       Text="{Binding Texts[Toolbox.Peep.TargetFps]}" />
+                       Text="{Binding PeepTargetFpsText}" />
             <controls:VerticalSpinNumberBox Width="{DynamicResource MAA.Size.Toolbox.PeepFpsWidth}"
                                             Minimum="1"
                                             Maximum="60"
@@ -587,18 +586,19 @@
       </Grid>
       </TabItem>
 
-      <TabItem Header="{Binding Texts[Toolbox.Tab.MiniGame]}">
+      <TabItem Header="{Binding MiniGameTabTitle}">
         <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMarginFlat}"
               RowDefinitions="Auto,Auto,*,Auto">
         <Grid Width="{DynamicResource MAA.Size.Toolbox.FormPanelWidth}"
               HorizontalAlignment="Center"
               ColumnDefinitions="Auto,*">
           <TextBlock VerticalAlignment="Center"
-                     Text="{Binding Texts[Toolbox.MiniGame.Name]}" />
+                     Text="{Binding MiniGameNameText}" />
           <ComboBox Grid.Column="1"
                     Margin="{DynamicResource MAA.Thickness.Toolbox.FieldMargin}"
                     ItemsSource="{Binding MiniGameTaskList}"
-                    SelectedItem="{Binding SelectedMiniGameEntry}">
+                    SelectedValueBinding="{Binding Value}"
+                    SelectedValue="{Binding MiniGameTaskName}">
             <ComboBox.ItemTemplate>
               <DataTemplate>
                 <TextBlock Text="{Binding Display}" />
@@ -615,7 +615,7 @@
               RowDefinitions="Auto,Auto">
           <Grid ColumnDefinitions="Auto,*">
             <TextBlock VerticalAlignment="Center"
-                       Text="{Binding Texts[Toolbox.MiniGame.Ending]}" />
+                       Text="{Binding MiniGameEndingText}" />
             <ComboBox Grid.Column="1"
                       Margin="{DynamicResource MAA.Thickness.Toolbox.FieldMargin}"
                       ItemsSource="{Binding MiniGameSecretFrontEndingOptions}"
@@ -626,11 +626,12 @@
                 Margin="{DynamicResource MAA.Thickness.Toolbox.ActionTopMargin}"
                 ColumnDefinitions="Auto,*">
             <TextBlock VerticalAlignment="Center"
-                       Text="{Binding Texts[Toolbox.MiniGame.EventPriority]}" />
+                       Text="{Binding MiniGameEventPriorityText}" />
             <ComboBox Grid.Column="1"
                       Margin="{DynamicResource MAA.Thickness.Toolbox.FieldMargin}"
                       ItemsSource="{Binding MiniGameSecretFrontEventOptions}"
-                      SelectedItem="{Binding SelectedMiniGameSecretFrontEventOption}">
+                      SelectedValueBinding="{Binding Value}"
+                      SelectedValue="{Binding MiniGameSecretFrontEvent}">
               <ComboBox.ItemTemplate>
                 <DataTemplate>
                   <TextBlock Text="{Binding Label}" />
@@ -658,35 +659,6 @@
       </Grid>
       </TabItem>
 
-      <TabItem Header="{Binding Texts[Toolbox.Tab.Advanced]}">
-        <Grid Margin="{DynamicResource MAA.Thickness.Toolbox.PageMargin}"
-              RowDefinitions="Auto,*">
-          <TextBlock Classes="subtle long-wrap"
-                     Text="{Binding Texts[Toolbox.Advanced.EntryDescription]}" />
-
-          <TabControl Grid.Row="1"
-                      Margin="{DynamicResource MAA.Thickness.Toolbox.ActionTopMargin}">
-            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.StageManager]}">
-              <advanced:StageManagerView DataContext="{Binding StageManagerPage}" />
-            </TabItem>
-            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.Overlay]}">
-              <advanced:OverlayView DataContext="{Binding OverlayPage}" />
-            </TabItem>
-            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.Tray]}">
-              <advanced:TrayIntegrationView DataContext="{Binding TrayIntegrationPage}" />
-            </TabItem>
-            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.RemoteControl]}">
-              <advanced:RemoteControlCenterView DataContext="{Binding RemoteControlCenterPage}" />
-            </TabItem>
-            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.ExternalNotification]}">
-              <advanced:ExternalNotificationProvidersView DataContext="{Binding ExternalNotificationProvidersPage}" />
-            </TabItem>
-            <TabItem Header="{Binding Texts[Toolbox.Advanced.Tab.WebApi]}">
-              <advanced:WebApiView DataContext="{Binding WebApiPage}" />
-            </TabItem>
-          </TabControl>
-        </Grid>
-      </TabItem>
     </TabControl>
 
     <Border Grid.Row="1"
@@ -695,13 +667,13 @@
             Classes="wpf-panel wpf-panel-strong">
       <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
         <TextBlock Classes="section-title"
-                   Text="{Binding Texts[Toolbox.Section.ExecutionReview]}" />
+                   Text="{Binding ExecutionReviewTitle}" />
 
         <StackPanel Grid.Row="1"
                     Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
                     Spacing="{DynamicResource MAA.Spacing.Small}">
           <TextBlock Classes="subtle"
-                     Text="{Binding Texts[Toolbox.ExecutionReview.ResultLabel]}" />
+                     Text="{Binding ExecutionReviewResultLabelText}" />
           <TextBlock Classes="long-wrap"
                      Text="{Binding ResultText}" />
         </StackPanel>
@@ -710,7 +682,7 @@
                     Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
                     Spacing="{DynamicResource MAA.Spacing.Small}">
           <TextBlock Classes="subtle"
-                     Text="{Binding Texts[Toolbox.ExecutionReview.ParametersLabel]}" />
+                     Text="{Binding ExecutionReviewParametersLabelText}" />
           <TextBlock Classes="long-wrap"
                      Text="{Binding CurrentToolParameters}" />
         </StackPanel>
@@ -719,7 +691,7 @@
                     Margin="{DynamicResource MAA.Thickness.Toolbox.InfoMargin}"
                     Spacing="{DynamicResource MAA.Spacing.Small}">
           <TextBlock Classes="subtle"
-                     Text="{Binding Texts[Toolbox.ExecutionReview.HistoryLabel]}" />
+                     Text="{Binding ExecutionReviewHistoryLabelText}" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="4"

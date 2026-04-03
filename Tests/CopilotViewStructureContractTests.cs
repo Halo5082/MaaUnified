@@ -8,8 +8,9 @@ public sealed class CopilotViewStructureContractTests
         var root = GetMaaUnifiedRoot();
         var xaml = File.ReadAllText(Path.Combine(root, "App", "Features", "Advanced", "CopilotView.axaml"));
 
-        Assert.Contains("Content=\"{Binding Texts[Copilot.Action.Start]}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"{Binding Texts[Copilot.Tab.Main]}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding StartButtonText}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"{Binding MainTabTitle}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Texts[Copilot.", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Content=\"开始\"", xaml, StringComparison.Ordinal);
         Assert.Contains("IsVisible=\"{Binding CanEdit}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<controls:CheckComboBox", xaml, StringComparison.Ordinal);
@@ -46,7 +47,8 @@ public sealed class CopilotViewStructureContractTests
         Assert.Contains("<controls:CheckComboBox", xaml, StringComparison.Ordinal);
         Assert.Contains("HeaderText=\"{Binding SelectedConnectConfigOption.DisplayName}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding ConnectConfigOptions}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("SelectedItem=\"{Binding SelectedConnectConfigOption}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SelectedValueBinding=\"{Binding Value}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SelectedValue=\"{Binding SelectedConnectConfigValue}\"", xaml, StringComparison.Ordinal);
     }
 
     [Fact]

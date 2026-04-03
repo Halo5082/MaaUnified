@@ -14,6 +14,8 @@ public sealed class CopilotItemViewModel : ObservableObject
     private bool _isRaid;
     private int _copilotId;
     private int? _tabIndex;
+    private string _raidLabel = "突袭";
+    private string _inlinePayloadHint = "inline-json";
 
     public CopilotItemViewModel(
         string name,
@@ -54,13 +56,25 @@ public sealed class CopilotItemViewModel : ObservableObject
     public string SourcePath
     {
         get => _sourcePath;
-        set => SetProperty(ref _sourcePath, value ?? string.Empty);
+        set
+        {
+            if (SetProperty(ref _sourcePath, value ?? string.Empty))
+            {
+                OnPropertyChanged(nameof(ExecutionPathHint));
+            }
+        }
     }
 
     public string InlinePayload
     {
         get => _inlinePayload;
-        set => SetProperty(ref _inlinePayload, value ?? string.Empty);
+        set
+        {
+            if (SetProperty(ref _inlinePayload, value ?? string.Empty))
+            {
+                OnPropertyChanged(nameof(ExecutionPathHint));
+            }
+        }
     }
 
     public bool IsChecked
@@ -97,8 +111,27 @@ public sealed class CopilotItemViewModel : ObservableObject
         => !string.IsNullOrWhiteSpace(SourcePath)
             ? SourcePath
             : !string.IsNullOrWhiteSpace(InlinePayload)
-                ? "inline-json"
+                ? _inlinePayloadHint
                 : string.Empty;
 
-    public string DisplayName => IsRaid ? $"{Name} (突袭)" : Name;
+    public string DisplayName => IsRaid ? $"{Name} ({_raidLabel})" : Name;
+
+    public void ApplyLocalization(string raidLabel, string inlinePayloadHint)
+    {
+        var displayNameChanged = !string.Equals(_raidLabel, raidLabel, StringComparison.Ordinal);
+        var executionPathHintChanged = !string.Equals(_inlinePayloadHint, inlinePayloadHint, StringComparison.Ordinal);
+
+        _raidLabel = raidLabel;
+        _inlinePayloadHint = inlinePayloadHint;
+
+        if (displayNameChanged && IsRaid)
+        {
+            OnPropertyChanged(nameof(DisplayName));
+        }
+
+        if (executionPathHintChanged && string.IsNullOrWhiteSpace(SourcePath) && !string.IsNullOrWhiteSpace(InlinePayload))
+        {
+            OnPropertyChanged(nameof(ExecutionPathHint));
+        }
+    }
 }
