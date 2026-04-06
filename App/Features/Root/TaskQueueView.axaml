@@ -63,7 +63,7 @@
   <Grid ColumnDefinitions="Auto,*,Auto">
     <Border Grid.Column="0"
             Width="{DynamicResource MAA.Size.TaskQueue.ListPanelWidth}"
-            Classes="wpf-panel wpf-panel-plain">
+            Classes="wpf-panel">
       <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
         <TextBlock Classes="section-title" Text="{Binding TaskListTitleText}" />
 

@@ -439,7 +439,7 @@ public sealed class TaskModuleBFeatureTests
 
         Assert.True(load.Success);
         Assert.NotNull(load.Value);
-        Assert.True(load.Value!.ExitEmulator);
+        Assert.Equal(OperatingSystem.IsWindows(), load.Value!.ExitEmulator);
         Assert.Equal("echo close-emulator", load.Value.Commands.ExitEmulator);
 
         var profile = fixture.Config.CurrentConfig.Profiles[fixture.Config.CurrentConfig.CurrentProfile];
@@ -448,14 +448,14 @@ public sealed class TaskModuleBFeatureTests
     }
 
     [Fact]
-    public async Task PostAction_ValidateSelection_NativeActionsDoNotRequireLegacyCommands()
+    public async Task PostAction_ValidateSelection_NativeActionsDoNotDependOnFallbackExecutorCapabilities()
     {
         var supported = new PlatformCapabilityStatus(true, "supported", Provider: "test");
         var executor = new TestPostActionExecutorService(new PostActionCapabilityMatrix(
-            ExitArknights: new PlatformCapabilityStatus(false, "legacy command missing", Provider: "test"),
-            BackToAndroidHome: new PlatformCapabilityStatus(false, "legacy command missing", Provider: "test"),
+            ExitArknights: new PlatformCapabilityStatus(false, "requires native provider", Provider: "test"),
+            BackToAndroidHome: new PlatformCapabilityStatus(false, "requires native provider", Provider: "test"),
             ExitEmulator: supported,
-            ExitSelf: new PlatformCapabilityStatus(false, "legacy command missing", Provider: "test"),
+            ExitSelf: new PlatformCapabilityStatus(false, "requires native provider", Provider: "test"),
             Hibernate: supported,
             Shutdown: supported,
             Sleep: supported));
@@ -481,9 +481,10 @@ public sealed class TaskModuleBFeatureTests
     }
 
     [Fact]
-    public async Task PostAction_ValidateSelection_UsesLegacyCommandFallback_WhenNativeHandlerUnavailable()
+    public async Task PostAction_ValidateSelection_CommandFields_DoNotEnableLegacyCommandLineFallback()
     {
         var unsupported = new PlatformCapabilityStatus(false, "unsupported", Provider: "test");
+        PostActionExecutorRequest? capturedRequest = null;
         var executor = new TestPostActionExecutorService(
             new PostActionCapabilityMatrix(
                 ExitArknights: unsupported,
@@ -493,14 +494,19 @@ public sealed class TaskModuleBFeatureTests
                 Hibernate: unsupported,
                 Shutdown: unsupported,
                 Sleep: unsupported),
-            matrixSelector: request => new PostActionCapabilityMatrix(
-                ExitArknights: new PlatformCapabilityStatus(!string.IsNullOrWhiteSpace(request?.CommandLine), "command fallback", Provider: "command"),
-                BackToAndroidHome: new PlatformCapabilityStatus(!string.IsNullOrWhiteSpace(request?.CommandLine), "command fallback", Provider: "command"),
-                ExitEmulator: new PlatformCapabilityStatus(!string.IsNullOrWhiteSpace(request?.CommandLine), "command fallback", Provider: "command"),
-                ExitSelf: new PlatformCapabilityStatus(!string.IsNullOrWhiteSpace(request?.CommandLine), "command fallback", Provider: "command"),
-                Hibernate: unsupported,
-                Shutdown: unsupported,
-                Sleep: unsupported));
+            matrixSelector: request =>
+            {
+                capturedRequest = request;
+                var hasLegacyCommand = !string.IsNullOrWhiteSpace(request?.CommandLine);
+                return new PostActionCapabilityMatrix(
+                    ExitArknights: new PlatformCapabilityStatus(hasLegacyCommand, "command fallback", Provider: "command"),
+                    BackToAndroidHome: new PlatformCapabilityStatus(hasLegacyCommand, "command fallback", Provider: "command"),
+                    ExitEmulator: new PlatformCapabilityStatus(hasLegacyCommand, "command fallback", Provider: "command"),
+                    ExitSelf: new PlatformCapabilityStatus(hasLegacyCommand, "command fallback", Provider: "command"),
+                    Hibernate: unsupported,
+                    Shutdown: unsupported,
+                    Sleep: unsupported);
+            });
 
         await using var fixture = await TestFixture.CreateAsync(executor: executor);
 
@@ -514,7 +520,9 @@ public sealed class TaskModuleBFeatureTests
         });
 
         Assert.True(preview.Success);
-        Assert.DoesNotContain(nameof(PostActionType.ExitSelf), preview.Value!.UnsupportedActions);
+        Assert.NotNull(capturedRequest);
+        Assert.True(string.IsNullOrWhiteSpace(capturedRequest!.CommandLine));
+        Assert.Contains(nameof(PostActionType.ExitSelf), preview.Value!.UnsupportedActions);
     }
 
     [Fact]
@@ -534,14 +542,56 @@ public sealed class TaskModuleBFeatureTests
     }
 
     [Fact]
+    public async Task PostAction_GetCapabilityPreview_ExitEmulatorSelection_IsWindowsOnlyAfterNormalization()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        var preview = await fixture.PostAction.GetCapabilityPreviewAsync(new PostActionConfig
+        {
+            ExitEmulator = true,
+        });
+
+        Assert.True(preview.Success);
+        Assert.NotNull(preview.Value);
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Contains(nameof(PostActionType.ExitEmulator), preview.Value!.UnsupportedActions);
+            return;
+        }
+
+        Assert.DoesNotContain(nameof(PostActionType.ExitEmulator), preview.Value!.UnsupportedActions);
+    }
+
+    [Fact]
+    public async Task PostAction_GetCapabilityPreview_HibernateSelection_FollowsPlatformNormalization()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        var preview = await fixture.PostAction.GetCapabilityPreviewAsync(new PostActionConfig
+        {
+            Hibernate = true,
+        });
+
+        Assert.True(preview.Success);
+        Assert.NotNull(preview.Value);
+        if (OperatingSystem.IsMacOS())
+        {
+            Assert.DoesNotContain(nameof(PostActionType.Hibernate), preview.Value!.UnsupportedActions);
+            Assert.Contains(nameof(PostActionType.Sleep), preview.Value.UnsupportedActions);
+            return;
+        }
+
+        Assert.Contains(nameof(PostActionType.Hibernate), preview.Value!.UnsupportedActions);
+        Assert.DoesNotContain(nameof(PostActionType.Sleep), preview.Value.UnsupportedActions);
+    }
+
+    [Fact]
     public async Task PostAction_Execute_UsesNativeHandlers_AndConfirmedPowerAction()
     {
         var supported = new PlatformCapabilityStatus(true, "supported", Provider: "test");
         var executor = new TestPostActionExecutorService(new PostActionCapabilityMatrix(
-            ExitArknights: new PlatformCapabilityStatus(false, "legacy command fallback", Provider: "test"),
-            BackToAndroidHome: new PlatformCapabilityStatus(false, "legacy command fallback", Provider: "test"),
+            ExitArknights: new PlatformCapabilityStatus(false, "requires native provider", Provider: "test"),
+            BackToAndroidHome: new PlatformCapabilityStatus(false, "requires native provider", Provider: "test"),
             ExitEmulator: supported,
-            ExitSelf: new PlatformCapabilityStatus(false, "legacy command fallback", Provider: "test"),
+            ExitSelf: new PlatformCapabilityStatus(false, "requires native provider", Provider: "test"),
             Hibernate: supported,
             Shutdown: supported,
             Sleep: supported));
@@ -623,9 +673,32 @@ public sealed class TaskModuleBFeatureTests
     }
 
     [Fact]
-    public async Task PostAction_Execute_CommandFailure_RecordsError_NoCrash()
+    public async Task PostAction_Execute_IfNoOtherMaaWithoutPowerAction_DoesNotBlockExitSelf()
+    {
+        var appLifecycle = new TestAppLifecycleService(supportsExit: true);
+        await using var fixture = await TestFixture.CreateAsync(appLifecycleService: appLifecycle);
+
+        var execute = await fixture.PostAction.ExecuteAfterCompletionAsync(
+            new PostActionExecutionContext("AllTasksCompleted", true, RunId: "run-b1-ifnoother"),
+            new PostActionConfig
+            {
+                IfNoOtherMaa = true,
+                ExitSelf = true,
+            });
+
+        Assert.True(execute.Success, execute.Message);
+        Assert.Equal(1, appLifecycle.ExitCallCount);
+
+        var eventLog = await File.ReadAllTextAsync(Path.Combine(fixture.Root, "debug", "avalonia-ui-events.log"));
+        Assert.Contains("action=ExitSelf", eventLog);
+        Assert.DoesNotContain("Skipped by IfNoOtherMaa", eventLog, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task PostAction_Execute_ExecutionFailure_RecordsError_NoCrash()
     {
         var supported = new PlatformCapabilityStatus(true, "supported", Provider: "test");
+        var failAction = OperatingSystem.IsWindows() ? PostActionType.ExitEmulator : PostActionType.ExitSelf;
         var executor = new TestPostActionExecutorService(
             new PostActionCapabilityMatrix(
                 ExitArknights: supported,
@@ -635,28 +708,23 @@ public sealed class TaskModuleBFeatureTests
                 Hibernate: supported,
                 Shutdown: supported,
                 Sleep: supported),
-            (action, _) => action == PostActionType.ExitEmulator
+            (action, _) => action == failAction
                 ? PlatformOperation.Failed("test", "forced failure", PlatformErrorCodes.PostActionExecutionFailed)
                 : PlatformOperation.NativeSuccess("test", "ok"));
 
         await using var fixture = await TestFixture.CreateAsync(executor: executor);
         var execute = await fixture.PostAction.ExecuteAfterCompletionAsync(
             new PostActionExecutionContext("AllTasksCompleted", true, RunId: "run-b3", TaskIndex: 1),
-            new PostActionConfig
-            {
-                ExitEmulator = true,
-                Commands = new PostActionCommandConfig
-                {
-                    ExitEmulator = "echo close-emu",
-                },
-            });
+            failAction == PostActionType.ExitEmulator
+                ? new PostActionConfig { ExitEmulator = true }
+                : new PostActionConfig { ExitSelf = true });
 
         Assert.False(execute.Success);
         Assert.Contains(UiErrorCode.PostActionExecutionFailed, execute.Error?.Code ?? string.Empty);
 
         var errorLog = await File.ReadAllTextAsync(Path.Combine(fixture.Root, "debug", "avalonia-ui-errors.log"));
         Assert.Contains("runId=run-b3", errorLog);
-        Assert.Contains("action=ExitEmulator", errorLog);
+        Assert.Contains($"action={failAction}", errorLog, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -727,6 +795,44 @@ public sealed class TaskModuleBFeatureTests
         Assert.True(vm.Shutdown);
         Assert.False(vm.ExitSelf);
         Assert.Equal("echo persist-new", vm.ExitSelfCommand);
+    }
+
+    [Fact]
+    public async Task PostActionModule_IfNoOtherMaa_RuntimeConfig_OnlyAppliesWithPowerActions_AndUnixDoesNotEnableExitEmulator()
+    {
+        var supported = new PlatformCapabilityStatus(true, "supported", Provider: "test");
+        var executor = new TestPostActionExecutorService(new PostActionCapabilityMatrix(
+            ExitArknights: supported,
+            BackToAndroidHome: supported,
+            ExitEmulator: supported,
+            ExitSelf: supported,
+            Hibernate: supported,
+            Shutdown: supported,
+            Sleep: supported));
+
+        await using var fixture = await TestFixture.CreateAsync(executor: executor);
+        var vm = new PostActionModuleViewModel(fixture.Runtime, new LocalizedTextMap { Language = "en-us" });
+        await vm.InitializeAsync();
+
+        vm.ClearActions();
+        vm.IfNoOtherMaa = true;
+        var withoutPower = vm.BuildRuntimeConfig();
+        Assert.False(withoutPower.IfNoOtherMaa);
+        Assert.False(withoutPower.ExitSelf);
+        Assert.False(withoutPower.ExitEmulator);
+
+        vm.Sleep = true;
+        vm.IfNoOtherMaa = true;
+        var withPower = vm.BuildRuntimeConfig();
+        Assert.True(withPower.IfNoOtherMaa);
+        Assert.True(withPower.ExitSelf);
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.True(withPower.ExitEmulator);
+            return;
+        }
+
+        Assert.False(withPower.ExitEmulator);
     }
 
     [Fact]

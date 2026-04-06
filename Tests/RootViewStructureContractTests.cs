@@ -134,6 +134,9 @@ public sealed class RootViewStructureContractTests
         Assert.DoesNotContain("BackToAndroidHomeCommand", postActionText, StringComparison.Ordinal);
         Assert.DoesNotContain("ExitEmulatorCommand", postActionText, StringComparison.Ordinal);
         Assert.DoesNotContain("ExitSelfCommand", postActionText, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding ShowExitEmulator}\"", postActionText, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding ShowHibernate}\"", postActionText, StringComparison.Ordinal);
+        Assert.Contains("IsEnabled=\"{Binding CanUseIfNoOtherMaa}\"", postActionText, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -2127,16 +2127,24 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
         if (profile.Values.TryGetValue(PostActionConfigKey, out var node) && node is not null)
         {
             var parsed = PostActionConfig.FromJson(node);
-            return UiOperationResult<PostActionConfig>.Ok(parsed, "Loaded structured post action config.");
+            var normalized = NormalizeForCurrentPlatform(parsed, out var changed);
+            if (changed)
+            {
+                profile.Values[PostActionConfigKey] = normalized.ToJson();
+                await _configService.SaveAsync(cancellationToken);
+            }
+
+            return UiOperationResult<PostActionConfig>.Ok(normalized, "Loaded structured post action config.");
         }
 
         if (_configService.CurrentConfig.GlobalValues.TryGetValue(PostActionConfigKey, out var globalStructuredNode) && globalStructuredNode is not null)
         {
             var parsed = PostActionConfig.FromJson(globalStructuredNode);
-            profile.Values[PostActionConfigKey] = globalStructuredNode.DeepClone();
+            var normalized = NormalizeForCurrentPlatform(parsed, out _);
+            profile.Values[PostActionConfigKey] = normalized.ToJson();
             _configService.CurrentConfig.GlobalValues.Remove(PostActionConfigKey);
             await _configService.SaveAsync(cancellationToken);
-            return UiOperationResult<PostActionConfig>.Ok(parsed, "Loaded structured post action config.");
+            return UiOperationResult<PostActionConfig>.Ok(normalized, "Loaded structured post action config.");
         }
 
         var config = _configService.CurrentConfig;
@@ -2203,7 +2211,8 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                         : "Failed to parse legacy completion action.");
         }
 
-        var migrated = migratedConfig.ToJson();
+        var normalizedMigratedConfig = NormalizeForCurrentPlatform(migratedConfig, out _);
+        var migrated = normalizedMigratedConfig.ToJson();
         profile.Values[PostActionConfigKey] = migrated;
         profile.Values.Remove(ConfigurationKeys.PostActions);
         config.GlobalValues.Remove(ConfigurationKeys.PostActions);
@@ -2215,7 +2224,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                 ? "Migrated legacy post actions bitmask to structured TaskQueue.PostAction."
                 : "Migrated legacy completion action to structured TaskQueue.PostAction.");
         return UiOperationResult<PostActionConfig>.Ok(
-            PostActionConfig.FromJson(migrated),
+            normalizedMigratedConfig,
             migratedFromFlags ? "Legacy post action config migrated." : "Legacy completion action migrated.");
     }
 
@@ -2229,7 +2238,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                 $"Current profile `{_configService.CurrentConfig.CurrentProfile}` not found.");
         }
 
-        var persistentConfig = config.Clone();
+        var persistentConfig = NormalizeForCurrentPlatform(config, out _);
         persistentConfig.Once = false;
         profile.Values[PostActionConfigKey] = persistentConfig.ToJson();
         _configService.CurrentConfig.GlobalValues.Remove(PostActionConfigKey);
@@ -2244,16 +2253,17 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
     public Task<UiOperationResult<PostActionPreview>> GetCapabilityPreviewAsync(PostActionConfig config, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var effectiveConfig = NormalizeForCurrentPlatform(config, out _);
         var warnings = new List<string>();
         var unsupported = new List<string>();
 
-        AddUnsupported(config.ExitArknights, PostActionType.ExitArknights, nameof(PostActionType.ExitArknights));
-        AddUnsupported(config.BackToAndroidHome, PostActionType.BackToAndroidHome, nameof(PostActionType.BackToAndroidHome));
-        AddUnsupported(config.ExitEmulator, PostActionType.ExitEmulator, nameof(PostActionType.ExitEmulator));
-        AddUnsupported(config.ExitSelf, PostActionType.ExitSelf, nameof(PostActionType.ExitSelf));
-        AddUnsupported(config.Hibernate, PostActionType.Hibernate, nameof(PostActionType.Hibernate));
-        AddUnsupported(config.Shutdown, PostActionType.Shutdown, nameof(PostActionType.Shutdown));
-        AddUnsupported(config.Sleep, PostActionType.Sleep, nameof(PostActionType.Sleep));
+        AddUnsupported(effectiveConfig.ExitArknights, PostActionType.ExitArknights, nameof(PostActionType.ExitArknights));
+        AddUnsupported(effectiveConfig.BackToAndroidHome, PostActionType.BackToAndroidHome, nameof(PostActionType.BackToAndroidHome));
+        AddUnsupported(effectiveConfig.ExitEmulator, PostActionType.ExitEmulator, nameof(PostActionType.ExitEmulator));
+        AddUnsupported(effectiveConfig.ExitSelf, PostActionType.ExitSelf, nameof(PostActionType.ExitSelf));
+        AddUnsupported(effectiveConfig.Hibernate, PostActionType.Hibernate, nameof(PostActionType.Hibernate));
+        AddUnsupported(effectiveConfig.Shutdown, PostActionType.Shutdown, nameof(PostActionType.Shutdown));
+        AddUnsupported(effectiveConfig.Sleep, PostActionType.Sleep, nameof(PostActionType.Sleep));
 
         if (unsupported.Count > 0)
         {
@@ -2281,13 +2291,14 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
     public async Task<UiOperationResult<PostActionPreview>> ValidateSelectionAsync(PostActionConfig config, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var effectiveConfig = NormalizeForCurrentPlatform(config, out _);
         var warnings = new List<string>();
-        if (config.IfNoOtherMaa && !(config.Hibernate || config.Shutdown || config.Sleep))
+        if (effectiveConfig.IfNoOtherMaa && !(effectiveConfig.Hibernate || effectiveConfig.Shutdown || effectiveConfig.Sleep))
         {
             warnings.Add(WarnKeyIfNoOtherNeedsSystemAction);
         }
 
-        var capability = await GetCapabilityPreviewAsync(config, cancellationToken);
+        var capability = await GetCapabilityPreviewAsync(effectiveConfig, cancellationToken);
         if (!capability.Success || capability.Value is null)
         {
             return UiOperationResult<PostActionPreview>.Fail(
@@ -2324,6 +2335,8 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
         {
             config = configOverride.Clone();
         }
+
+        config = NormalizeForCurrentPlatform(config, out _);
 
         if (!config.HasAnyAction())
         {
@@ -2429,7 +2442,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
 
         async Task ExecuteActionAsync(PostActionType action, CancellationToken token)
         {
-            var request = BuildExecutorRequest(config, action);
+            var request = BuildExecutorRequest();
             var capability = GetCapability(action, request);
             if (!capability.Supported)
             {
@@ -2497,7 +2510,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
     }
 
     private PlatformCapabilityStatus GetCapability(PostActionConfig config, PostActionType action)
-        => GetCapability(action, BuildExecutorRequest(config, action));
+        => GetCapability(action, BuildExecutorRequest());
 
     private PlatformCapabilityStatus GetCapability(PostActionType action, PostActionExecutorRequest request)
     {
@@ -2549,10 +2562,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                 return PlatformOperation.NativeSuccess("maa-core", "Back to Android home executed via MaaCore.", "post-action.BackToAndroidHome");
             }
 
-            if (!CanFallbackToLegacyCommand(request, result.Error?.Code))
-            {
-                return MapCoreFailure(result, "maa-core", PostActionType.BackToAndroidHome);
-            }
+            return MapCoreFailure(result, "maa-core", PostActionType.BackToAndroidHome);
         }
 
         return await _executor.ExecuteAsync(PostActionType.BackToAndroidHome, request, cancellationToken);
@@ -2570,10 +2580,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                 return PlatformOperation.NativeSuccess("maa-core", "Exit Arknights executed via MaaCore CloseDown.", "post-action.ExitArknights");
             }
 
-            if (!CanFallbackToLegacyCommand(request, result.Error?.Code))
-            {
-                return MapCoreFailure(result, "maa-core", PostActionType.ExitArknights);
-            }
+            return MapCoreFailure(result, "maa-core", PostActionType.ExitArknights);
         }
 
         return await _executor.ExecuteAsync(PostActionType.ExitArknights, request, cancellationToken);
@@ -2591,30 +2598,25 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                 return PlatformOperation.NativeSuccess("app-lifecycle", result.Message, "post-action.ExitSelf");
             }
 
-            if (!(CanFallbackToLegacyCommand(request) && string.Equals(result.Error?.Code, UiErrorCode.AppExitUnsupported, StringComparison.Ordinal)))
-            {
-                return PlatformOperation.Failed(
-                    "app-lifecycle",
-                    result.Message,
-                    result.Error?.Code ?? UiErrorCode.PostActionExecutionFailed,
-                    "post-action.ExitSelf");
-            }
+            return PlatformOperation.Failed(
+                "app-lifecycle",
+                result.Message,
+                result.Error?.Code ?? UiErrorCode.PostActionExecutionFailed,
+                "post-action.ExitSelf");
         }
 
         return await _executor.ExecuteAsync(PostActionType.ExitSelf, request, cancellationToken);
     }
 
-    private PostActionExecutorRequest BuildExecutorRequest(PostActionConfig config, PostActionType action)
+    private PostActionExecutorRequest BuildExecutorRequest()
     {
-        var commandLine = GetCommandTemplate(config, action);
         if (!_configService.TryGetCurrentProfile(out var profile))
         {
-            return new PostActionExecutorRequest(CommandLine: commandLine);
+            return new PostActionExecutorRequest();
         }
 
         var globalValues = _configService.CurrentConfig.GlobalValues;
         return new PostActionExecutorRequest(
-            CommandLine: commandLine,
             ConnectAddress: ReadStringSetting(profile, globalValues, "ConnectAddress", ConfigurationKeys.ConnectAddress),
             ConnectConfig: ReadStringSetting(profile, globalValues, "ConnectConfig", ConfigurationKeys.ConnectConfig),
             AdbPath: ReadStringSetting(profile, globalValues, "AdbPath", ConfigurationKeys.AdbPath),
@@ -2627,19 +2629,6 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
             LdPlayerEmulatorPath: ReadStringSetting(profile, globalValues, "LdPlayerEmulatorPath", ConfigurationKeys.LdPlayerEmulatorPath),
             LdPlayerManualSetIndex: ReadBooleanSetting(profile, globalValues, false, "LdPlayerManualSetIndex", ConfigurationKeys.LdPlayerManualSetIndex),
             LdPlayerIndex: ReadStringSetting(profile, globalValues, "LdPlayerIndex", ConfigurationKeys.LdPlayerIndex));
-    }
-
-    private static string GetCommandTemplate(PostActionConfig config, PostActionType action)
-    {
-        var commands = config.Commands;
-        return action switch
-        {
-            PostActionType.ExitArknights => commands.ExitArknights,
-            PostActionType.BackToAndroidHome => commands.BackToAndroidHome,
-            PostActionType.ExitEmulator => commands.ExitEmulator,
-            PostActionType.ExitSelf => commands.ExitSelf,
-            _ => string.Empty,
-        };
     }
 
     private string? ResolveCurrentLanguage()
@@ -2748,28 +2737,36 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
             $"post-action.{action}");
     }
 
-    private static bool CanFallbackToLegacyCommand(PostActionExecutorRequest request, CoreErrorCode? code = null)
-    {
-        if (!CanFallbackToLegacyCommand(request))
-        {
-            return false;
-        }
-
-        return code is null
-               || code is CoreErrorCode.NotSupported
-                   or CoreErrorCode.NotImplemented
-                   or CoreErrorCode.NotInitialized
-                   or CoreErrorCode.Disposed;
-    }
-
-    private static bool CanFallbackToLegacyCommand(PostActionExecutorRequest request)
-        => !string.IsNullOrWhiteSpace(request.CommandLine);
-
     private static bool RequiresSettleDelay(PostActionType action)
         => action is PostActionType.BackToAndroidHome or PostActionType.ExitArknights or PostActionType.ExitEmulator;
 
     private static bool IsPowerAction(PostActionType action)
         => action is PostActionType.Hibernate or PostActionType.Shutdown or PostActionType.Sleep;
+
+    private static PostActionConfig NormalizeForCurrentPlatform(PostActionConfig source, out bool changed)
+    {
+        var normalized = source.Clone();
+        changed = false;
+
+        if (!OperatingSystem.IsWindows() && normalized.ExitEmulator)
+        {
+            normalized.ExitEmulator = false;
+            changed = true;
+        }
+
+        if (OperatingSystem.IsMacOS() && normalized.Hibernate)
+        {
+            normalized.Hibernate = false;
+            if (!normalized.Sleep)
+            {
+                normalized.Sleep = true;
+            }
+
+            changed = true;
+        }
+
+        return normalized;
+    }
 
     private static string? ReadStringSetting(
         UnifiedProfile? profile,

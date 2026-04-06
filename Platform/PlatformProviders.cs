@@ -2981,10 +2981,22 @@ public sealed class CommandPostActionExecutorService : IPostActionExecutorServic
 
         return action switch
         {
-            PostActionType.ExitArknights => await PostActionExecutorSupport.ExecuteLegacyCommandAsync(action, request, cancellationToken),
-            PostActionType.BackToAndroidHome => await PostActionExecutorSupport.ExecuteLegacyCommandAsync(action, request, cancellationToken),
+            PostActionType.ExitArknights => PlatformOperation.Failed(
+                "maa-core",
+                "Exit Arknights requires MaaCore native provider.",
+                PlatformErrorCodes.PostActionUnsupported,
+                $"post-action.{action}"),
+            PostActionType.BackToAndroidHome => PlatformOperation.Failed(
+                "maa-core",
+                "Back to Android home requires MaaCore native provider.",
+                PlatformErrorCodes.PostActionUnsupported,
+                $"post-action.{action}"),
             PostActionType.ExitEmulator => await PostActionExecutorSupport.ExecuteExitEmulatorAsync(request, cancellationToken),
-            PostActionType.ExitSelf => await PostActionExecutorSupport.ExecuteLegacyCommandAsync(action, request, cancellationToken),
+            PostActionType.ExitSelf => PlatformOperation.Failed(
+                "app-lifecycle",
+                "Exit MAA requires app lifecycle native provider.",
+                PlatformErrorCodes.PostActionUnsupported,
+                $"post-action.{action}"),
             PostActionType.Hibernate => await PostActionExecutorSupport.ExecutePowerActionAsync(action, cancellationToken),
             PostActionType.Shutdown => await PostActionExecutorSupport.ExecutePowerActionAsync(action, cancellationToken),
             PostActionType.Sleep => await PostActionExecutorSupport.ExecutePowerActionAsync(action, cancellationToken),

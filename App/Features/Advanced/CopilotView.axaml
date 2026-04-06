@@ -57,7 +57,7 @@
 
   <Grid ColumnDefinitions="*,Auto,Auto"
         Margin="{DynamicResource MAA.Thickness.CopilotRootMargin}">
-    <Border Grid.Column="0" Classes="wpf-panel">
+    <Border Grid.Column="0" Classes="wpf-panel wpf-panel-plain">
       <Grid RowDefinitions="Auto,*,Auto">
         <StackPanel Grid.Row="0"
                     HorizontalAlignment="Center"

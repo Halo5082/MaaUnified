@@ -7,12 +7,10 @@ internal static class PostActionExecutorSupport
 {
     public static PostActionCapabilityMatrix BuildCapabilityMatrix(PostActionExecutorRequest? request)
     {
-        var exitArknights = BuildLegacyCommandCapability(request, "Exit Arknights");
-        var backToHome = BuildLegacyCommandCapability(request, "Back to Android home");
-        var exitSelf = BuildLegacyCommandCapability(request, "Exit MAA");
-        var exitEmulator = CombineWithLegacyFallback(
-            BuildExitEmulatorCapability(request),
-            BuildLegacyCommandCapability(request, "Exit emulator"));
+        var exitArknights = BuildCoreManagedCapability("Exit Arknights", "maa-core");
+        var backToHome = BuildCoreManagedCapability("Back to Android home", "maa-core");
+        var exitSelf = BuildCoreManagedCapability("Exit MAA", "app-lifecycle");
+        var exitEmulator = BuildExitEmulatorCapability(request);
 
         return new PostActionCapabilityMatrix(
             ExitArknights: exitArknights,
@@ -24,43 +22,18 @@ internal static class PostActionExecutorSupport
             Sleep: BuildPowerCapability(PostActionType.Sleep));
     }
 
-    public static async Task<PlatformOperationResult> ExecuteLegacyCommandAsync(
-        PostActionType action,
-        PostActionExecutorRequest? request,
-        CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrWhiteSpace(request?.CommandLine))
-        {
-            return PlatformOperation.Failed(
-                "command",
-                $"Legacy command fallback is not configured for {action}.",
-                PlatformErrorCodes.PostActionUnsupported,
-                $"post-action.{action}");
-        }
-
-        return await ExecuteShellCommandAsync(action, request.CommandLine, cancellationToken);
-    }
-
     public static async Task<PlatformOperationResult> ExecuteExitEmulatorAsync(
         PostActionExecutorRequest? request,
         CancellationToken cancellationToken)
     {
-        var nativeResult = await ExecuteNativeExitEmulatorAsync(request, cancellationToken);
-        if (nativeResult.Success
-            || !string.Equals(nativeResult.ErrorCode, PlatformErrorCodes.PostActionUnsupported, StringComparison.Ordinal)
-            || string.IsNullOrWhiteSpace(request?.CommandLine))
-        {
-            return nativeResult;
-        }
-
-        return await ExecuteLegacyCommandAsync(PostActionType.ExitEmulator, request, cancellationToken);
+        return await ExecuteNativeExitEmulatorAsync(request, cancellationToken);
     }
 
     public static async Task<PlatformOperationResult> ExecutePowerActionAsync(
         PostActionType action,
         CancellationToken cancellationToken)
     {
-        var command = GetPowerCommand(action);
+        var command = TryResolvePowerCommand(action);
         if (command is null)
         {
             return PlatformOperation.Failed(
@@ -79,32 +52,12 @@ internal static class PostActionExecutorSupport
             cancellationToken);
     }
 
-    internal static PlatformCapabilityStatus BuildLegacyCommandCapability(PostActionExecutorRequest? request, string actionName)
+    internal static PlatformCapabilityStatus BuildCoreManagedCapability(string actionName, string provider)
     {
-        if (!CanExecuteShellCommands())
-        {
-            return new PlatformCapabilityStatus(
-                false,
-                $"Legacy command fallback for {actionName} is unsupported on current platform.",
-                Provider: "command",
-                HasFallback: true,
-                FallbackMode: "legacy-command");
-        }
-
-        if (string.IsNullOrWhiteSpace(request?.CommandLine))
-        {
-            return new PlatformCapabilityStatus(
-                false,
-                $"Legacy command fallback for {actionName} is not configured.",
-                Provider: "command",
-                HasFallback: true,
-                FallbackMode: "legacy-command");
-        }
-
         return new PlatformCapabilityStatus(
-            true,
-            $"{actionName} is available via legacy command fallback.",
-            Provider: "command");
+            false,
+            $"{actionName} requires native provider `{provider}`.",
+            Provider: provider);
     }
 
     internal static PlatformCapabilityStatus BuildExitEmulatorCapability(PostActionExecutorRequest? request)
@@ -112,11 +65,6 @@ internal static class PostActionExecutorSupport
         if (OperatingSystem.IsWindows())
         {
             return WindowsEmulatorExitHelper.GetCapability(request);
-        }
-
-        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-        {
-            return AndroidEmulatorAdbHelper.GetCapability(request);
         }
 
         return new PlatformCapabilityStatus(
@@ -127,39 +75,19 @@ internal static class PostActionExecutorSupport
 
     internal static PlatformCapabilityStatus BuildPowerCapability(PostActionType action)
     {
-        return GetPowerCommand(action) is null
-            ? new PlatformCapabilityStatus(
+        var command = TryResolvePowerCommand(action);
+        if (command is null)
+        {
+            return new PlatformCapabilityStatus(
                 false,
                 $"Power action {action} is unsupported on current platform.",
-                Provider: "system")
-            : new PlatformCapabilityStatus(
-                true,
-                $"Power action {action} is available via native system command.",
                 Provider: "system");
-    }
-
-    internal static async Task<PlatformOperationResult> ExecuteShellCommandAsync(
-        PostActionType action,
-        string commandLine,
-        CancellationToken cancellationToken)
-    {
-        var shellCommand = BuildShellCommand(commandLine);
-        if (shellCommand is null)
-        {
-            return PlatformOperation.Failed(
-                "command",
-                "Shell execution is unsupported on current platform.",
-                PlatformErrorCodes.PostActionUnsupported,
-                $"post-action.{action}");
         }
 
-        return await ExecuteDirectCommandAsync(
-            "command",
-            $"post-action.{action}",
-            $"Legacy post action command accepted: {action}.",
-            shellCommand.Value.fileName,
-            shellCommand.Value.arguments,
-            cancellationToken);
+        return new PlatformCapabilityStatus(
+            true,
+            $"Power action {action} is available via native system command.",
+            Provider: "system");
     }
 
     internal static async Task<PlatformOperationResult> ExecuteDirectCommandAsync(
@@ -217,27 +145,6 @@ internal static class PostActionExecutorSupport
         }
     }
 
-    internal static bool CanExecuteShellCommands()
-        => BuildShellCommand("echo") is not null;
-
-    internal static (string fileName, string arguments)? BuildShellCommand(string commandLine)
-    {
-        if (OperatingSystem.IsWindows())
-        {
-            return ("cmd.exe", $"/C {commandLine}");
-        }
-
-        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-        {
-            var escaped = commandLine
-                .Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("\"", "\\\"", StringComparison.Ordinal);
-            return ("/bin/bash", $"-lc \"{escaped}\"");
-        }
-
-        return null;
-    }
-
     private static async Task<PlatformOperationResult> ExecuteNativeExitEmulatorAsync(
         PostActionExecutorRequest? request,
         CancellationToken cancellationToken)
@@ -247,11 +154,6 @@ internal static class PostActionExecutorSupport
             return await WindowsEmulatorExitHelper.ExecuteAsync(request, cancellationToken);
         }
 
-        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-        {
-            return await AndroidEmulatorAdbHelper.ExecuteAsync(request, cancellationToken);
-        }
-
         return PlatformOperation.Failed(
             "post-action",
             "Exit emulator is unsupported on current platform.",
@@ -259,26 +161,15 @@ internal static class PostActionExecutorSupport
             "post-action.ExitEmulator");
     }
 
-    private static PlatformCapabilityStatus CombineWithLegacyFallback(
-        PlatformCapabilityStatus nativeCapability,
-        PlatformCapabilityStatus legacyCapability)
+    private static (string fileName, string arguments)? TryResolvePowerCommand(PostActionType action)
     {
-        if (!nativeCapability.Supported && legacyCapability.Supported)
+        var command = GetPowerCommand(action);
+        if (command is null)
         {
-            return legacyCapability;
+            return null;
         }
 
-        if (!nativeCapability.Supported)
-        {
-            return nativeCapability;
-        }
-
-        return new PlatformCapabilityStatus(
-            nativeCapability.Supported,
-            nativeCapability.Message,
-            nativeCapability.Provider,
-            nativeCapability.HasFallback || legacyCapability.Supported,
-            legacyCapability.Supported ? "legacy-command" : nativeCapability.FallbackMode);
+        return IsCommandAvailable(command.Value.fileName) ? command : null;
     }
 
     private static (string fileName, string arguments)? GetPowerCommand(PostActionType action)
@@ -309,7 +200,6 @@ internal static class PostActionExecutorSupport
         {
             return action switch
             {
-                PostActionType.Hibernate => ("pmset", "sleepnow"),
                 PostActionType.Shutdown => ("shutdown", "-h now"),
                 PostActionType.Sleep => ("pmset", "sleepnow"),
                 _ => null,
@@ -317,6 +207,62 @@ internal static class PostActionExecutorSupport
         }
 
         return null;
+    }
+
+    private static bool IsCommandAvailable(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return false;
+        }
+
+        if (Path.IsPathRooted(fileName)
+            || fileName.Contains(Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            || fileName.Contains(Path.AltDirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            return File.Exists(fileName);
+        }
+
+        var path = Environment.GetEnvironmentVariable("PATH");
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        var searchDirectories = path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (OperatingSystem.IsWindows())
+        {
+            var hasExtension = Path.GetExtension(fileName).Length > 0;
+            var pathext = (Environment.GetEnvironmentVariable("PATHEXT") ?? ".COM;.EXE;.BAT;.CMD")
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            foreach (var directory in searchDirectories)
+            {
+                if (hasExtension && File.Exists(Path.Combine(directory, fileName)))
+                {
+                    return true;
+                }
+
+                foreach (var extension in pathext)
+                {
+                    if (File.Exists(Path.Combine(directory, fileName + extension)))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        foreach (var directory in searchDirectories)
+        {
+            if (File.Exists(Path.Combine(directory, fileName)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
@@ -435,7 +381,7 @@ internal static class WindowsEmulatorExitHelper
             return new PlatformCapabilityStatus(false, "Windows native emulator shutdown is unavailable on current platform.", Provider: "windows-native");
         }
 
-        if (IsRecognizedWindowsEmulator(request?.ConnectConfig) || TryResolveCandidatePorts(request?.ConnectAddress, out _))
+        if (IsRecognizedWindowsEmulator(request?.ConnectConfig) || CanUsePortFallback(request?.ConnectAddress))
         {
             return new PlatformCapabilityStatus(
                 true,
@@ -445,7 +391,7 @@ internal static class WindowsEmulatorExitHelper
 
         return new PlatformCapabilityStatus(
             false,
-            "Exit emulator needs a recognized local Windows emulator connection or a legacy command fallback.",
+            "Exit emulator needs a recognized local Windows emulator connection.",
             Provider: "windows-native");
     }
 
@@ -952,12 +898,12 @@ internal static class WindowsEmulatorExitHelper
     private static bool TryKillProcessByPort(string? address, out string message)
     {
         message = string.Empty;
-        if (!TryResolveCandidatePorts(address, out var candidatePorts))
+        if (!TryResolvePortFallbackEndpoint(address, out var expectedLocalEndpoint))
         {
             return false;
         }
 
-        if (!TryGetOwningProcessId(candidatePorts, out var pid))
+        if (!TryGetOwningProcessId(expectedLocalEndpoint, out var pid))
         {
             return false;
         }
@@ -980,7 +926,7 @@ internal static class WindowsEmulatorExitHelper
         }
     }
 
-    private static bool TryGetOwningProcessId(IReadOnlyList<int> candidatePorts, out int pid)
+    private static bool TryGetOwningProcessId(string expectedLocalEndpoint, out int pid)
     {
         pid = 0;
         try
@@ -1009,8 +955,7 @@ internal static class WindowsEmulatorExitHelper
                     continue;
                 }
 
-                if (!candidatePorts.Any(port => parts[1].EndsWith($":{port}", StringComparison.OrdinalIgnoreCase)
-                                                || parts[2].EndsWith($":{port}", StringComparison.OrdinalIgnoreCase)))
+                if (!string.Equals(parts[1], expectedLocalEndpoint, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -1029,29 +974,23 @@ internal static class WindowsEmulatorExitHelper
         return false;
     }
 
-    private static bool TryResolveCandidatePorts(string? address, out List<int> ports)
+    private static bool CanUsePortFallback(string? address)
+        => TryResolvePortFallbackEndpoint(address, out _);
+
+    private static bool TryResolvePortFallbackEndpoint(string? address, out string endpoint)
     {
-        ports = [];
+        endpoint = string.Empty;
         if (string.IsNullOrWhiteSpace(address))
         {
             return false;
         }
 
-        var trimmed = address.Trim();
-        if (trimmed.StartsWith("emulator-", StringComparison.OrdinalIgnoreCase)
-            && int.TryParse(trimmed["emulator-".Length..], out var emulatorPort))
-        {
-            ports.Add(emulatorPort);
-            ports.Add(emulatorPort + 1);
-            return true;
-        }
-
-        if (!TryParseHostAndPort(trimmed, out var host, out var port) || !IsLoopbackHost(host))
+        if (!TryParseHostAndPort(address.Trim(), out var host, out var port) || !IsLoopbackHost(host))
         {
             return false;
         }
 
-        ports.Add(port);
+        endpoint = $"{host}:{port}";
         return true;
     }
 

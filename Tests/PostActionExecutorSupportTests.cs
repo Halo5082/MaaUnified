@@ -6,16 +6,21 @@ namespace MAAUnified.Tests;
 public sealed class PostActionExecutorSupportTests
 {
     [Fact]
-    public void CommandPostActionExecutorService_GetCapabilityMatrix_ShouldReportSupportedEmulatorExitForRecognizedLocalContext()
+    public void CommandPostActionExecutorService_GetCapabilityMatrix_ShouldReportWindowsOnlySupportForExitEmulator()
     {
         var service = new CommandPostActionExecutorService();
-        var request = OperatingSystem.IsWindows()
-            ? new PostActionExecutorRequest(ConnectAddress: "127.0.0.1:5555", ConnectConfig: "LDPlayer")
-            : new PostActionExecutorRequest(ConnectAddress: "127.0.0.1:5555", ConnectConfig: "General", AdbPath: "adb");
+        var request = new PostActionExecutorRequest(ConnectAddress: "127.0.0.1:5555", ConnectConfig: "LDPlayer", AdbPath: "adb");
 
         var capability = service.GetCapabilityMatrix(request).Get(PostActionType.ExitEmulator);
 
-        Assert.True(capability.Supported, capability.Message);
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.True(capability.Supported, capability.Message);
+            return;
+        }
+
+        Assert.False(capability.Supported);
+        Assert.Contains("unsupported", capability.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -75,26 +80,17 @@ public sealed class PostActionExecutorSupportTests
     }
 
     [Fact]
-    public void AndroidEmulatorAdbHelper_TryBuildKillCommand_ShouldTranslateLoopbackAddressToSerial()
+    public void CommandPostActionExecutorService_GetCapabilityMatrix_ShouldNotUseLegacyCommandLineFallback_ForCoreManagedActions()
     {
-        var helperType = typeof(CommandPostActionExecutorService).Assembly.GetType("MAAUnified.Platform.AndroidEmulatorAdbHelper");
-        Assert.NotNull(helperType);
+        var service = new CommandPostActionExecutorService();
+        var withLegacyCommand = new PostActionExecutorRequest(CommandLine: "echo close-maa");
+        var capability = service.GetCapabilityMatrix(withLegacyCommand);
 
-        var method = helperType!.GetMethod(
-            "TryBuildKillCommand",
-            BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        Assert.NotNull(method);
-
-        var request = new PostActionExecutorRequest(
-            ConnectAddress: "127.0.0.1:5555",
-            ConnectConfig: "General",
-            AdbPath: "/tmp/fake-adb");
-        object?[] args = [request, string.Empty, (string.Empty, string.Empty)];
-
-        var built = method!.Invoke(null, args);
-        Assert.IsType<bool>(built);
-        Assert.True((bool)built!);
-        Assert.Equal("emulator-5554", Assert.IsType<string>(args[1]));
-        Assert.Equal(("/tmp/fake-adb", "-s emulator-5554 emu kill"), Assert.IsType<(string, string)>(args[2]));
+        Assert.False(capability.ExitArknights.Supported);
+        Assert.False(capability.BackToAndroidHome.Supported);
+        Assert.False(capability.ExitSelf.Supported);
+        Assert.Contains("requires native provider", capability.ExitArknights.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("requires native provider", capability.BackToAndroidHome.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("requires native provider", capability.ExitSelf.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

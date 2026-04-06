@@ -14,12 +14,16 @@
       </Grid>
       <CheckBox Content="{Binding Texts[PostAction.BackToHome]}" IsChecked="{Binding BackToAndroidHome}" />
       <CheckBox Content="{Binding Texts[PostAction.ExitArknights]}" IsChecked="{Binding ExitArknights}" />
-      <CheckBox Content="{Binding Texts[PostAction.ExitEmulator]}" IsChecked="{Binding ExitEmulator}" />
+      <CheckBox Content="{Binding Texts[PostAction.ExitEmulator]}"
+                IsChecked="{Binding ExitEmulator}"
+                IsVisible="{Binding ShowExitEmulator}" />
       <CheckBox Content="{Binding Texts[PostAction.ExitSelf]}" IsChecked="{Binding ExitSelf}" />
-      <CheckBox Content="{Binding Texts[PostAction.IfNoOther]}" IsChecked="{Binding IfNoOtherMaa}" />
+      <CheckBox Content="{Binding Texts[PostAction.IfNoOther]}"
+                IsChecked="{Binding IfNoOtherMaa}"
+                IsEnabled="{Binding CanUseIfNoOtherMaa}" />
 
       <CheckBox Content="{Binding Texts[PostAction.Sleep]}" IsChecked="{Binding Sleep}" />
-      <Grid ColumnDefinitions="Auto,Auto">
+      <Grid ColumnDefinitions="Auto,Auto" IsVisible="{Binding ShowHibernate}">
         <CheckBox Content="{Binding Texts[PostAction.Hibernate]}" IsChecked="{Binding Hibernate}" />
         <controls:TooltipHint Grid.Column="1"
                               Margin="{DynamicResource MAA.Thickness.MarginLeftSmall}"
