@@ -424,9 +424,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         var warnings = CollectMallCreditFightWarnings(profile, mutate: false);
         return Task.FromResult(UiOperationResult<IReadOnlyList<TaskQueuePrecheckWarning>>.Ok(
             warnings,
-            warnings.Count == 0
-                ? "TaskQueue precheck passed."
-                : $"TaskQueue precheck returned {warnings.Count} warning(s)."));
+            BuildPrecheckStatusMessage(warnings.Count)));
     }
 
     public Task<UiOperationResult<IReadOnlyList<TaskQueuePrecheckWarning>>> ApplyStartPrecheckDowngradesAsync(CancellationToken cancellationToken = default)
@@ -440,9 +438,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         var warnings = CollectMallCreditFightWarnings(profile, mutate: true);
         return Task.FromResult(UiOperationResult<IReadOnlyList<TaskQueuePrecheckWarning>>.Ok(
             warnings,
-            warnings.Count == 0
-                ? "TaskQueue precheck downgrade not required."
-                : $"TaskQueue precheck applied {warnings.Count} downgrade(s)."));
+            BuildPrecheckDowngradeStatusMessage(warnings.Count)));
     }
 
     public Task<UiOperationResult<IReadOnlyList<UnifiedTaskItem>>> GetCurrentTaskQueueAsync(CancellationToken cancellationToken = default)
@@ -457,7 +453,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             .Select(CloneTask)
             .ToList();
 
-        return Task.FromResult(UiOperationResult<IReadOnlyList<UnifiedTaskItem>>.Ok(copied, $"Loaded {copied.Count} task(s)."));
+        return Task.FromResult(UiOperationResult<IReadOnlyList<UnifiedTaskItem>>.Ok(copied, BuildLoadedTasksMessage(copied.Count)));
     }
 
     public Task<UiOperationResult> AddTaskAsync(string type, string name, bool enabled = true, CancellationToken cancellationToken = default)
@@ -465,7 +461,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(type))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMissing, "Task type cannot be empty."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMissing, BuildTaskTypeMissingMessage()));
         }
 
         if (!TryGetProfile(out var profile, out var error))
@@ -481,15 +477,16 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             ? managedDefaults
             : TaskModuleParameterDefaults.Create(normalizedType, ResolveLanguage());
 
-        profile.TaskQueue.Add(new UnifiedTaskItem
+        var task = new UnifiedTaskItem
         {
             Type = normalizedType,
             Name = string.IsNullOrWhiteSpace(name) ? normalizedType : name.Trim(),
             IsEnabled = enabled,
             Params = defaultParams,
-        });
+        };
+        profile.TaskQueue.Add(task);
 
-        return Task.FromResult(UiOperationResult.Ok($"Added task `{normalizedType}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskAddedMessage(task)));
     }
 
     public Task<UiOperationResult> RenameTaskAsync(int index, string newName, CancellationToken cancellationToken = default)
@@ -497,7 +494,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         cancellationToken.ThrowIfCancellationRequested();
         if (string.IsNullOrWhiteSpace(newName))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskNameMissing, "Task name cannot be empty."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskNameMissing, BuildTaskNameMissingMessage()));
         }
 
         if (!TryGetTaskByIndex(index, out var task, out var error))
@@ -506,7 +503,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         }
 
         task.Name = newName.Trim();
-        return Task.FromResult(UiOperationResult.Ok($"Task renamed to `{task.Name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskRenamedMessage(task)));
     }
 
     public Task<UiOperationResult> RemoveTaskAsync(int index, CancellationToken cancellationToken = default)
@@ -519,12 +516,12 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (index < 0 || index >= profile.TaskQueue.Count)
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskNotFound, $"Task index {index} is out of range."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskNotFound, BuildTaskIndexOutOfRangeMessage(index)));
         }
 
-        var name = profile.TaskQueue[index].Name;
+        var task = profile.TaskQueue[index];
         profile.TaskQueue.RemoveAt(index);
-        return Task.FromResult(UiOperationResult.Ok($"Removed task `{name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskRemovedMessage(task)));
     }
 
     public Task<UiOperationResult> MoveTaskAsync(int fromIndex, int toIndex, CancellationToken cancellationToken = default)
@@ -537,18 +534,18 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (fromIndex < 0 || fromIndex >= profile.TaskQueue.Count || toIndex < 0 || toIndex >= profile.TaskQueue.Count)
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskMoveOutOfRange, "Task move index is out of range."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskMoveOutOfRange, BuildTaskMoveOutOfRangeMessage()));
         }
 
         if (fromIndex == toIndex)
         {
-            return Task.FromResult(UiOperationResult.Ok("Task order unchanged."));
+            return Task.FromResult(UiOperationResult.Ok(BuildTaskOrderUnchangedMessage()));
         }
 
         var item = profile.TaskQueue[fromIndex];
         profile.TaskQueue.RemoveAt(fromIndex);
         profile.TaskQueue.Insert(toIndex, item);
-        return Task.FromResult(UiOperationResult.Ok($"Moved task `{item.Name}` to position {toIndex + 1}."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskMovedMessage(item, toIndex)));
     }
 
     public Task<UiOperationResult> SetTaskEnabledAsync(int index, bool? enabled, CancellationToken cancellationToken = default)
@@ -560,7 +557,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         }
 
         task.IsEnabled = enabled ?? false;
-        return Task.FromResult(UiOperationResult.Ok($"Task `{task.Name}` enabled: {task.IsEnabled}."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskEnabledMessage(task)));
     }
 
     public Task<UiOperationResult> SetAllTasksEnabledAsync(bool enabled, CancellationToken cancellationToken = default)
@@ -583,8 +580,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             affected++;
         }
 
-        return Task.FromResult(UiOperationResult.Ok(
-            $"Set {affected} task(s) to enabled={enabled}."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTasksEnabledBatchMessage(affected, enabled)));
     }
 
     public Task<UiOperationResult> InvertTasksEnabledAsync(CancellationToken cancellationToken = default)
@@ -600,7 +596,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             task.IsEnabled = !task.IsEnabled;
         }
 
-        return Task.FromResult(UiOperationResult.Ok($"Inverted enabled state for {profile.TaskQueue.Count} task(s)."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTasksEnabledInvertedMessage(profile.TaskQueue.Count)));
     }
 
     public Task<UiOperationResult<JsonObject>> GetTaskParamsAsync(int index, CancellationToken cancellationToken = default)
@@ -612,7 +608,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         }
 
         var parameters = task.Params.DeepClone() as JsonObject ?? new JsonObject();
-        return Task.FromResult(UiOperationResult<JsonObject>.Ok(parameters, $"Loaded params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult<JsonObject>.Ok(parameters, BuildTaskParamsLoadedMessage(task)));
     }
 
     public async Task<UiOperationResult> UpdateTaskParamsAsync(
@@ -624,7 +620,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         cancellationToken.ThrowIfCancellationRequested();
         if (parameters is null)
         {
-            return UiOperationResult.Fail(UiErrorCode.TaskParamsMissing, "Task params cannot be null.");
+            return UiOperationResult.Fail(UiErrorCode.TaskParamsMissing, BuildTaskParamsMissingMessage());
         }
 
         if (!TryGetTaskByIndex(index, out var task, out var error))
@@ -636,10 +632,10 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         if (persistImmediately)
         {
             await _configService.SaveAsync(cancellationToken);
-            return UiOperationResult.Ok($"Updated params for `{task.Name}` and persisted.");
+            return UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: true));
         }
 
-        return UiOperationResult.Ok($"Updated params for `{task.Name}`.");
+        return UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: false));
     }
 
     public Task<UiOperationResult<StartUpTaskParamsDto>> GetStartUpParamsAsync(int index, CancellationToken cancellationToken = default)
@@ -657,7 +653,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.StartUp))
         {
-            return Task.FromResult(UiOperationResult<StartUpTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a StartUp task."));
+            return Task.FromResult(UiOperationResult<StartUpTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.StartUp)));
         }
 
         var (dto, issues) = TaskParamCompiler.ReadStartUp(task, profile, _configService.CurrentConfig, strict: false);
@@ -666,7 +662,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             return Task.FromResult(UiOperationResult<StartUpTaskParamsDto>.Fail(UiErrorCode.TaskParamsCorrupted, BuildIssueMessage(issues)));
         }
 
-        return Task.FromResult(UiOperationResult<StartUpTaskParamsDto>.Ok(dto, $"Loaded StartUp params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult<StartUpTaskParamsDto>.Ok(dto, BuildTaskParamsLoadedMessage(task)));
     }
 
     public Task<UiOperationResult<FightTaskParamsDto>> GetFightParamsAsync(int index, CancellationToken cancellationToken = default)
@@ -679,7 +675,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Fight))
         {
-            return Task.FromResult(UiOperationResult<FightTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Fight task."));
+            return Task.FromResult(UiOperationResult<FightTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Fight)));
         }
 
         var (dto, issues) = TaskParamCompiler.ReadFight(task, strict: false);
@@ -688,7 +684,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             return Task.FromResult(UiOperationResult<FightTaskParamsDto>.Fail(UiErrorCode.TaskParamsCorrupted, BuildIssueMessage(issues)));
         }
 
-        return Task.FromResult(UiOperationResult<FightTaskParamsDto>.Ok(dto, $"Loaded Fight params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult<FightTaskParamsDto>.Ok(dto, BuildTaskParamsLoadedMessage(task)));
     }
 
     public Task<UiOperationResult<RecruitTaskParamsDto>> GetRecruitParamsAsync(int index, CancellationToken cancellationToken = default)
@@ -701,7 +697,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Recruit))
         {
-            return Task.FromResult(UiOperationResult<RecruitTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Recruit task."));
+            return Task.FromResult(UiOperationResult<RecruitTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Recruit)));
         }
 
         var (dto, issues) = TaskParamCompiler.ReadRecruit(task, strict: false);
@@ -710,7 +706,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             return Task.FromResult(UiOperationResult<RecruitTaskParamsDto>.Fail(UiErrorCode.TaskParamsCorrupted, BuildIssueMessage(issues)));
         }
 
-        return Task.FromResult(UiOperationResult<RecruitTaskParamsDto>.Ok(dto, $"Loaded Recruit params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult<RecruitTaskParamsDto>.Ok(dto, BuildTaskParamsLoadedMessage(task)));
     }
 
     public Task<UiOperationResult<RoguelikeTaskParamsDto>> GetRoguelikeParamsAsync(int index, CancellationToken cancellationToken = default)
@@ -723,7 +719,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Roguelike))
         {
-            return Task.FromResult(UiOperationResult<RoguelikeTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Roguelike task."));
+            return Task.FromResult(UiOperationResult<RoguelikeTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Roguelike)));
         }
 
         var (dto, issues) = TaskParamCompiler.ReadRoguelike(task, strict: false);
@@ -732,7 +728,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             return Task.FromResult(UiOperationResult<RoguelikeTaskParamsDto>.Fail(UiErrorCode.TaskParamsCorrupted, BuildIssueMessage(issues)));
         }
 
-        return Task.FromResult(UiOperationResult<RoguelikeTaskParamsDto>.Ok(dto, $"Loaded Roguelike params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult<RoguelikeTaskParamsDto>.Ok(dto, BuildTaskParamsLoadedMessage(task)));
     }
 
     public Task<UiOperationResult<ReclamationTaskParamsDto>> GetReclamationParamsAsync(int index, CancellationToken cancellationToken = default)
@@ -745,7 +741,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Reclamation))
         {
-            return Task.FromResult(UiOperationResult<ReclamationTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Reclamation task."));
+            return Task.FromResult(UiOperationResult<ReclamationTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Reclamation)));
         }
 
         var (dto, issues) = TaskParamCompiler.ReadReclamation(task, strict: false);
@@ -754,7 +750,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             return Task.FromResult(UiOperationResult<ReclamationTaskParamsDto>.Fail(UiErrorCode.TaskParamsCorrupted, BuildIssueMessage(issues)));
         }
 
-        return Task.FromResult(UiOperationResult<ReclamationTaskParamsDto>.Ok(dto, $"Loaded Reclamation params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult<ReclamationTaskParamsDto>.Ok(dto, BuildTaskParamsLoadedMessage(task)));
     }
 
     public Task<UiOperationResult<CustomTaskParamsDto>> GetCustomParamsAsync(int index, CancellationToken cancellationToken = default)
@@ -767,7 +763,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Custom))
         {
-            return Task.FromResult(UiOperationResult<CustomTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Custom task."));
+            return Task.FromResult(UiOperationResult<CustomTaskParamsDto>.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Custom)));
         }
 
         var (dto, issues) = TaskParamCompiler.ReadCustom(task, strict: false);
@@ -776,7 +772,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             return Task.FromResult(UiOperationResult<CustomTaskParamsDto>.Fail(UiErrorCode.TaskParamsCorrupted, BuildIssueMessage(issues)));
         }
 
-        return Task.FromResult(UiOperationResult<CustomTaskParamsDto>.Ok(dto, $"Loaded Custom params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult<CustomTaskParamsDto>.Ok(dto, BuildTaskParamsLoadedMessage(task)));
     }
 
     public Task<UiOperationResult> SaveStartUpParamsAsync(int index, StartUpTaskParamsDto dto, CancellationToken cancellationToken = default)
@@ -794,7 +790,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.StartUp))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a StartUp task."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.StartUp)));
         }
 
         var compiled = TaskParamCompiler.CompileStartUp(dto, profile, _configService.CurrentConfig);
@@ -820,7 +816,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             AttachWindowKeyboardMethod = dto.AttachWindowKeyboardMethod,
         });
 
-        return Task.FromResult(UiOperationResult.Ok($"Updated StartUp params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: false)));
     }
 
     public Task<UiOperationResult> SaveFightParamsAsync(int index, FightTaskParamsDto dto, CancellationToken cancellationToken = default)
@@ -838,7 +834,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Fight))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Fight task."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Fight)));
         }
 
         var compiled = TaskParamCompiler.CompileFight(dto, profile, _configService.CurrentConfig);
@@ -854,7 +850,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             _configService.LogService.Warn($"{warning.Code}: {warning.Message}");
         }
 
-        return Task.FromResult(UiOperationResult.Ok($"Updated Fight params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: false)));
     }
 
     public Task<UiOperationResult> SaveRecruitParamsAsync(int index, RecruitTaskParamsDto dto, CancellationToken cancellationToken = default)
@@ -872,7 +868,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Recruit))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Recruit task."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Recruit)));
         }
 
         var compiled = TaskParamCompiler.CompileRecruit(dto, profile, _configService.CurrentConfig);
@@ -884,7 +880,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         task.Type = compiled.NormalizedType;
         task.Params = compiled.Params;
 
-        return Task.FromResult(UiOperationResult.Ok($"Updated Recruit params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: false)));
     }
 
     public Task<UiOperationResult> SaveRoguelikeParamsAsync(int index, RoguelikeTaskParamsDto dto, CancellationToken cancellationToken = default)
@@ -902,7 +898,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Roguelike))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Roguelike task."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Roguelike)));
         }
 
         var compiled = TaskParamCompiler.CompileRoguelike(dto, profile, _configService.CurrentConfig);
@@ -918,7 +914,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             _configService.LogService.Warn($"{warning.Code}: {warning.Message}");
         }
 
-        return Task.FromResult(UiOperationResult.Ok($"Updated Roguelike params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: false)));
     }
 
     public Task<UiOperationResult> SaveReclamationParamsAsync(int index, ReclamationTaskParamsDto dto, CancellationToken cancellationToken = default)
@@ -936,7 +932,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Reclamation))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Reclamation task."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Reclamation)));
         }
 
         var compiled = TaskParamCompiler.CompileReclamation(dto, profile, _configService.CurrentConfig);
@@ -952,7 +948,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             _configService.LogService.Warn($"{warning.Code}: {warning.Message}");
         }
 
-        return Task.FromResult(UiOperationResult.Ok($"Updated Reclamation params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: false)));
     }
 
     public Task<UiOperationResult> SaveCustomParamsAsync(int index, CustomTaskParamsDto dto, CancellationToken cancellationToken = default)
@@ -970,7 +966,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (!IsTaskType(task, TaskModuleTypes.Custom))
         {
-            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, "Selected task is not a Custom task."));
+            return Task.FromResult(UiOperationResult.Fail(UiErrorCode.TaskTypeMismatch, BuildTaskTypeMismatchMessage(TaskModuleTypes.Custom)));
         }
 
         var compiled = TaskParamCompiler.CompileCustom(dto, profile, _configService.CurrentConfig);
@@ -986,7 +982,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             _configService.LogService.Warn($"{warning.Code}: {warning.Message}");
         }
 
-        return Task.FromResult(UiOperationResult.Ok($"Updated Custom params for `{task.Name}`."));
+        return Task.FromResult(UiOperationResult.Ok(BuildTaskParamsUpdatedMessage(task, persisted: false)));
     }
 
     public Task<UiOperationResult<TaskValidationReport>> ValidateTaskAsync(int index, CancellationToken cancellationToken = default)
@@ -1012,7 +1008,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             Issues = compiled.Issues.ToList(),
         };
         var message = report.Issues.Count == 0
-            ? $"Task `{task.Name}` passed validation."
+            ? BuildTaskValidationPassedMessage(task)
             : BuildIssueMessage(report.Issues);
         return Task.FromResult(UiOperationResult<TaskValidationReport>.Ok(report, message));
     }
@@ -1020,14 +1016,14 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
     public async Task<UiOperationResult> SaveAsync(CancellationToken cancellationToken = default)
     {
         await _configService.SaveAsync(cancellationToken);
-        return UiOperationResult.Ok("Task queue saved.");
+        return UiOperationResult.Ok(BuildTaskQueueSavedMessage());
     }
 
     public async Task<UiOperationResult> FlushTaskParamWritesAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _configService.SaveAsync(cancellationToken);
-        return UiOperationResult.Ok("Task params flushed.");
+        return UiOperationResult.Ok(BuildTaskParamsFlushedMessage());
     }
 
     private bool TryGetTaskByIndex(int index, out UnifiedTaskItem task, out string error)
@@ -1040,7 +1036,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
 
         if (index < 0 || index >= profile.TaskQueue.Count)
         {
-            error = $"Task index {index} is out of range.";
+            error = BuildTaskIndexOutOfRangeMessage(index);
             return false;
         }
 
@@ -1052,7 +1048,7 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
     {
         if (!_configService.TryGetCurrentProfile(out profile))
         {
-            error = $"Current profile `{_configService.CurrentConfig.CurrentProfile}` not found.";
+            error = BuildProfileMissingMessage();
             return false;
         }
 
@@ -1073,6 +1069,305 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
         };
     }
 
+    private string BuildTaskParamsLoadedMessage(UnifiedTaskItem task)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return FormatTaskQueueMessage(
+            localizer,
+            "TaskQueue.Status.ParamsLoaded",
+            "Loaded params for `{0}`.",
+            ResolveTaskDisplayName(task, localizer));
+    }
+
+    private string BuildPrecheckStatusMessage(int warningCount)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return warningCount == 0
+            ? FormatTaskQueueMessage(localizer, "TaskQueue.Status.PrecheckPassed", "TaskQueue precheck passed.")
+            : FormatTaskQueueMessage(localizer, "TaskQueue.Status.PrecheckWarnings", "TaskQueue precheck returned {0} warning(s).", warningCount);
+    }
+
+    private string BuildPrecheckDowngradeStatusMessage(int warningCount)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return warningCount == 0
+            ? FormatTaskQueueMessage(localizer, "TaskQueue.Status.PrecheckDowngradeNotRequired", "TaskQueue precheck downgrade not required.")
+            : FormatTaskQueueMessage(localizer, "TaskQueue.Status.PrecheckDowngradesApplied", "TaskQueue precheck applied {0} downgrade(s).", warningCount);
+    }
+
+    private string BuildLoadedTasksMessage(int count)
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Status.LoadedTasks",
+            "Loaded {0} task(s).",
+            count);
+    }
+
+    private string BuildTaskTypeMissingMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Error.TaskTypeMissing",
+            "Task type cannot be empty.");
+    }
+
+    private string BuildTaskNameMissingMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Error.TaskNameMissing",
+            "Task name cannot be empty.");
+    }
+
+    private string BuildTaskAddedMessage(UnifiedTaskItem task)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return FormatTaskQueueMessage(
+            localizer,
+            "TaskQueue.Status.TaskAdded",
+            "Added task `{0}`.",
+            ResolveTaskDisplayName(task, localizer));
+    }
+
+    private string BuildTaskRenamedMessage(UnifiedTaskItem task)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return FormatTaskQueueMessage(
+            localizer,
+            "TaskQueue.Status.TaskRenamed",
+            "Task renamed to `{0}`.",
+            ResolveTaskDisplayName(task, localizer));
+    }
+
+    private string BuildTaskRemovedMessage(UnifiedTaskItem task)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return FormatTaskQueueMessage(
+            localizer,
+            "TaskQueue.Status.TaskRemoved",
+            "Removed task `{0}`.",
+            ResolveTaskDisplayName(task, localizer));
+    }
+
+    private string BuildTaskIndexOutOfRangeMessage(int index)
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Error.TaskIndexOutOfRange",
+            "Task index {0} is out of range.",
+            index);
+    }
+
+    private string BuildTaskMoveOutOfRangeMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Error.MoveOutOfRange",
+            "Task move index is out of range.");
+    }
+
+    private string BuildTaskOrderUnchangedMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Status.TaskOrderUnchanged",
+            "Task order unchanged.");
+    }
+
+    private string BuildTaskMovedMessage(UnifiedTaskItem task, int toIndex)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return FormatTaskQueueMessage(
+            localizer,
+            "TaskQueue.Status.TaskMoved",
+            "Moved task `{0}` to position {1}.",
+            ResolveTaskDisplayName(task, localizer),
+            toIndex + 1);
+    }
+
+    private string BuildTaskEnabledMessage(UnifiedTaskItem task)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        var key = task.IsEnabled ? "TaskQueue.Status.TaskEnabled.True" : "TaskQueue.Status.TaskEnabled.False";
+        var fallback = task.IsEnabled ? "Task `{0}` enabled." : "Task `{0}` disabled.";
+        return FormatTaskQueueMessage(localizer, key, fallback, ResolveTaskDisplayName(task, localizer));
+    }
+
+    private string BuildTasksEnabledBatchMessage(int affected, bool enabled)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        var key = enabled ? "TaskQueue.Status.TasksEnabledBatch.True" : "TaskQueue.Status.TasksEnabledBatch.False";
+        var fallback = enabled ? "Enabled {0} task(s)." : "Disabled {0} task(s).";
+        return FormatTaskQueueMessage(localizer, key, fallback, affected);
+    }
+
+    private string BuildTasksEnabledInvertedMessage(int count)
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Status.TasksEnabledInverted",
+            "Inverted enabled state for {0} task(s).",
+            count);
+    }
+
+    private string BuildTaskParamsMissingMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Error.ParamsMissing",
+            "Task params cannot be null.");
+    }
+
+    private string BuildTaskParamsUpdatedMessage(UnifiedTaskItem task, bool persisted)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        var key = persisted ? "TaskQueue.Status.ParamsUpdatedPersisted" : "TaskQueue.Status.ParamsUpdated";
+        var fallback = persisted
+            ? "Updated params for `{0}` and persisted."
+            : "Updated params for `{0}`.";
+        return FormatTaskQueueMessage(localizer, key, fallback, ResolveTaskDisplayName(task, localizer));
+    }
+
+    private string BuildTaskTypeMismatchMessage(string expectedType)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return FormatTaskQueueMessage(
+            localizer,
+            "TaskQueue.Error.TaskTypeMismatch",
+            "Selected task is not a `{0}` task.",
+            ResolveModuleDisplayName(expectedType, localizer));
+    }
+
+    private string BuildTaskValidationPassedMessage(UnifiedTaskItem task)
+    {
+        var localizer = CreateTaskQueueLocalizer();
+        return FormatTaskQueueMessage(
+            localizer,
+            "TaskQueue.Status.ValidationPassed",
+            "Task `{0}` passed validation.",
+            ResolveTaskDisplayName(task, localizer));
+    }
+
+    private string BuildTaskQueueSavedMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Status.Saved",
+            "Task queue saved.");
+    }
+
+    private string BuildTaskParamsFlushedMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Status.ParamsFlushed",
+            "Task params flushed.");
+    }
+
+    private string BuildProfileMissingMessage()
+    {
+        return FormatTaskQueueMessage(
+            CreateTaskQueueLocalizer(),
+            "TaskQueue.Error.ProfileMissing",
+            "Current profile `{0}` not found.",
+            _configService.CurrentConfig.CurrentProfile);
+    }
+
+    private IUiLocalizer CreateTaskQueueLocalizer()
+    {
+        return UiLocalizer.Create(ResolveLanguage());
+    }
+
+    private static string FormatTaskQueueMessage(
+        IUiLocalizer localizer,
+        string key,
+        string fallback,
+        params object[] args)
+    {
+        var template = localizer.GetOrDefault(key, fallback, "TaskQueue.Status");
+        return args.Length == 0
+            ? template
+            : string.Format(CultureInfo.CurrentCulture, template, args);
+    }
+
+    private string ResolveTaskDisplayName(UnifiedTaskItem task, IUiLocalizer localizer)
+    {
+        var normalizedType = TaskModuleTypes.Normalize(task.Type);
+        var localizedModuleName = ResolveModuleDisplayName(normalizedType, localizer);
+        var taskName = (task.Name ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(taskName))
+        {
+            return localizedModuleName;
+        }
+
+        return IsDefaultTaskName(taskName, normalizedType, localizedModuleName)
+            ? localizedModuleName
+            : taskName;
+    }
+
+    private bool IsDefaultTaskName(string taskName, string normalizedType, string localizedModuleName)
+    {
+        if (string.Equals(taskName, normalizedType, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(taskName, localizedModuleName, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        foreach (var candidate in EnumerateLocalizedTaskAliases(normalizedType))
+        {
+            if (string.Equals(taskName, candidate, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private IEnumerable<string> EnumerateLocalizedTaskAliases(string normalizedType)
+    {
+        var titleKey = GetTaskTitleKey(normalizedType);
+        foreach (var language in UiLanguageCatalog.Ordered)
+        {
+            var localizer = UiLocalizer.Create(language);
+            yield return localizer.GetOrDefault($"TaskQueue.Module.{normalizedType}", normalizedType, "TaskQueue.Status");
+            if (!string.IsNullOrWhiteSpace(titleKey))
+            {
+                yield return localizer.GetOrDefault(titleKey, normalizedType, "TaskQueue.Status");
+            }
+        }
+    }
+
+    private static string ResolveModuleDisplayName(string normalizedType, IUiLocalizer localizer)
+    {
+        var titleKey = GetTaskTitleKey(normalizedType);
+        if (!string.IsNullOrWhiteSpace(titleKey))
+        {
+            return localizer.GetOrDefault(titleKey, normalizedType, "TaskQueue.Status");
+        }
+
+        return localizer.GetOrDefault($"TaskQueue.Module.{normalizedType}", normalizedType, "TaskQueue.Status");
+    }
+
+    private static string? GetTaskTitleKey(string normalizedType)
+    {
+        return normalizedType switch
+        {
+            TaskModuleTypes.StartUp => "StartUp.Title",
+            TaskModuleTypes.Fight => "Fight.Title",
+            TaskModuleTypes.Infrast => "Infrast.Title",
+            TaskModuleTypes.Recruit => "Recruit.Title",
+            TaskModuleTypes.Mall => "Mall.Title",
+            TaskModuleTypes.Award => "Award.Title",
+            TaskModuleTypes.Roguelike => "Roguelike.Title",
+            TaskModuleTypes.Reclamation => "Reclamation.Title",
+            TaskModuleTypes.Custom => "Custom.Title",
+            TaskModuleTypes.PostAction => "PostAction.Title",
+            _ => null,
+        };
+    }
+
     private string ResolveLanguage()
     {
         if (_configService.CurrentConfig.GlobalValues.TryGetValue("GUI.Localization", out var value)
@@ -1080,10 +1375,10 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
             && jsonValue.TryGetValue(out string? language)
             && !string.IsNullOrWhiteSpace(language))
         {
-            return language;
+            return UiLanguageCatalog.Normalize(language);
         }
 
-        return "zh-cn";
+        return UiLanguageCatalog.DefaultLanguage;
     }
 
     private void ApplyMallCreditFightGuard(UnifiedProfile profile)
@@ -1094,6 +1389,8 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
     private IReadOnlyList<TaskQueuePrecheckWarning> CollectMallCreditFightWarnings(UnifiedProfile profile, bool mutate)
     {
         var warnings = new List<TaskQueuePrecheckWarning>();
+        var localizer = CreateTaskQueueLocalizer();
+        var fightDisplayName = ResolveModuleDisplayName(TaskModuleTypes.Fight, localizer);
         var enabledFightTasks = profile.TaskQueue
             .Where(t => t.IsEnabled && string.Equals(TaskModuleTypes.Normalize(t.Type), TaskModuleTypes.Fight, StringComparison.OrdinalIgnoreCase))
             .ToList();
@@ -1117,7 +1414,12 @@ public sealed class TaskQueueFeatureService : ITaskQueueFeatureService
                 continue;
             }
 
-            var warningMessage = $"Mall credit fight disabled for `{mallTask.Name}` because enabled Fight task uses Current/Last stage selector.";
+            var warningMessage = FormatTaskQueueMessage(
+                localizer,
+                "TaskQueue.Warning.MallCreditFightDowngraded",
+                "Disabled Mall credit fight for `{0}` because an enabled `{1}` task uses the current/last stage selector.",
+                ResolveTaskDisplayName(mallTask, localizer),
+                fightDisplayName);
             if (mutate)
             {
                 mallParams["credit_fight"] = false;

@@ -12,6 +12,8 @@ namespace MAAUnified.App.Features.Root;
 
 public partial class SettingsView : UserControl
 {
+    private readonly record struct SectionScrollPosition(string SectionKey, double OffsetWithinSection);
+
     private const int BackgroundSectionWarmupIntervalMs = 45;
     private static readonly string[] SectionOrder =
     [
@@ -196,11 +198,20 @@ public partial class SettingsView : UserControl
             return;
         }
 
+        var scrollPosition = CaptureCurrentSectionScrollPosition();
         CancelProgressiveSectionMaterialization();
         BeginViewComposition();
         EnsureSectionMaterializationInitialized(forceReset: true);
-        EnsureCurrentSectionMaterialized();
-        Dispatcher.UIThread.Post(ScrollToSelectedSection, DispatcherPriority.Loaded);
+        EnsureCurrentSectionMaterialized(materializeThroughSelection: true);
+        Dispatcher.UIThread.Post(
+            () =>
+            {
+                if (!RestoreSectionScrollPosition(scrollPosition))
+                {
+                    ScrollToSelectedSection();
+                }
+            },
+            DispatcherPriority.Loaded);
         StartProgressiveSectionMaterialization();
     }
 
@@ -331,11 +342,17 @@ public partial class SettingsView : UserControl
         _sectionMaterializationInitialized = true;
     }
 
-    private void EnsureCurrentSectionMaterialized()
+    private void EnsureCurrentSectionMaterialized(bool materializeThroughSelection = false)
     {
         var selectedKey = VM?.SelectedSection?.Key;
         if (string.IsNullOrWhiteSpace(selectedKey))
         {
+            return;
+        }
+
+        if (materializeThroughSelection)
+        {
+            EnsureSectionsThrough(selectedKey);
             return;
         }
 
@@ -661,6 +678,59 @@ public partial class SettingsView : UserControl
         scrollViewer.Offset = new Vector(
             scrollViewer.Offset.X,
             Math.Max(top, 0d));
+    }
+
+    private SectionScrollPosition? CaptureCurrentSectionScrollPosition()
+    {
+        var vm = VM;
+        var scrollViewer = _sectionScrollViewer;
+        if (vm?.SelectedSection is null || scrollViewer is null)
+        {
+            return null;
+        }
+
+        EnsureSectionsThrough(vm.SelectedSection.Key);
+        RefreshSectionTopCacheIfNeeded();
+        if (!_sectionTopCache.TryGetValue(vm.SelectedSection.Key, out var top))
+        {
+            return null;
+        }
+
+        return new SectionScrollPosition(
+            vm.SelectedSection.Key,
+            Math.Max(scrollViewer.Offset.Y - top, 0d));
+    }
+
+    private bool RestoreSectionScrollPosition(SectionScrollPosition? scrollPosition)
+    {
+        var scrollViewer = _sectionScrollViewer;
+        var contentPanel = _sectionContentPanel;
+        if (scrollPosition is null || scrollViewer is null || contentPanel is null)
+        {
+            return false;
+        }
+
+        EnsureSectionsThrough(scrollPosition.Value.SectionKey);
+        RefreshSectionTopCacheIfNeeded();
+
+        if (!_sectionTopCache.TryGetValue(scrollPosition.Value.SectionKey, out var top)
+            && (_sectionAnchors.TryGetValue(scrollPosition.Value.SectionKey, out var anchor)
+                && anchor.TranslatePoint(default, contentPanel) is { } point))
+        {
+            top = point.Y;
+            _sectionTopCache[scrollPosition.Value.SectionKey] = top;
+        }
+
+        if (!_sectionTopCache.TryGetValue(scrollPosition.Value.SectionKey, out top))
+        {
+            return false;
+        }
+
+        var maxOffset = Math.Max(scrollViewer.Extent.Height - scrollViewer.Viewport.Height, 0d);
+        var targetOffset = Math.Clamp(top + scrollPosition.Value.OffsetWithinSection, 0d, maxOffset);
+        SuppressSectionScrollChangedOnce();
+        scrollViewer.Offset = new Vector(scrollViewer.Offset.X, targetOffset);
+        return true;
     }
 
     private void UpdateSelectedSectionFromScroll()

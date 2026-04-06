@@ -60,8 +60,10 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid ColumnDefinitions="{StaticResource MAA.Layout.TaskQueue.Columns}">
-    <Border Grid.Column="0" Classes="wpf-panel">
+  <Grid ColumnDefinitions="Auto,*,Auto">
+    <Border Grid.Column="0"
+            Width="{DynamicResource MAA.Size.TaskQueue.ListPanelWidth}"
+            Classes="wpf-panel wpf-panel-plain">
       <Grid RowDefinitions="Auto,*,Auto,Auto,Auto">
         <TextBlock Classes="section-title" Text="{Binding TaskListTitleText}" />
 
@@ -243,7 +245,7 @@
             <TextBlock Classes="muted"
                        Text="{Binding NoTaskSelectedHint}"
                        IsVisible="{Binding ShowTaskConfigHint}" />
-            <ContentControl Content="{Binding SelectedTaskSettingsViewModel}"
+            <ContentControl x:Name="TaskSettingsHost"
                             IsEnabled="{Binding CanEdit}" />
           </StackPanel>
         </ScrollViewer>
@@ -281,7 +283,8 @@
       </Grid>
     </Grid>
 
-    <Grid Grid.Column="2">
+    <Grid Grid.Column="2"
+          Width="{DynamicResource MAA.Size.TaskQueue.LogPanelWidth}">
       <Grid RowDefinitions="Auto,Auto,*">
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Classes="section-title" Text="{Binding LogsTitleText}" />

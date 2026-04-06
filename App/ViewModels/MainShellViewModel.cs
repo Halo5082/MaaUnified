@@ -2603,6 +2603,17 @@ public sealed class MainShellViewModel : ObservableObject
         CurrentShellLanguage = nextLanguage;
         _runtime.AchievementTrackerService.SetCurrentLanguage(nextLanguage);
         RootTexts.Language = nextLanguage;
+        TaskQueuePage.SetLanguage(nextLanguage);
+        if (TryGetCopilotPage(out var copilotPage))
+        {
+            copilotPage.SetLanguage(nextLanguage);
+        }
+
+        if (TryGetToolboxPage(out var toolboxPage))
+        {
+            toolboxPage.SetLanguage(nextLanguage);
+        }
+
         if (TryGetSettingsPage(out var settingsPage))
         {
             settingsPage.AutostartStatus = PlatformCapabilityTextMap.FormatAutostartStatus(

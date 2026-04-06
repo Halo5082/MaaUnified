@@ -92,7 +92,8 @@
       </Border>
     </DataTemplate>
   </Window.DataTemplates>
-  <Grid Margin="{DynamicResource MAA.Thickness.PageMargin}">
+  <Grid x:Name="ShellRoot"
+        Margin="{DynamicResource MAA.Thickness.PageMargin}">
     <Image
            Source="{Binding ShellBackgroundImage}"
            Opacity="{Binding ShellBackgroundOpacity}"
@@ -104,21 +105,29 @@
       </Image.Effect>
     </Image>
 
-    <TabControl Classes="root-nav"
+    <Grid RowDefinitions="Auto,*"
+          Width="{DynamicResource MAA.Size.MainWindow.LayoutWidth}"
+          MaxWidth="{DynamicResource MAA.Size.MainWindow.ContentMaxWidth}"
+          HorizontalAlignment="Center">
+      <TabStrip Classes="root-nav"
                 SelectedIndex="{Binding SelectedRootTabIndex}">
-      <TabItem Header="{Binding TaskQueueTabTitle}">
-        <ContentControl Content="{Binding TaskQueueRootPage.PageContent}" />
-      </TabItem>
-      <TabItem Header="{Binding CopilotTabTitle}">
-        <ContentControl Content="{Binding CopilotRootPage.PageContent}" />
-      </TabItem>
-      <TabItem Header="{Binding ToolboxTabTitle}">
-        <ContentControl Content="{Binding ToolboxRootPage.PageContent}" />
-      </TabItem>
-      <TabItem Header="{Binding SettingsTabTitle}">
-        <ContentControl Content="{Binding SettingsRootPage.PageContent}" />
-      </TabItem>
-    </TabControl>
+        <TabStripItem Content="{Binding TaskQueueTabTitle}" />
+        <TabStripItem Content="{Binding CopilotTabTitle}" />
+        <TabStripItem Content="{Binding ToolboxTabTitle}" />
+        <TabStripItem Content="{Binding SettingsTabTitle}" />
+      </TabStrip>
+
+      <Grid Grid.Row="1">
+        <ContentControl Content="{Binding TaskQueueRootPage.PageContent}"
+                        IsVisible="{Binding IsTaskQueueRootTabSelected}" />
+        <ContentControl Content="{Binding CopilotRootPage.PageContent}"
+                        IsVisible="{Binding IsCopilotRootTabSelected}" />
+        <ContentControl Content="{Binding ToolboxRootPage.PageContent}"
+                        IsVisible="{Binding IsToolboxRootTabSelected}" />
+        <ContentControl Content="{Binding SettingsRootPage.PageContent}"
+                        IsVisible="{Binding IsSettingsRootTabSelected}" />
+      </Grid>
+    </Grid>
 
     <ItemsControl ItemsSource="{Binding AchievementToasts}"
                   HorizontalAlignment="Right"

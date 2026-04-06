@@ -3983,4 +3983,142 @@ OF-1 스테이지가 개방되지 않은 경우에는 선택하지 마세요.</v
   <data name="Settings.VersionUpdate.SoftwarePlaceholder.Title" xml:space="preserve">
     <value>소프트웨어 업데이트</value>
   </data>
+  <data name="TaskQueue.Status.ParamsLoaded" xml:space="preserve">
+    <value>`{0}` 매개변수를 불러왔습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckPassed" xml:space="preserve">
+    <value>작업 대기열 사전 점검을 통과했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckWarnings" xml:space="preserve">
+    <value>작업 대기열 사전 점검에서 경고 {0}개가 발견되었습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradeNotRequired" xml:space="preserve">
+    <value>작업 대기열 사전 점검에서 하향 조정이 필요하지 않습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradesApplied" xml:space="preserve">
+    <value>작업 대기열 사전 점검에서 하향 조정 {0}개를 적용했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.LoadedTasks" xml:space="preserve">
+    <value>작업 {0}개를 불러왔습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TaskAdded" xml:space="preserve">
+    <value>작업 `{0}`을 추가했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRenamed" xml:space="preserve">
+    <value>작업 이름을 `{0}`(으)로 변경했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRemoved" xml:space="preserve">
+    <value>작업 `{0}`을 제거했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TaskOrderUnchanged" xml:space="preserve">
+    <value>작업 순서가 변경되지 않았습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TaskMoved" xml:space="preserve">
+    <value>작업 `{0}`을 {1}번째로 이동했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.True" xml:space="preserve">
+    <value>작업 `{0}`을 활성화했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.False" xml:space="preserve">
+    <value>작업 `{0}`을 비활성화했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.True" xml:space="preserve">
+    <value>작업 {0}개를 활성화했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.False" xml:space="preserve">
+    <value>작업 {0}개를 비활성화했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledInverted" xml:space="preserve">
+    <value>작업 {0}개의 활성화 상태를 반전했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdated" xml:space="preserve">
+    <value>`{0}` 매개변수를 업데이트했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdatedPersisted" xml:space="preserve">
+    <value>`{0}` 매개변수를 업데이트하고 저장했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.ValidationPassed" xml:space="preserve">
+    <value>작업 `{0}` 검증을 통과했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.Saved" xml:space="preserve">
+    <value>작업 대기열을 저장했습니다.</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsFlushed" xml:space="preserve">
+    <value>작업 매개변수를 기록했습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMissing" xml:space="preserve">
+    <value>작업 유형은 비워 둘 수 없습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissing" xml:space="preserve">
+    <value>작업 이름은 비워 둘 수 없습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.TaskIndexOutOfRange" xml:space="preserve">
+    <value>작업 인덱스 {0} 범위를 벗어났습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.MoveOutOfRange" xml:space="preserve">
+    <value>작업 이동 인덱스가 범위를 벗어났습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.ParamsMissing" xml:space="preserve">
+    <value>작업 매개변수는 null일 수 없습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissing" xml:space="preserve">
+    <value>현재 프로필 `{0}`을 찾을 수 없습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissingShort" xml:space="preserve">
+    <value>현재 프로필을 찾을 수 없습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissingShort" xml:space="preserve">
+    <value>작업 이름은 비워 둘 수 없습니다.</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMismatch" xml:space="preserve">
+    <value>선택한 작업은 `{0}` 작업이 아닙니다.</value>
+  </data>
+  <data name="TaskQueue.Warning.MallCreditFightDowngraded" xml:space="preserve">
+    <value>현재/직전 스테이지 선택기를 사용하는 활성 `{1}` 작업이 있어 `{0}`의 신용 전투를 비활성화했습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.StateLoaded" xml:space="preserve">
+    <value>스테이지 관리 상태를 불러왔습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.LocalResourcesLoaded" xml:space="preserve">
+    <value>`{0}`의 로컬 스테이지 리소스를 불러왔습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.WebResourcesLoaded" xml:space="preserve">
+    <value>`{0}`의 웹 스테이지 리소스를 불러왔습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigLoaded" xml:space="preserve">
+    <value>스테이지 관리 구성을 불러왔습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigSaved" xml:space="preserve">
+    <value>스테이지 관리 구성을 저장했습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.Validated" xml:space="preserve">
+    <value>스테이지 코드 {0}개를 확인했습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ServiceUnavailable" xml:space="preserve">
+    <value>스테이지 관리 서비스가 초기화되지 않았습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.InvalidStageCode" xml:space="preserve">
+    <value>잘못된 스테이지 코드: {0}</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoWebResources" xml:space="preserve">
+    <value>`{1}` 아래에서 `{0}`의 웹 스테이지 리소스를 찾을 수 없습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoLocalResources" xml:space="preserve">
+    <value>`{1}` 아래에서 `{0}`의 로컬 스테이지 리소스를 찾을 수 없습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ReadResources" xml:space="preserve">
+    <value>스테이지 리소스를 읽지 못했습니다: `{0}`: {1}</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.FileNotFound" xml:space="preserve">
+    <value>파일을 찾을 수 없습니다: {0}</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.NoProviders" xml:space="preserve">
+    <value>사용 가능한 외부 알림 제공자가 없습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.LoadedProviders" xml:space="preserve">
+    <value>외부 알림 제공자 {0}개를 불러왔습니다.</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Error.QueryFailed" xml:space="preserve">
+    <value>외부 알림 제공자를 조회하지 못했습니다.</value>
+  </data>
 </root>

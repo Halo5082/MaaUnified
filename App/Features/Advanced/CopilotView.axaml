@@ -55,14 +55,15 @@
     </DataTemplate>
   </UserControl.DataTemplates>
 
-  <Grid ColumnDefinitions="*,Auto,420"
+  <Grid ColumnDefinitions="*,Auto,Auto"
         Margin="{DynamicResource MAA.Thickness.CopilotRootMargin}">
     <Border Grid.Column="0" Classes="wpf-panel">
       <Grid RowDefinitions="Auto,*,Auto">
         <StackPanel Grid.Row="0"
                     HorizontalAlignment="Center"
                     Spacing="{DynamicResource MAA.Spacing.Small}">
-          <TabControl SelectedIndex="{Binding CopilotTabIndex}"
+          <TabControl Classes="copilot-nav"
+                      SelectedIndex="{Binding CopilotTabIndex}"
                       IsEnabled="{Binding CanEdit}">
             <TabItem Header="{Binding MainTabTitle}" />
             <TabItem Header="{Binding SecurityTabTitle}" />
@@ -378,7 +379,9 @@
       </Grid>
     </Border>
 
-    <Border Grid.Column="2" Classes="wpf-panel">
+    <Border Grid.Column="2"
+            Width="{DynamicResource MAA.Size.Copilot.SidePanelWidth}"
+            Classes="wpf-panel">
       <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
         <Grid HorizontalAlignment="Right">
           <Button Classes="wpf-button wpf-button-secondary overlay-toggle"

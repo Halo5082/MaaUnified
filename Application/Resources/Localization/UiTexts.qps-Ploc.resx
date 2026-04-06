@@ -1,2 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader></root>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TaskQueue.Status.ParamsLoaded" xml:space="preserve">
+    <value>[!! Łöåđéď þåřåɱş ƒöř `{0}`. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckPassed" xml:space="preserve">
+    <value>[!! ŦåşķQüéüé þřéçħéçķ þåşşéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckWarnings" xml:space="preserve">
+    <value>[!! ŦåşķQüéüé þřéçħéçķ řéţüřñéď {0} ŵåřñîñĝ(ş). !!]</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradeNotRequired" xml:space="preserve">
+    <value>[!! ŦåşķQüéüé þřéçħéçķ đöŵñĝřåďé ñöţ řéqüîřéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradesApplied" xml:space="preserve">
+    <value>[!! ŦåşķQüéüé þřéçħéçķ åþþļîéď {0} đöŵñĝřåďé(ş). !!]</value>
+  </data>
+  <data name="TaskQueue.Status.LoadedTasks" xml:space="preserve">
+    <value>[!! Łöåđéď {0} ţåşķ(ş). !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TaskAdded" xml:space="preserve">
+    <value>[!! Åďďéď ţåşķ `{0}`. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRenamed" xml:space="preserve">
+    <value>[!! Ŧåşķ řéñåɱéď ţö `{0}`. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRemoved" xml:space="preserve">
+    <value>[!! Řéɱöṽéď ţåşķ `{0}`. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TaskOrderUnchanged" xml:space="preserve">
+    <value>[!! Ŧåşķ öřđéř üñçħåñĝéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TaskMoved" xml:space="preserve">
+    <value>[!! Ḿöṽéď ţåşķ `{0}` ţö þöşîţîöñ {1}. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.True" xml:space="preserve">
+    <value>[!! Ŧåşķ `{0}` éñåƀļéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.False" xml:space="preserve">
+    <value>[!! Ŧåşķ `{0}` ďîşåƀļéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.True" xml:space="preserve">
+    <value>[!! Éñåƀļéď {0} ţåşķ(ş). !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.False" xml:space="preserve">
+    <value>[!! Ďîşåƀļéď {0} ţåşķ(ş). !!]</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledInverted" xml:space="preserve">
+    <value>[!! Îñṽéřţéď éñåƀļéď şţåţé ƒöř {0} ţåşķ(ş). !!]</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdated" xml:space="preserve">
+    <value>[!! Ûþďåţéď þåřåɱş ƒöř `{0}`. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdatedPersisted" xml:space="preserve">
+    <value>[!! Ûþďåţéď þåřåɱş ƒöř `{0}` åñď þéřşîşţéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.ValidationPassed" xml:space="preserve">
+    <value>[!! Ŧåşķ `{0}` þåşşéď ṽåļîďåţîöñ. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.Saved" xml:space="preserve">
+    <value>[!! Ŧåşķ qüéüé şåṽéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsFlushed" xml:space="preserve">
+    <value>[!! Ŧåşķ þåřåɱş ƒļüşħéď. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMissing" xml:space="preserve">
+    <value>[!! Ŧåşķ ţýþé çåññöţ ƀé éɱþţý. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissing" xml:space="preserve">
+    <value>[!! Ŧåşķ ñåɱé çåññöţ ƀé éɱþţý. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.TaskIndexOutOfRange" xml:space="preserve">
+    <value>[!! Ŧåşķ îñďéẋ {0} îş öüţ öƒ řåñĝé. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.MoveOutOfRange" xml:space="preserve">
+    <value>[!! Ŧåşķ ɱöṽé îñďéẋ îş öüţ öƒ řåñĝé. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.ParamsMissing" xml:space="preserve">
+    <value>[!! Ŧåşķ þåřåɱş çåññöţ ƀé ñüļļ. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissing" xml:space="preserve">
+    <value>[!! Çüřřéñţ þřöƒîļé `{0}` ñöţ ƒöüñď. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissingShort" xml:space="preserve">
+    <value>[!! Çüřřéñţ þřöƒîļé îş ɱîşşîñĝ. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissingShort" xml:space="preserve">
+    <value>[!! Ŧåşķ ñåɱé çåññöţ ƀé éɱþţý. !!]</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMismatch" xml:space="preserve">
+    <value>[!! Şéļéçţéď ţåşķ îş ñöţ å `{0}` ţåşķ. !!]</value>
+  </data>
+  <data name="TaskQueue.Warning.MallCreditFightDowngraded" xml:space="preserve">
+    <value>[!! Ďîşåƀļéď Ḿåļļ çřéďîţ ƒîĝħţ ƒöř `{0}` ƀéçåüşé åñ éñåƀļéď `{1}` ţåşķ üşéş ţħé çüřřéñţ/ļåşţ şţåĝé şéļéçţöř. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.StateLoaded" xml:space="preserve">
+    <value>[!! Łöåđéď şţåĝé ɱåñåĝéř şţåţé. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.LocalResourcesLoaded" xml:space="preserve">
+    <value>[!! Łöåđéď ļöçåļ şţåĝé řéşöüřçéş ƒöř `{0}`. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.WebResourcesLoaded" xml:space="preserve">
+    <value>[!! Łöåđéď ŵéƀ şţåĝé řéşöüřçéş ƒöř `{0}`. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigLoaded" xml:space="preserve">
+    <value>[!! Łöåđéď şţåĝé ɱåñåĝéř çöñƒîĝ. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigSaved" xml:space="preserve">
+    <value>[!! Şţåĝé ɱåñåĝéř çöñƒîĝ şåṽéď. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.Validated" xml:space="preserve">
+    <value>[!! Ṽåļîďåţéď {0} şţåĝé çöďé(ş). !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ServiceUnavailable" xml:space="preserve">
+    <value>[!! Şţåĝé ɱåñåĝéř şéřṽîçé îş ñöţ îñîţîåļîžéď. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.InvalidStageCode" xml:space="preserve">
+    <value>[!! Îñṽåļîď şţåĝé çöďé: {0} !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoWebResources" xml:space="preserve">
+    <value>[!! Ñö ŵéƀ şţåĝé řéşöüřçéş ƒöüñď ƒöř `{0}` üñďéř `{1}`. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoLocalResources" xml:space="preserve">
+    <value>[!! Ñö ļöçåļ şţåĝé řéşöüřçéş ƒöüñď ƒöř `{0}` üñďéř `{1}`. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ReadResources" xml:space="preserve">
+    <value>[!! Ƒåîļéď ţö řéåď şţåĝé řéşöüřçéş ƒřöɱ `{0}`: {1} !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.FileNotFound" xml:space="preserve">
+    <value>[!! Ƒîļé ñöţ ƒöüñď: {0} !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.NoProviders" xml:space="preserve">
+    <value>[!! Ñö éẋţéřñåļ ñöţîƒîçåţîöñ þřöṽîďéř åṽåîļåƀļé. !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.LoadedProviders" xml:space="preserve">
+    <value>[!! Łöåđéď {0} éẋţéřñåļ ñöţîƒîçåţîöñ þřöṽîďéř(ş). !!]</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Error.QueryFailed" xml:space="preserve">
+    <value>[!! Ƒåîļéď ţö qüéřý éẋţéřñåļ ñöţîƒîçåţîöñ þřöṽîďéřş. !!]</value>
+  </data>
+</root>

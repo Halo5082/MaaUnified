@@ -265,10 +265,10 @@ public static class DialogTextCatalog
                 => Select(language, "配置保存失败。", "Failed to save configuration profile."),
 
             UiErrorCode.ProfileMissing
-                => Select(language, "当前配置不存在。", "Current profile is missing."),
+                => GetText(language, "TaskQueue.Error.ProfileMissingShort", "当前配置不存在。", "Current profile is missing."),
 
             UiErrorCode.TaskNameMissing
-                => Select(language, "任务名称不能为空。", "Task name cannot be empty."),
+                => GetText(language, "TaskQueue.Error.TaskNameMissingShort", "任务名称不能为空。", "Task name cannot be empty."),
 
             UiErrorCode.EmulatorPathMissing
                 => Select(language, "模拟器路径为空。", "Emulator path is missing."),

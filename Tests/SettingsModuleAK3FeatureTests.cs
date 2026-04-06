@@ -174,14 +174,40 @@ public sealed class SettingsModuleAK3FeatureTests
         vm.Timers[2].Profile = string.Empty;
 
         Assert.False(vm.HasPendingTimerChanges);
-        Assert.Equal(string.Empty, vm.Timers[0].Profile);
-        Assert.Equal(string.Empty, vm.Timers[2].Profile);
+        Assert.Equal("Alpha", vm.Timers[0].Profile);
+        Assert.Equal("Beta", vm.Timers[2].Profile);
 
         vm.EndViewComposition();
 
         Assert.False(vm.HasPendingTimerChanges, vm.TimerValidationMessage);
         Assert.Equal("Alpha", vm.Timers[0].Profile);
         Assert.Equal("Beta", vm.Timers[2].Profile);
+
+        var errorLog = File.Exists(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            ? await File.ReadAllTextAsync(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            : string.Empty;
+        Assert.DoesNotContain(UiErrorCode.TimerProfileMissing, errorLog, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Timer_TransientEmptyProfileAfterInitialization_IsImmediatelyRestored()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Config.CurrentConfig.Profiles["Alpha"] = new UnifiedProfile();
+        fixture.Config.CurrentConfig.GlobalValues[LegacyConfigurationKeys.CustomConfig] = JsonValue.Create(true);
+        fixture.Config.CurrentConfig.GlobalValues[TimerEnabledKey(1)] = JsonValue.Create(true);
+        fixture.Config.CurrentConfig.GlobalValues[TimerHourKey(1)] = JsonValue.Create(7);
+        fixture.Config.CurrentConfig.GlobalValues[TimerMinuteKey(1)] = JsonValue.Create(30);
+        fixture.Config.CurrentConfig.GlobalValues[TimerProfileKey(1)] = JsonValue.Create("Alpha");
+        await fixture.Config.SaveAsync();
+
+        var vm = new SettingsPageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+
+        vm.Timers[0].Profile = string.Empty;
+
+        Assert.False(vm.HasPendingTimerChanges, vm.TimerValidationMessage);
+        Assert.Equal("Alpha", vm.Timers[0].Profile);
 
         var errorLog = File.Exists(fixture.Runtime.DiagnosticsService.ErrorLogPath)
             ? await File.ReadAllTextAsync(fixture.Runtime.DiagnosticsService.ErrorLogPath)

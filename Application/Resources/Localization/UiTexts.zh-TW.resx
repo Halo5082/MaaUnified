@@ -3985,4 +3985,142 @@
   <data name="Settings.VersionUpdate.SoftwarePlaceholder.Title" xml:space="preserve">
     <value>軟體更新</value>
   </data>
+  <data name="TaskQueue.Status.ParamsLoaded" xml:space="preserve">
+    <value>已載入 `{0}` 的參數。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckPassed" xml:space="preserve">
+    <value>任務佇列預檢通過。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckWarnings" xml:space="preserve">
+    <value>任務佇列預檢回傳 {0} 則警告。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradeNotRequired" xml:space="preserve">
+    <value>任務佇列預檢無需降級處理。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradesApplied" xml:space="preserve">
+    <value>任務佇列預檢已套用 {0} 項降級。</value>
+  </data>
+  <data name="TaskQueue.Status.LoadedTasks" xml:space="preserve">
+    <value>已載入 {0} 個任務。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskAdded" xml:space="preserve">
+    <value>已新增任務 `{0}`。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRenamed" xml:space="preserve">
+    <value>已將任務重新命名為 `{0}`。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRemoved" xml:space="preserve">
+    <value>已移除任務 `{0}`。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskOrderUnchanged" xml:space="preserve">
+    <value>任務順序未變更。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskMoved" xml:space="preserve">
+    <value>已將任務 `{0}` 移動到第 {1} 位。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.True" xml:space="preserve">
+    <value>已啟用任務 `{0}`。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.False" xml:space="preserve">
+    <value>已停用任務 `{0}`。</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.True" xml:space="preserve">
+    <value>已啟用 {0} 個任務。</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.False" xml:space="preserve">
+    <value>已停用 {0} 個任務。</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledInverted" xml:space="preserve">
+    <value>已反轉 {0} 個任務的啟用狀態。</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdated" xml:space="preserve">
+    <value>已更新 `{0}` 的參數。</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdatedPersisted" xml:space="preserve">
+    <value>已更新 `{0}` 的參數並保存。</value>
+  </data>
+  <data name="TaskQueue.Status.ValidationPassed" xml:space="preserve">
+    <value>任務 `{0}` 驗證通過。</value>
+  </data>
+  <data name="TaskQueue.Status.Saved" xml:space="preserve">
+    <value>任務佇列已保存。</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsFlushed" xml:space="preserve">
+    <value>任務參數已寫入磁碟。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMissing" xml:space="preserve">
+    <value>任務類型不可為空。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissing" xml:space="preserve">
+    <value>任務名稱不可為空。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskIndexOutOfRange" xml:space="preserve">
+    <value>任務索引 {0} 超出範圍。</value>
+  </data>
+  <data name="TaskQueue.Error.MoveOutOfRange" xml:space="preserve">
+    <value>任務移動索引超出範圍。</value>
+  </data>
+  <data name="TaskQueue.Error.ParamsMissing" xml:space="preserve">
+    <value>任務參數不可為空。</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissing" xml:space="preserve">
+    <value>目前設定檔 `{0}` 不存在。</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissingShort" xml:space="preserve">
+    <value>目前設定檔不存在。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissingShort" xml:space="preserve">
+    <value>任務名稱不可為空。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMismatch" xml:space="preserve">
+    <value>目前所選任務不是 `{0}`。</value>
+  </data>
+  <data name="TaskQueue.Warning.MallCreditFightDowngraded" xml:space="preserve">
+    <value>已為 `{0}` 關閉信用作戰，因為存在已啟用的 `{1}` 任務使用目前/上次關卡選擇器。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.StateLoaded" xml:space="preserve">
+    <value>已載入關卡管理狀態。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.LocalResourcesLoaded" xml:space="preserve">
+    <value>已載入 `{0}` 的本地關卡資源。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.WebResourcesLoaded" xml:space="preserve">
+    <value>已載入 `{0}` 的 Web 關卡資源。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigLoaded" xml:space="preserve">
+    <value>已載入關卡管理設定。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigSaved" xml:space="preserve">
+    <value>關卡管理設定已保存。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.Validated" xml:space="preserve">
+    <value>已驗證 {0} 個關卡代碼。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ServiceUnavailable" xml:space="preserve">
+    <value>關卡管理服務尚未初始化。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.InvalidStageCode" xml:space="preserve">
+    <value>無效的關卡代碼：{0}</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoWebResources" xml:space="preserve">
+    <value>在 `{1}` 下找不到 `{0}` 的 Web 關卡資源。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoLocalResources" xml:space="preserve">
+    <value>在 `{1}` 下找不到 `{0}` 的本地關卡資源。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ReadResources" xml:space="preserve">
+    <value>讀取關卡資源失敗：`{0}`：{1}</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.FileNotFound" xml:space="preserve">
+    <value>找不到檔案：{0}</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.NoProviders" xml:space="preserve">
+    <value>目前沒有可用的外部通知 Provider。</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.LoadedProviders" xml:space="preserve">
+    <value>已載入 {0} 個外部通知 Provider。</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Error.QueryFailed" xml:space="preserve">
+    <value>查詢外部通知 Provider 失敗。</value>
+  </data>
 </root>

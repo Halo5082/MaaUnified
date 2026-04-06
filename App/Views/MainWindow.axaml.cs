@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using MAAUnified.App.Features.Dialogs;
 using MAAUnified.App.Infrastructure;
 using MAAUnified.App.Services;
@@ -14,17 +15,79 @@ using MAAUnified.Application.Models;
 using MAAUnified.Application.Services.Localization;
 using MAAUnified.Platform;
 using System.ComponentModel;
+using System.Linq;
 
 namespace MAAUnified.App.Views;
 
 public partial class MainWindow : Window
 {
+    private const double CompactLayoutHeightThreshold = 720d;
+    private const double ResponsiveMinWindowWidth = 1080d;
+    private const double ResponsiveMarginStageEndWidth = 1160d;
+    private const double ResponsiveMinPageMargin = 12d;
+    private const double ResponsiveMaxPageMargin = 18d;
+    private const double ResponsiveMaxLayoutWidth = 1360d;
+    private const double ResponsiveMinLayoutWidth = ResponsiveMinWindowWidth - (ResponsiveMinPageMargin * 2d);
+    private const double ResponsiveContentStageEndWidth = ResponsiveMarginStageEndWidth + (ResponsiveMaxLayoutWidth - ResponsiveMinLayoutWidth);
+    private static readonly KeyValuePair<string, object>[] CompactLayoutResourceOverrides =
+    [
+        new("MAA.Thickness.SectionPadding", new Thickness(6)),
+        new("MAA.Thickness.SectionPaddingStrong", new Thickness(6)),
+        new("MAA.Thickness.MarginTopSection", new Thickness(0, 6, 0, 0)),
+        new("MAA.Thickness.MarginBottomSection", new Thickness(0, 0, 0, 6)),
+        new("MAA.Thickness.MarginSectionVertical", new Thickness(0, 6, 0, 6)),
+        new("MAA.Thickness.MarginRightSection", new Thickness(0, 0, 6, 0)),
+        new("MAA.Thickness.TabCompactPadding", new Thickness(8, 4)),
+        new("MAA.Thickness.CopilotNavTabPadding", new Thickness(8, 3, 8, 7)),
+        new("MAA.Thickness.RootNavTabPadding", new Thickness(8, 2, 8, 9)),
+        new("MAA.Thickness.ToolboxNavTabPadding", new Thickness(8, 2, 8, 9)),
+        new("MAA.FontSize.SectionTitle", 13.5d),
+        new("MAA.FontSize.CopilotNavTab", 13.5d),
+        new("MAA.Size.Action.Height", 28d),
+        new("MAA.Size.Action.RunPrimaryHeight", 44d),
+        new("MAA.Size.Action.RunSecondaryHeight", 36d),
+        new("MAA.Size.TaskQueue.RowHeight", 28d),
+        new("MAA.Size.Tab.MinHeight", 28d),
+    ];
+    private static readonly ResponsiveDoubleResourceRange[] ResponsiveWidthResourceRanges =
+    [
+        new("MAA.Size.TaskQueue.ListPanelWidth", 250d, 276d),
+        new("MAA.Size.TaskQueue.ConfigPanelWidth", 252d, 280d),
+        new("MAA.Size.TaskQueue.LogPanelWidth", 342d, 380d),
+        new("MAA.Size.TaskQueue.PostActionSummaryWidth", 170d, 185d),
+        new("MAA.Size.TaskQueue.PostActionDescriptionWidth", 146d, 160d),
+        new("MAA.Size.Settings.SectionListWidth", 200d, 224d),
+        new("MAA.Size.Settings.FormMaxWidth", 860d, 920d),
+        new("MAA.Size.Settings.FormNarrowMaxWidth", 710d, 760d),
+        new("MAA.Size.Settings.ContentMaxWidth", 405d, 450d),
+        new("MAA.Size.Settings.ColumnWidth", 228d, 250d),
+        new("MAA.Size.Settings.FieldSlimWidth", 136d, 150d),
+        new("MAA.Size.Settings.FieldNarrowWidth", 162d, 180d),
+        new("MAA.Size.Settings.FieldCenteredWidth", 180d, 200d),
+        new("MAA.Size.Settings.FieldInputWidth", 270d, 300d),
+        new("MAA.Size.Settings.FieldPathWidth", 360d, 400d),
+        new("MAA.Size.Settings.FieldPathWideWidth", 378d, 420d),
+        new("MAA.Size.Settings.FieldWidth", 198d, 220d),
+        new("MAA.Size.Settings.FieldTimerConfigWidth", 136d, 150d),
+        new("MAA.Size.Settings.FieldWideWidth", 252d, 280d),
+        new("MAA.Size.Settings.FieldExtraWideWidth", 306d, 340d),
+        new("MAA.Size.Settings.WrapItemWidth", 198d, 220d),
+        new("MAA.Size.Toolbox.DepotWrapItemWidth", 142d, 158d),
+        new("MAA.Size.Toolbox.OperBoxWrapItemWidth", 133d, 148d),
+        new("MAA.Size.Toolbox.ActionButtonWidth", 162d, 180d),
+        new("MAA.Size.Toolbox.WarningTextMaxWidth", 504d, 560d),
+        new("MAA.Size.Toolbox.FormPanelWidth", 580d, 640d),
+        new("MAA.Size.Copilot.SidePanelWidth", 378d, 420d),
+    ];
+
     private bool _platformBound;
     private bool _dialogErrorBound;
     private bool _processingDialogErrors;
     private bool _processingMinimizeToTray;
     private bool _allowLifecycleClose;
     private bool _closeRequestPending;
+    private bool _compactLayoutEnabled;
+    private ResponsiveLayoutMetrics? _responsiveLayoutMetrics;
     private readonly object _dialogErrorGate = new();
     private readonly Queue<DialogErrorRaisedEvent> _pendingDialogErrors = [];
     private readonly HashSet<string> _pendingDialogErrorKeys = new(StringComparer.Ordinal);
@@ -34,6 +97,18 @@ public partial class MainWindow : Window
     private RuntimeLogWindow? _runtimeLogWindow;
     private RootPageHostViewModel? _settingsWarmupRootPage;
     private bool _settingsWarmupStarted;
+
+    private readonly record struct ResponsiveDoubleResourceRange(string ResourceKey, double Minimum, double Maximum);
+
+    private readonly record struct ResponsiveLayoutMetrics(double PageMargin, double LayoutWidth, double WidthProgress)
+    {
+        public bool ApproximatelyEquals(ResponsiveLayoutMetrics other)
+        {
+            return Math.Abs(PageMargin - other.PageMargin) < 0.01d
+                && Math.Abs(LayoutWidth - other.LayoutWidth) < 0.01d
+                && Math.Abs(WidthProgress - other.WidthProgress) < 0.001d;
+        }
+    }
 
     public MainWindow()
     {
@@ -45,10 +120,12 @@ public partial class MainWindow : Window
         _closeConfirmationService = new ShellCloseConfirmationService(_dialogService);
         BindDialogErrorEvents();
         Opened += OnWindowOpened;
+        SizeChanged += OnWindowSizeChanged;
         KeyDown += OnWindowKeyDown;
         Closing += OnWindowClosing;
         Closed += OnWindowClosed;
         PropertyChanged += OnWindowPropertyChanged;
+        App.Runtime.UiLanguageCoordinator.LanguageChanged += OnUiLanguageChanged;
     }
 
     private MainShellViewModel? VM => DataContext as MainShellViewModel;
@@ -95,6 +172,7 @@ public partial class MainWindow : Window
     {
         Program.RecordStartupStage("MainWindow.Opened", "Main window opened.");
         FitToCurrentScreenWorkingArea();
+        UpdateAdaptiveLayoutMode();
         UpdateAchievementToastVisibility();
         StartDialogErrorPumpIfNeeded();
         var vm = VM;
@@ -192,6 +270,8 @@ public partial class MainWindow : Window
             _runtimeLogWindow.Close();
             _runtimeLogWindow = null;
         }
+
+        App.Runtime.UiLanguageCoordinator.LanguageChanged -= OnUiLanguageChanged;
     }
 
     private async void OnWindowPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -210,6 +290,153 @@ public partial class MainWindow : Window
     private void UpdateAchievementToastVisibility()
     {
         VM?.SetAchievementToastWindowVisible(IsVisible && WindowState != WindowState.Minimized);
+    }
+
+    private void OnWindowSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        UpdateAdaptiveLayoutMode();
+    }
+
+    private void OnUiLanguageChanged(object? sender, UiLanguageChangedEventArgs e)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(RefreshLocalizedLayout, DispatcherPriority.Loaded);
+            return;
+        }
+
+        RefreshLocalizedLayout();
+    }
+
+    private void RefreshLocalizedLayout()
+    {
+        InvalidateLocalizedLayoutTree();
+        Dispatcher.UIThread.Post(InvalidateLocalizedLayoutTree, DispatcherPriority.Render);
+    }
+
+    private void UpdateAdaptiveLayoutMode()
+    {
+        var width = Bounds.Width;
+        var height = Bounds.Height;
+        if (width <= 0d || height <= 0d)
+        {
+            return;
+        }
+
+        var responsiveChanged = ApplyResponsiveLayoutMetrics(width);
+        var compactChanged = UpdateCompactLayoutMode(height <= CompactLayoutHeightThreshold);
+        if (!responsiveChanged && !compactChanged)
+        {
+            return;
+        }
+
+        InvalidateMeasure();
+        InvalidateArrange();
+        if (compactChanged)
+        {
+            RefreshLocalizedLayout();
+        }
+    }
+
+    private bool ApplyResponsiveLayoutMetrics(double width)
+    {
+        var metrics = CalculateResponsiveLayoutMetrics(width);
+        if (_responsiveLayoutMetrics is { } current && current.ApproximatelyEquals(metrics))
+        {
+            return false;
+        }
+
+        _responsiveLayoutMetrics = metrics;
+        Resources["MAA.Thickness.PageMargin"] = new Thickness(metrics.PageMargin);
+        Resources["MAA.Thickness.CopilotRootMargin"] = new Thickness(Lerp(2d, 4d, metrics.WidthProgress));
+        ApplyDoubleResource("MAA.Size.MainWindow.LayoutWidth", metrics.LayoutWidth, ResponsiveMaxLayoutWidth);
+
+        foreach (var range in ResponsiveWidthResourceRanges)
+        {
+            var value = Lerp(range.Minimum, range.Maximum, metrics.WidthProgress);
+            ApplyDoubleResource(range.ResourceKey, value, range.Maximum);
+        }
+
+        return true;
+    }
+
+    private bool UpdateCompactLayoutMode(bool useCompactLayout)
+    {
+        if (_compactLayoutEnabled == useCompactLayout)
+        {
+            return false;
+        }
+
+        _compactLayoutEnabled = useCompactLayout;
+        if (useCompactLayout)
+        {
+            foreach (var (key, value) in CompactLayoutResourceOverrides)
+            {
+                Resources[key] = value;
+            }
+        }
+        else
+        {
+            foreach (var (key, _) in CompactLayoutResourceOverrides)
+            {
+                Resources.Remove(key);
+            }
+        }
+
+        return true;
+    }
+
+    private static ResponsiveLayoutMetrics CalculateResponsiveLayoutMetrics(double windowWidth)
+    {
+        var marginProgress = InverseLerp(ResponsiveMinWindowWidth, ResponsiveMarginStageEndWidth, windowWidth);
+        var pageMargin = Lerp(ResponsiveMinPageMargin, ResponsiveMaxPageMargin, marginProgress);
+
+        if (windowWidth <= ResponsiveMarginStageEndWidth)
+        {
+            return new ResponsiveLayoutMetrics(pageMargin, ResponsiveMinLayoutWidth, 0d);
+        }
+
+        var widthProgress = InverseLerp(ResponsiveMarginStageEndWidth, ResponsiveContentStageEndWidth, windowWidth);
+        var layoutWidth = Lerp(ResponsiveMinLayoutWidth, ResponsiveMaxLayoutWidth, widthProgress);
+        return new ResponsiveLayoutMetrics(ResponsiveMaxPageMargin, layoutWidth, widthProgress);
+    }
+
+    private void ApplyDoubleResource(string key, double value, double defaultValue)
+    {
+        if (Math.Abs(value - defaultValue) < 0.01d)
+        {
+            Resources.Remove(key);
+            return;
+        }
+
+        Resources[key] = value;
+    }
+
+    private static double InverseLerp(double start, double end, double value)
+    {
+        if (end <= start)
+        {
+            return 1d;
+        }
+
+        return Math.Clamp((value - start) / (end - start), 0d, 1d);
+    }
+
+    private static double Lerp(double start, double end, double progress)
+    {
+        return start + ((end - start) * Math.Clamp(progress, 0d, 1d));
+    }
+
+    private void InvalidateLocalizedLayoutTree()
+    {
+        InvalidateMeasure();
+        InvalidateArrange();
+
+        foreach (var control in this.GetVisualDescendants().OfType<Control>())
+        {
+            control.InvalidateMeasure();
+            control.InvalidateArrange();
+        }
     }
 
     private void BindSettingsWarmup(MainShellViewModel vm)
@@ -649,6 +876,7 @@ public partial class MainWindow : Window
         }
 
         FitToCurrentScreenWorkingArea();
+        UpdateAdaptiveLayoutMode();
         Activate();
     }
 

@@ -418,6 +418,32 @@ public sealed class MainShellViewModelTests
     }
 
     [Fact]
+    public async Task SettingsPage_ChangeLanguageAsync_ShouldRefreshOpenStartUpTaskTexts()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        await fixture.ViewModel.InitializeAsync();
+
+        fixture.ViewModel.TaskQueuePage.SelectedTask = Assert.Single(
+            fixture.ViewModel.TaskQueuePage.Tasks,
+            task => string.Equals(task.Type, TaskModuleTypes.StartUp, StringComparison.OrdinalIgnoreCase));
+        await fixture.ViewModel.TaskQueuePage.WaitForPendingBindingAsync();
+
+        var zhTitle = fixture.ViewModel.TaskQueuePage.StartUpModule.Texts["StartUp.Title"];
+        var zhManualRun = fixture.ViewModel.TaskQueuePage.StartUpModule.Texts["StartUp.AccountSwitchManualRun"];
+
+        await fixture.ViewModel.SettingsPage.ChangeLanguageAsync("en-us");
+
+        Assert.True(await WaitUntilAsync(() =>
+            string.Equals(fixture.ViewModel.SettingsPage.Language, "en-us", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(fixture.ViewModel.TaskQueuePage.Texts.Language, "en-us", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(fixture.ViewModel.TaskQueuePage.StartUpModule.Texts.Language, "en-us", StringComparison.OrdinalIgnoreCase)));
+        await fixture.ViewModel.TaskQueuePage.WaitForPendingBindingAsync();
+
+        Assert.NotEqual(zhTitle, fixture.ViewModel.TaskQueuePage.StartUpModule.Texts["StartUp.Title"]);
+        Assert.NotEqual(zhManualRun, fixture.ViewModel.TaskQueuePage.StartUpModule.Texts["StartUp.AccountSwitchManualRun"]);
+    }
+
+    [Fact]
     public void LanguageQuickCycle_ShouldStayWithinStableLocales()
     {
         Assert.Equal("en-us", UiLanguageCatalog.NextInQuickCycle("zh-cn"));

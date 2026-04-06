@@ -1,8 +1,10 @@
 using System.Reflection;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using MAAUnified.Application.Configuration;
 using MAAUnified.Application.Models;
+using MAAUnified.Application.Services.Localization;
 
 namespace MAAUnified.Application.Services.Features;
 
@@ -38,7 +40,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         var webSnapshot = EnsureSnapshot(clientType, preferWeb: true, forceReload: false);
         return Task.FromResult(UiOperationResult<StageManagerState>.Ok(
             BuildState(clientType, localSnapshot, webSnapshot),
-            "Loaded stage manager state."));
+            BuildStageManagerStateLoadedMessage()));
     }
 
     public Task<UiOperationResult<StageManagerState>> RefreshLocalAsync(
@@ -63,7 +65,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         var webSnapshot = GetCachedSnapshot(_webSnapshots, normalizedClientType);
         return Task.FromResult(UiOperationResult<StageManagerState>.Ok(
             BuildState(normalizedClientType, localSnapshot, webSnapshot),
-            $"Loaded local stage resources for `{normalizedClientType}`."));
+            BuildStageResourcesLoadedMessage(normalizedClientType, preferWeb: false)));
     }
 
     public Task<UiOperationResult<StageManagerState>> RefreshWebAsync(
@@ -88,7 +90,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         var localSnapshot = EnsureSnapshot(normalizedClientType, preferWeb: false, forceReload: false);
         return Task.FromResult(UiOperationResult<StageManagerState>.Ok(
             BuildState(normalizedClientType, localSnapshot, webSnapshot),
-            $"Loaded web stage resources for `{normalizedClientType}`."));
+            BuildStageResourcesLoadedMessage(normalizedClientType, preferWeb: true)));
     }
 
     public IReadOnlyList<string> GetStageCodes(string? clientType = null, bool forceReload = false)
@@ -105,7 +107,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         var config = StageManagerConfig.Default;
         if (_configService is null)
         {
-            return Task.FromResult(UiOperationResult<StageManagerConfig>.Ok(config, "Loaded stage manager config."));
+            return Task.FromResult(UiOperationResult<StageManagerConfig>.Ok(config, BuildStageManagerConfigLoadedMessage()));
         }
 
         var current = _configService.CurrentConfig;
@@ -114,7 +116,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
             AutoIterate: ReadBool(current, "Advanced.StageManager.AutoIterate", false),
             LastSelectedStage: ReadString(current, "Advanced.StageManager.LastSelectedStage", string.Empty),
             ClientType: NormalizeClientType(ReadString(current, "Advanced.StageManager.ClientType", DefaultClientType)));
-        return Task.FromResult(UiOperationResult<StageManagerConfig>.Ok(config, "Loaded stage manager config."));
+        return Task.FromResult(UiOperationResult<StageManagerConfig>.Ok(config, BuildStageManagerConfigLoadedMessage()));
     }
 
     public async Task<UiOperationResult> SaveConfigAsync(StageManagerConfig config, CancellationToken cancellationToken = default)
@@ -122,7 +124,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         cancellationToken.ThrowIfCancellationRequested();
         if (_configService is null)
         {
-            return UiOperationResult.Fail(UiErrorCode.StageManagerServiceUnavailable, "Stage manager service is not initialized.");
+            return UiOperationResult.Fail(UiErrorCode.StageManagerServiceUnavailable, BuildStageManagerServiceUnavailableMessage());
         }
 
         foreach (var (key, value) in config.ToGlobalSettingUpdates())
@@ -131,7 +133,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         }
 
         await _configService.SaveAsync(cancellationToken);
-        return UiOperationResult.Ok("Stage manager config saved.");
+        return UiOperationResult.Ok(BuildStageManagerConfigSavedMessage());
     }
 
     public Task<UiOperationResult<IReadOnlyList<string>>> ValidateStageCodesAsync(
@@ -149,10 +151,10 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         {
             return Task.FromResult(UiOperationResult<IReadOnlyList<string>>.Fail(
                 UiErrorCode.StageManagerInvalidStageCode,
-                $"Invalid stage code: {invalid}"));
+                BuildInvalidStageCodeMessage(invalid)));
         }
 
-        return Task.FromResult(UiOperationResult<IReadOnlyList<string>>.Ok(codes, "Stage codes validated."));
+        return Task.FromResult(UiOperationResult<IReadOnlyList<string>>.Ok(codes, BuildStageCodesValidatedMessage(codes.Length)));
     }
 
     private StageManagerState BuildState(
@@ -225,9 +227,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
             : ResolveLocalSource(clientType);
         if (source is null)
         {
-            errorMessage = preferWeb
-                ? $"No web stage resources found for `{clientType}` under `{_baseDirectory}`."
-                : $"No local stage resources found for `{clientType}` under `{_baseDirectory}`.";
+            errorMessage = BuildStageResourcesMissingMessage(clientType, preferWeb);
             return false;
         }
 
@@ -331,7 +331,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
                 if (!TryReadJsonRootFromFile(source.StagesPath!, out var root, out var readError))
                 {
                     stageCodes = Array.Empty<string>();
-                    errorMessage = $"Failed to read stage resources from `{source.SourceUrl}`: {readError}";
+                    errorMessage = BuildStageResourcesReadFailedMessage(source.SourceUrl, readError);
                     return false;
                 }
 
@@ -343,7 +343,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
                 if (!TryReadJsonRootFromFile(source.TasksPath!, out var root, out var readError))
                 {
                     stageCodes = Array.Empty<string>();
-                    errorMessage = $"Failed to read stage resources from `{source.SourceUrl}`: {readError}";
+                    errorMessage = BuildStageResourcesReadFailedMessage(source.SourceUrl, readError);
                     return false;
                 }
 
@@ -353,7 +353,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
         catch (Exception ex)
         {
             stageCodes = Array.Empty<string>();
-            errorMessage = $"Failed to read stage resources from `{source.SourceUrl}`: {ex.Message}";
+            errorMessage = BuildStageResourcesReadFailedMessage(source.SourceUrl, ex.Message);
             return false;
         }
 
@@ -373,7 +373,7 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
             if (!fileInfo.Exists)
             {
                 root = null;
-                errorMessage = $"File not found: {path}";
+                errorMessage = BuildStageResourceFileNotFoundMessage(path);
                 return false;
             }
 
@@ -631,6 +631,134 @@ public sealed class StageManagerFeatureService : IStageManagerFeatureService
 
         value = text.Trim();
         return true;
+    }
+
+    private string BuildStageManagerStateLoadedMessage()
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Status.StateLoaded",
+            "Loaded stage manager state.");
+    }
+
+    private string BuildStageResourcesLoadedMessage(string clientType, bool preferWeb)
+    {
+        var localizer = CreateLocalizer();
+        return FormatStageManagerMessage(
+            localizer,
+            preferWeb
+                ? "Toolbox.Advanced.StageManager.Status.WebResourcesLoaded"
+                : "Toolbox.Advanced.StageManager.Status.LocalResourcesLoaded",
+            preferWeb
+                ? "Loaded web stage resources for `{0}`."
+                : "Loaded local stage resources for `{0}`.",
+            clientType);
+    }
+
+    private string BuildStageManagerConfigLoadedMessage()
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Status.ConfigLoaded",
+            "Loaded stage manager config.");
+    }
+
+    private string BuildStageManagerServiceUnavailableMessage()
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Error.ServiceUnavailable",
+            "Stage manager service is not initialized.");
+    }
+
+    private string BuildStageManagerConfigSavedMessage()
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Status.ConfigSaved",
+            "Stage manager config saved.");
+    }
+
+    private string BuildInvalidStageCodeMessage(string code)
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Error.InvalidStageCode",
+            "Invalid stage code: {0}",
+            code);
+    }
+
+    private string BuildStageCodesValidatedMessage(int count)
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Status.Validated",
+            "Validated {0} stage code(s).",
+            count);
+    }
+
+    private string BuildStageResourcesMissingMessage(string clientType, bool preferWeb)
+    {
+        var localizer = CreateLocalizer();
+        return FormatStageManagerMessage(
+            localizer,
+            preferWeb
+                ? "Toolbox.Advanced.StageManager.Error.NoWebResources"
+                : "Toolbox.Advanced.StageManager.Error.NoLocalResources",
+            preferWeb
+                ? "No web stage resources found for `{0}` under `{1}`."
+                : "No local stage resources found for `{0}` under `{1}`.",
+            clientType,
+            _baseDirectory);
+    }
+
+    private string BuildStageResourcesReadFailedMessage(string sourceUrl, string reason)
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Error.ReadResources",
+            "Failed to read stage resources from `{0}`: {1}",
+            sourceUrl,
+            reason);
+    }
+
+    private string BuildStageResourceFileNotFoundMessage(string path)
+    {
+        return FormatStageManagerMessage(
+            CreateLocalizer(),
+            "Toolbox.Advanced.StageManager.Error.FileNotFound",
+            "File not found: {0}",
+            path);
+    }
+
+    private IUiLocalizer CreateLocalizer()
+    {
+        return UiLocalizer.Create(ResolveLanguage());
+    }
+
+    private string ResolveLanguage()
+    {
+        if (_configService?.CurrentConfig.GlobalValues.TryGetValue("GUI.Localization", out var value) == true
+            && value is JsonValue jsonValue
+            && jsonValue.TryGetValue(out string? language)
+            && !string.IsNullOrWhiteSpace(language))
+        {
+            return UiLanguageCatalog.Normalize(language);
+        }
+
+        return UiLanguageCatalog.DefaultLanguage;
+    }
+
+    private static string FormatStageManagerMessage(
+        IUiLocalizer localizer,
+        string key,
+        string fallback,
+        params object[] args)
+    {
+        var template = localizer.GetOrDefault(key, fallback, "Toolbox.Advanced.StageManager");
+        return args.Length == 0
+            ? template
+            : string.Format(CultureInfo.CurrentCulture, template, args);
     }
 
     private sealed record StageSourceDescriptor(

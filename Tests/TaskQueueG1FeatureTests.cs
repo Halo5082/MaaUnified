@@ -1,6 +1,12 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using System.Threading.Channels;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.LogicalTree;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using MAAUnified.App.Features.TaskQueue;
 using MAAUnified.App.ViewModels.Settings;
 using MAAUnified.App.ViewModels.TaskQueue;
 using MAAUnified.Application.Configuration;
@@ -135,6 +141,69 @@ public sealed class TaskQueueG1FeatureTests
     }
 
     [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldRebindCurrentlyOpenTaskSettings()
+    {
+        await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Reclamation, "reclamation")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = Assert.Single(vm.Tasks);
+        await vm.WaitForPendingBindingAsync();
+        Assert.Equal(1, vm.ReclamationModule.Mode);
+
+        var rawParams = (await fixture.TaskQueue.GetTaskParamsAsync(0)).Value!;
+        rawParams["mode"] = 0;
+        Assert.True((await fixture.TaskQueue.UpdateTaskParamsAsync(0, rawParams)).Success);
+
+        vm.SetLanguage("en-us");
+        await vm.WaitForPendingBindingAsync();
+
+        Assert.Equal("en-us", vm.Texts.Language);
+        Assert.Equal(0, vm.ReclamationModule.Mode);
+    }
+
+    [Fact]
+    public async Task TaskQueuePage_SetLanguage_ShouldForceOpenTaskSettingsHostToRecreateWithNewTexts()
+    {
+        await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Reclamation, "reclamation")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = Assert.Single(vm.Tasks);
+        await vm.WaitForPendingBindingAsync();
+
+        EnsureAvaloniaApplication();
+        var view = new ReclamationSettingsView
+        {
+            DataContext = vm.SelectedTaskSettingsViewModel,
+        };
+        PrepareView(view);
+
+        var zhTexts = GetRenderedTexts(view);
+        Assert.Contains("生息演算", zhTexts);
+        Assert.Contains("生息演算主题", zhTexts);
+
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (string.Equals(e.PropertyName, nameof(TaskQueuePageViewModel.SelectedTaskSettingsViewModel), StringComparison.Ordinal))
+            {
+                view.DataContext = vm.SelectedTaskSettingsViewModel;
+            }
+        };
+
+        vm.SetLanguage("en-us");
+        await vm.WaitForPendingBindingAsync();
+        PrepareView(view);
+
+        var enTexts = GetRenderedTexts(view);
+        Assert.Contains("Reclamation", enTexts);
+        Assert.Contains("Reclamation Algorithm Theme", enTexts);
+        Assert.DoesNotContain("生息演算主题", enTexts);
+    }
+
+    [Fact]
     public async Task TaskQueuePage_SetLanguage_ShouldRefreshRootChromeTextProperties()
     {
         await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
@@ -164,12 +233,13 @@ public sealed class TaskQueueG1FeatureTests
         vm.SelectedTask = Assert.Single(vm.Tasks);
         await vm.WaitForPendingBindingAsync();
 
-        var (stableCoreChar, zhDisplayText, enDisplayText) = ResolveCrossLanguageCoreChar(vm);
+        var (stableCoreChar, zhDisplayText, enDisplayText) = await ResolveCrossLanguageCoreCharAsync(vm);
         vm.RoguelikeModule.CoreCharDisplayText = zhDisplayText;
         Assert.Equal(stableCoreChar, vm.RoguelikeModule.CoreChar);
         Assert.Equal(zhDisplayText, vm.RoguelikeModule.CoreCharDisplayText);
 
         vm.SetLanguage("en-us");
+        await vm.WaitForPendingBindingAsync();
 
         Assert.Equal(stableCoreChar, vm.RoguelikeModule.CoreChar);
         Assert.Equal(enDisplayText, vm.RoguelikeModule.CoreCharDisplayText);
@@ -189,8 +259,9 @@ public sealed class TaskQueueG1FeatureTests
         vm.SelectedTask = Assert.Single(vm.Tasks);
         await vm.WaitForPendingBindingAsync();
 
-        var (stableCoreChar, _, enDisplayText) = ResolveCrossLanguageCoreChar(vm);
+        var (stableCoreChar, _, enDisplayText) = await ResolveCrossLanguageCoreCharAsync(vm);
         vm.SetLanguage("en-us");
+        await vm.WaitForPendingBindingAsync();
 
         var rawParams = (await fixture.TaskQueue.GetTaskParamsAsync(0)).Value!;
         rawParams["core_char"] = JsonValue.Create(enDisplayText);
@@ -635,13 +706,47 @@ public sealed class TaskQueueG1FeatureTests
         return false;
     }
 
-    private static (string StableCoreChar, string ZhDisplayText, string EnDisplayText) ResolveCrossLanguageCoreChar(TaskQueuePageViewModel vm)
+    private static void PrepareView(Control view)
+    {
+        EnsureAvaloniaApplication();
+        view.Measure(new Size(1280, 900));
+        view.Arrange(new Rect(0, 0, 1280, 900));
+        Dispatcher.UIThread.RunJobs(null);
+    }
+
+    private static IReadOnlyList<string> GetRenderedTexts(Control view)
+    {
+        Dispatcher.UIThread.RunJobs(null);
+        return view.GetVisualDescendants()
+            .OfType<TextBlock>()
+            .Concat(view.GetLogicalDescendants().OfType<TextBlock>())
+            .Select(textBlock => textBlock.Text?.Trim())
+            .Where(text => !string.IsNullOrWhiteSpace(text))
+            .Distinct(StringComparer.Ordinal)
+            .Cast<string>()
+            .ToArray();
+    }
+
+    private static void EnsureAvaloniaApplication()
+    {
+        if (Avalonia.Application.Current is not null)
+        {
+            return;
+        }
+
+        var app = new MAAUnified.App.App();
+        app.Initialize();
+    }
+
+    private static async Task<(string StableCoreChar, string ZhDisplayText, string EnDisplayText)> ResolveCrossLanguageCoreCharAsync(TaskQueuePageViewModel vm)
     {
         vm.SetLanguage("zh-cn");
+        await vm.WaitForPendingBindingAsync();
         var zhOptions = vm.RoguelikeModule.CoreCharOptions;
         Assert.NotEmpty(zhOptions);
 
         vm.SetLanguage("en-us");
+        await vm.WaitForPendingBindingAsync();
         var enOptionsByType = vm.RoguelikeModule.CoreCharOptions
             .Where(option => !string.IsNullOrWhiteSpace(option.Type))
             .GroupBy(option => option.Type, StringComparer.Ordinal)
@@ -672,6 +777,7 @@ public sealed class TaskQueueG1FeatureTests
             "Expected at least one Roguelike CoreChar option whose zh-cn/en-us display text differs.");
 
         vm.SetLanguage("zh-cn");
+        await vm.WaitForPendingBindingAsync();
         return (stableCoreChar, zhDisplayText, enDisplayText);
     }
 

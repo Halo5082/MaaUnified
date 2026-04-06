@@ -10,6 +10,7 @@ public sealed class CopilotViewStructureContractTests
 
         Assert.Contains("Content=\"{Binding StartButtonText}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"{Binding MainTabTitle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<TabControl Classes=\"copilot-nav\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Texts[Copilot.", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Content=\"开始\"", xaml, StringComparison.Ordinal);
         Assert.Contains("IsVisible=\"{Binding CanEdit}\"", xaml, StringComparison.Ordinal);

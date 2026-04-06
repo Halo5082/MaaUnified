@@ -9,6 +9,7 @@ using MAAUnified.Application.Models.TaskParams;
 using MAAUnified.Application.Orchestration;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.Features;
+using MAAUnified.Application.Services.Localization;
 using MAAUnified.CoreBridge;
 using MAAUnified.Platform;
 
@@ -616,6 +617,90 @@ public sealed class TaskModuleAFeatureTests
     }
 
     [Fact]
+    public async Task GetModuleAParamsAsync_LocalizesLoadedMessage_AndMapsLegacyDefaultTaskNamesToComponentTitles()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        fixture.Config.CurrentConfig.GlobalValues["GUI.Localization"] = JsonValue.Create("ja-jp");
+
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("StartUp", "开始唤醒")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Fight", "理智作战")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Recruit", "自动公招")).Success);
+
+        var localizer = UiLocalizer.Create("ja-jp");
+        var template = localizer.GetOrDefault("TaskQueue.Status.ParamsLoaded", "Loaded params for `{0}`.", "TaskQueue.Status");
+
+        var raw = await fixture.TaskQueue.GetTaskParamsAsync(0);
+        Assert.True(raw.Success);
+        Assert.Equal(string.Format(template, localizer["StartUp.Title"]), raw.Message);
+        Assert.DoesNotContain("开始唤醒", raw.Message, StringComparison.Ordinal);
+
+        var startUp = await fixture.TaskQueue.GetStartUpParamsAsync(0);
+        Assert.True(startUp.Success);
+        Assert.Equal(string.Format(template, localizer["StartUp.Title"]), startUp.Message);
+
+        var fight = await fixture.TaskQueue.GetFightParamsAsync(1);
+        Assert.True(fight.Success);
+        Assert.Equal(string.Format(template, localizer["Fight.Title"]), fight.Message);
+        Assert.DoesNotContain("理智作战", fight.Message, StringComparison.Ordinal);
+
+        var recruit = await fixture.TaskQueue.GetRecruitParamsAsync(2);
+        Assert.True(recruit.Success);
+        Assert.Equal(string.Format(template, localizer["Recruit.Title"]), recruit.Message);
+        Assert.DoesNotContain("自动公招", recruit.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TaskQueueOperations_LocalizeOperationalMessages_InJapanese()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        fixture.Config.CurrentConfig.GlobalValues["GUI.Localization"] = JsonValue.Create("ja-jp");
+
+        var localizer = UiLocalizer.Create("ja-jp");
+
+        var add = await fixture.TaskQueue.AddTaskAsync("StartUp", "开始唤醒");
+        Assert.True(add.Success);
+        Assert.Equal(
+            string.Format(
+                localizer.GetOrDefault("TaskQueue.Status.TaskAdded", "Added task `{0}`.", "TaskQueue.Status"),
+                localizer["StartUp.Title"]),
+            add.Message);
+
+        var toggle = await fixture.TaskQueue.SetTaskEnabledAsync(0, false);
+        Assert.True(toggle.Success);
+        Assert.Equal(
+            string.Format(
+                localizer.GetOrDefault("TaskQueue.Status.TaskEnabled.False", "Task `{0}` disabled.", "TaskQueue.Status"),
+                localizer["StartUp.Title"]),
+            toggle.Message);
+
+        var save = await fixture.TaskQueue.SaveStartUpParamsAsync(0, new StartUpTaskParamsDto
+        {
+            ClientType = "Official",
+            StartGameEnabled = true,
+            ConnectConfig = "General",
+            ConnectAddress = "127.0.0.1:5555",
+            AdbPath = string.Empty,
+            TouchMode = "minitouch",
+            AutoDetectConnection = false,
+            AttachWindowScreencapMethod = "0",
+            AttachWindowMouseMethod = "0",
+            AttachWindowKeyboardMethod = "0",
+        });
+        Assert.True(save.Success);
+        Assert.Equal(
+            string.Format(
+                localizer.GetOrDefault("TaskQueue.Status.ParamsUpdated", "Updated params for `{0}`.", "TaskQueue.Status"),
+                localizer["StartUp.Title"]),
+            save.Message);
+
+        var queueSave = await fixture.TaskQueue.SaveAsync();
+        Assert.True(queueSave.Success);
+        Assert.Equal(
+            localizer.GetOrDefault("TaskQueue.Status.Saved", "Task queue saved.", "TaskQueue.Status"),
+            queueSave.Message);
+    }
+
+    [Fact]
     public async Task TaskQueuePage_StartBlockedWhenConfigHasBlockingIssues_AndWritesDiagnostics()
     {
         var root = Path.Combine(Path.GetTempPath(), "maa-unified-tests", Guid.NewGuid().ToString("N"));
@@ -781,6 +866,7 @@ public sealed class TaskModuleAFeatureTests
             "Recruit.AutoSelectLevel6",
             "Recruit.AutoSelectLevel6FixedTime",
             "Issue.TaskFieldMissing",
+            "TaskQueue.Status.ParamsLoaded",
         ];
     }
 

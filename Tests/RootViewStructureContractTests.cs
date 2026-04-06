@@ -20,7 +20,7 @@ public sealed class RootViewStructureContractTests
         Assert.DoesNotContain("{Binding RootTexts[Main.Menu.Start]}", text, StringComparison.Ordinal);
         Assert.DoesNotContain("{Binding RootTexts[Main.Menu.SwitchLanguage]}", text, StringComparison.Ordinal);
         Assert.Contains("Title=\"{Binding WindowTitle}\"", text, StringComparison.Ordinal);
-        Assert.Contains("<TabControl Classes=\"root-nav\"", text, StringComparison.Ordinal);
+        Assert.Contains("<TabStrip Classes=\"root-nav\"", text, StringComparison.Ordinal);
         Assert.Contains("<DataTemplate DataType=\"viewModels:RootPageHostViewModel\">", text, StringComparison.Ordinal);
         Assert.Contains("<DataTemplate DataType=\"taskVm:TaskQueuePageViewModel\">", text, StringComparison.Ordinal);
         Assert.Contains("<DataTemplate DataType=\"copilotVm:CopilotPageViewModel\">", text, StringComparison.Ordinal);
@@ -30,6 +30,10 @@ public sealed class RootViewStructureContractTests
         Assert.Contains("Content=\"{Binding CopilotRootPage.PageContent}\"", text, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding ToolboxRootPage.PageContent}\"", text, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding SettingsRootPage.PageContent}\"", text, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding IsTaskQueueRootTabSelected}\"", text, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding IsCopilotRootTabSelected}\"", text, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding IsToolboxRootTabSelected}\"", text, StringComparison.Ordinal);
+        Assert.Contains("IsVisible=\"{Binding IsSettingsRootTabSelected}\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("<rootViews:TaskQueueView DataContext=\"{Binding TaskQueuePage}\" />", text, StringComparison.Ordinal);
         Assert.DoesNotContain("<advancedViews:CopilotView DataContext=\"{Binding CopilotPage}\" />", text, StringComparison.Ordinal);
         Assert.DoesNotContain("<advancedViews:ToolboxView DataContext=\"{Binding ToolboxPage}\" />", text, StringComparison.Ordinal);
@@ -41,10 +45,12 @@ public sealed class RootViewStructureContractTests
     {
         var root = GetMaaUnifiedRoot();
         var text = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "TaskQueueView.axaml"));
+        var codeBehind = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "TaskQueueView.axaml.cs"));
 
         Assert.Contains("Text=\"{Binding TaskListTitleText}\"", text, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding TaskConfigTitleText}\"", text, StringComparison.Ordinal);
-        Assert.Contains("Content=\"{Binding SelectedTaskSettingsViewModel}\"", text, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"TaskSettingsHost\"", text, StringComparison.Ordinal);
+        Assert.Contains("TaskSettingsHost.Content = VM?.SelectedTaskSettingsViewModel;", codeBehind, StringComparison.Ordinal);
         Assert.Contains("IsEnabled=\"{Binding CanToggleRun}\"", text, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding CoreInitializationMessage}\"", text, StringComparison.Ordinal);
         Assert.Contains("IsVisible=\"{Binding HasCoreInitializationMessage}\"", text, StringComparison.Ordinal);

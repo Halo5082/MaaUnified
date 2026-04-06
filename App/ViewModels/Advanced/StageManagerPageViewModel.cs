@@ -106,7 +106,6 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
         }
 
         ApplyState(state);
-        StatusMessage = $"Loaded local stage resources for `{state.ClientType}`.";
     }
 
     public async Task RefreshWebAsync(CancellationToken cancellationToken = default)
@@ -119,7 +118,6 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
         }
 
         ApplyState(state);
-        StatusMessage = $"Loaded web stage resources for `{state.ClientType}`.";
     }
 
     public async Task ValidateAsync(CancellationToken cancellationToken = default)
@@ -130,8 +128,6 @@ public sealed class StageManagerPageViewModel : PageViewModelBase
         {
             return;
         }
-
-        StatusMessage = $"{values.Count} stage code(s) valid.";
     }
 
     public async Task SaveAsync(CancellationToken cancellationToken = default)

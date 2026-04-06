@@ -4468,6 +4468,13 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
             return;
         }
 
+        if (e.PropertyName == nameof(TimerSlotViewModel.Profile)
+            && sender is TimerSlotViewModel slot
+            && TryRepairTransientEmptyTimerProfile(slot))
+        {
+            return;
+        }
+
         if (e.PropertyName == nameof(TimerSlotViewModel.Enabled)
             || e.PropertyName == nameof(TimerSlotViewModel.Time)
             || e.PropertyName == nameof(TimerSlotViewModel.Hour)
@@ -4476,6 +4483,70 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         {
             MarkTimerDirty();
         }
+    }
+
+    private bool TryRepairTransientEmptyTimerProfile(TimerSlotViewModel slot)
+    {
+        ArgumentNullException.ThrowIfNull(slot);
+
+        if (!CustomTimerConfig || !slot.Enabled || !string.IsNullOrWhiteSpace(slot.Profile))
+        {
+            return false;
+        }
+
+        var repairedProfile = ResolvePreferredTimerProfile(slot.Index);
+        if (string.IsNullOrWhiteSpace(repairedProfile))
+        {
+            return false;
+        }
+
+        var previousSuppressPageAutoSave = _suppressPageAutoSave;
+        var previousSuppressTimerDirtyTracking = _suppressTimerDirtyTracking;
+        _suppressPageAutoSave = true;
+        _suppressTimerDirtyTracking = true;
+        try
+        {
+            slot.Profile = repairedProfile;
+            HasPendingTimerChanges = false;
+            if (string.IsNullOrWhiteSpace(TimerValidationMessage)
+                || TimerValidationMessage.Contains(UiErrorCode.TimerProfileMissing, StringComparison.Ordinal)
+                || TimerValidationMessage.Contains("profile cannot be empty", StringComparison.OrdinalIgnoreCase))
+            {
+                TimerValidationMessage = string.Empty;
+            }
+        }
+        finally
+        {
+            _suppressTimerDirtyTracking = previousSuppressTimerDirtyTracking;
+            _suppressPageAutoSave = previousSuppressPageAutoSave;
+        }
+
+        return true;
+    }
+
+    private string ResolvePreferredTimerProfile(int slotIndex)
+    {
+        var persistedProfile = string.Empty;
+        if (slotIndex >= 1 && slotIndex <= TimerSlotCount)
+        {
+            var key = BuildTimerProfileKey(slotIndex);
+            persistedProfile = ReadGlobalString(Runtime.ConfigurationService.CurrentConfig, key, string.Empty).Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(persistedProfile)
+            && Runtime.ConfigurationService.CurrentConfig.Profiles.ContainsKey(persistedProfile))
+        {
+            return persistedProfile;
+        }
+
+        var currentProfile = Runtime.ConfigurationService.CurrentConfig.CurrentProfile?.Trim() ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(currentProfile)
+            && Runtime.ConfigurationService.CurrentConfig.Profiles.ContainsKey(currentProfile))
+        {
+            return currentProfile;
+        }
+
+        return ConfigurationProfiles.FirstOrDefault(static profile => !string.IsNullOrWhiteSpace(profile)) ?? string.Empty;
     }
 
     private void ClearHotkeyStatus()

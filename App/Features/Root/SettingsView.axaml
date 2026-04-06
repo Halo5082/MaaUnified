@@ -1,8 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MAAUnified.App.Features.Root.SettingsView">
-  <Grid ColumnDefinitions="{StaticResource MAA.Layout.Settings.Columns}">
-    <Border Grid.Column="0" Classes="wpf-panel">
+  <Grid ColumnDefinitions="Auto,*">
+    <Border Grid.Column="0"
+            Width="{DynamicResource MAA.Size.Settings.SectionListWidth}"
+            Classes="wpf-panel">
       <ListBox ItemsSource="{Binding Sections}"
                SelectedItem="{Binding SelectedSection}"
                SelectionChanged="OnSectionSelectionChanged">
@@ -14,7 +16,7 @@
       </ListBox>
     </Border>
 
-    <Border Grid.Column="1" Classes="wpf-panel">
+    <Border Grid.Column="1" Classes="wpf-panel wpf-panel-plain">
       <ScrollViewer x:Name="SectionScrollViewer"
                     ScrollChanged="OnSectionScrollChanged">
         <StackPanel x:Name="SectionContentPanel"

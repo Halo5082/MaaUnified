@@ -160,7 +160,9 @@ public abstract class TypedTaskModuleViewModelBase<TDto> : ObservableObject
 
         if (!Runtime.ConfigurationService.TryGetCurrentProfile(out var profile))
         {
-            LastErrorMessage = "Current profile is missing.";
+            LastErrorMessage = string.Format(
+                Texts.GetOrDefault("TaskQueue.Error.ProfileMissing", "Current profile `{0}` not found."),
+                Runtime.ConfigurationService.CurrentConfig.CurrentProfile);
             await Runtime.DiagnosticsService.RecordErrorAsync($"{Scope}.Save", LastErrorMessage, cancellationToken: cancellationToken);
             return false;
         }

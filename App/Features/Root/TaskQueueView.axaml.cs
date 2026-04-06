@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.VisualTree;
+using System.ComponentModel;
 using MAAUnified.App.ViewModels;
 using MAAUnified.App.ViewModels.TaskQueue;
 
@@ -12,6 +14,7 @@ public partial class TaskQueueView : UserControl
     private const string TaskRowDragFormat = "application/x-maa-task-row-index";
     private const double TaskRowDragStartThreshold = 4d;
 
+    private TaskQueuePageViewModel? _observedVm;
     private Point? _taskRowDragStart;
     private TaskQueueItemViewModel? _taskRowDragSource;
     private bool _taskRowDragInProgress;
@@ -19,9 +22,70 @@ public partial class TaskQueueView : UserControl
     public TaskQueueView()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+        DetachedFromVisualTree += OnDetachedFromVisualTree;
+        UpdateVmSubscription();
+        SyncTaskSettingsHost();
     }
 
     private TaskQueuePageViewModel? VM => DataContext as TaskQueuePageViewModel;
+
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        UpdateVmSubscription();
+        SyncTaskSettingsHost();
+    }
+
+    private void OnDetachedFromVisualTree(object? sender, VisualTreeAttachmentEventArgs e)
+    {
+        if (_observedVm is null)
+        {
+            return;
+        }
+
+        _observedVm.PropertyChanged -= OnVmPropertyChanged;
+        _observedVm = null;
+    }
+
+    private void UpdateVmSubscription()
+    {
+        if (ReferenceEquals(_observedVm, VM))
+        {
+            return;
+        }
+
+        if (_observedVm is not null)
+        {
+            _observedVm.PropertyChanged -= OnVmPropertyChanged;
+        }
+
+        _observedVm = VM;
+        if (_observedVm is not null)
+        {
+            _observedVm.PropertyChanged += OnVmPropertyChanged;
+        }
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.PropertyName)
+            && !string.Equals(e.PropertyName, nameof(TaskQueuePageViewModel.SelectedTaskSettingsViewModel), StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        SyncTaskSettingsHost();
+    }
+
+    private void SyncTaskSettingsHost()
+    {
+        if (TaskSettingsHost is null)
+        {
+            return;
+        }
+
+        TaskSettingsHost.Content = VM?.SelectedTaskSettingsViewModel;
+    }
 
     private void OnOpenButtonContextMenuClick(object? sender, RoutedEventArgs e)
     {

@@ -71,7 +71,9 @@ public sealed class ExternalNotificationProvidersPageViewModel : PageViewModelBa
             if (Providers.Count == 0)
             {
                 SelectedProvider = string.Empty;
-                StatusMessage = "No external notification provider available.";
+                StatusMessage = T(
+                    "Toolbox.Advanced.ExternalNotification.Status.NoProviders",
+                    "No external notification provider available.");
                 LastErrorMessage = string.Empty;
                 await RecordEventAsync("Advanced.ExternalNotificationProviders.Query", StatusMessage, cancellationToken);
                 return;
@@ -82,7 +84,11 @@ public sealed class ExternalNotificationProvidersPageViewModel : PageViewModelBa
                 SelectedProvider = Providers[0];
             }
 
-            StatusMessage = $"Loaded {Providers.Count} external notification provider(s).";
+            StatusMessage = string.Format(
+                T(
+                    "Toolbox.Advanced.ExternalNotification.Status.LoadedProviders",
+                    "Loaded {0} external notification provider(s)."),
+                Providers.Count);
             LastErrorMessage = string.Empty;
             await RecordEventAsync("Advanced.ExternalNotificationProviders.Query", StatusMessage, cancellationToken);
         }
@@ -96,7 +102,9 @@ public sealed class ExternalNotificationProvidersPageViewModel : PageViewModelBa
                 "Advanced.ExternalNotificationProviders.Query",
                 ex,
                 UiErrorCode.NotificationProviderFailed,
-                "Failed to query external notification providers.",
+                T(
+                    "Toolbox.Advanced.ExternalNotification.Error.QueryFailed",
+                    "Failed to query external notification providers."),
                 cancellationToken);
         }
     }

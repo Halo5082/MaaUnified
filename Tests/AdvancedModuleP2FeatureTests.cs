@@ -8,6 +8,7 @@ using MAAUnified.Application.Models;
 using MAAUnified.Application.Orchestration;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.Features;
+using MAAUnified.Application.Services.Localization;
 using MAAUnified.CoreBridge;
 using MAAUnified.Platform;
 
@@ -25,10 +26,28 @@ public sealed class AdvancedModuleP2FeatureTests
 
         Assert.NotEmpty(vm.Providers);
         Assert.False(string.IsNullOrWhiteSpace(vm.SelectedProvider));
-        Assert.Contains("Loaded", vm.StatusMessage, StringComparison.Ordinal);
+        Assert.False(string.IsNullOrWhiteSpace(vm.StatusMessage));
         Assert.True(await WaitForLogContainsAsync(
             fixture.Runtime.DiagnosticsService.EventLogPath,
             "Advanced.ExternalNotificationProviders.Query"));
+    }
+
+    [Fact]
+    public async Task ExternalNotificationProviders_RefreshProviders_ShouldLocalizeStatusMessage()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        var vm = new ExternalNotificationProvidersPageViewModel(fixture.Runtime);
+        vm.SetLanguage("ja-jp");
+
+        await vm.RefreshProvidersAsync();
+
+        var localizer = UiLocalizer.Create("ja-jp");
+        var template = localizer.GetOrDefault(
+            "Toolbox.Advanced.ExternalNotification.Status.LoadedProviders",
+            "Loaded {0} external notification provider(s).",
+            "Toolbox.Advanced.ExternalNotification");
+        Assert.Equal(string.Format(template, vm.Providers.Count), vm.StatusMessage);
+        Assert.DoesNotContain("Loaded", vm.StatusMessage, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -84,13 +103,68 @@ public sealed class AdvancedModuleP2FeatureTests
 
         await vm.ValidateAsync();
 
-        Assert.Contains("Invalid stage code", vm.LastErrorMessage, StringComparison.Ordinal);
+        Assert.False(string.IsNullOrWhiteSpace(vm.LastErrorMessage));
         Assert.True(await WaitForLogContainsAsync(
             fixture.Runtime.DiagnosticsService.ErrorLogPath,
             "Advanced.StageManager.Validate"));
         Assert.True(await WaitForLogContainsAsync(
             fixture.Runtime.DiagnosticsService.ErrorLogPath,
             $"code={UiErrorCode.StageManagerInvalidStageCode}"));
+    }
+
+    [Fact]
+    public async Task StageManager_ShouldLocalizeRefreshAndValidationMessages()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Runtime.ConfigurationService.CurrentConfig.GlobalValues["GUI.Localization"] = JsonValue.Create("ja-jp");
+        WriteStageResource(
+            fixture.Root,
+            relativeDirectory: Path.Combine("resource"),
+            codes: ["LOCAL-1"],
+            taskKeys: ["Annihilation"]);
+
+        var vm = new StageManagerPageViewModel(fixture.Runtime);
+
+        await vm.RefreshLocalAsync();
+
+        var localizer = UiLocalizer.Create("ja-jp");
+        var refreshTemplate = localizer.GetOrDefault(
+            "Toolbox.Advanced.StageManager.Status.LocalResourcesLoaded",
+            "Loaded local stage resources for `{0}`.",
+            "Toolbox.Advanced.StageManager");
+        Assert.Equal(string.Format(refreshTemplate, "Official"), vm.StatusMessage);
+        Assert.DoesNotContain("Loaded local stage resources", vm.StatusMessage, StringComparison.Ordinal);
+
+        vm.StageCodesText = "1-7\nCE-5";
+        await vm.ValidateAsync();
+
+        var validateTemplate = localizer.GetOrDefault(
+            "Toolbox.Advanced.StageManager.Status.Validated",
+            "Validated {0} stage code(s).",
+            "Toolbox.Advanced.StageManager");
+        Assert.Equal(string.Format(validateTemplate, 2), vm.StatusMessage);
+        Assert.DoesNotContain("stage code", vm.StatusMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task StageManager_Validate_InvalidStageCode_ShouldLocalizeErrorMessage()
+    {
+        await using var fixture = await RuntimeFixture.CreateAsync();
+        fixture.Runtime.ConfigurationService.CurrentConfig.GlobalValues["GUI.Localization"] = JsonValue.Create("ja-jp");
+        var vm = new StageManagerPageViewModel(fixture.Runtime)
+        {
+            StageCodesText = "bad$code",
+        };
+
+        await vm.ValidateAsync();
+
+        var localizer = UiLocalizer.Create("ja-jp");
+        var template = localizer.GetOrDefault(
+            "Toolbox.Advanced.StageManager.Error.InvalidStageCode",
+            "Invalid stage code: {0}",
+            "Toolbox.Advanced.StageManager");
+        Assert.Equal(string.Format(template, "bad$code"), vm.LastErrorMessage);
+        Assert.DoesNotContain("Invalid stage code", vm.LastErrorMessage, StringComparison.Ordinal);
     }
 
     [Fact]

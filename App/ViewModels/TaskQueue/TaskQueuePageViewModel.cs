@@ -220,6 +220,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     private int _expiringMedicineUsedTimes;
     private int _stoneUsedTimes;
     private string _logTimestampFormat = DefaultLogItemDateFormat;
+    private bool _selectedTaskSettingsHostResetPending;
     private readonly IUiLanguageCoordinator _uiLanguageCoordinator;
 
     public TaskQueuePageViewModel(
@@ -764,6 +765,11 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
     {
         get
         {
+            if (_selectedTaskSettingsHostResetPending)
+            {
+                return null;
+            }
+
             if (ShowPostActionSettingsPanel)
             {
                 return PostActionModule;
@@ -1004,6 +1010,18 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         RefreshSelectedTaskValidationSummaryLocalization();
         NotifyRootChromeTextChanged();
         RaiseSelectedTaskProjectionChanged();
+        if (SelectedTask is not null || ShowPostActionSettingsPanel)
+        {
+            ResetSelectedTaskSettingsHost();
+        }
+
+        if (SelectedTask is not null)
+        {
+            // Reuse the existing selection-binding path so the open task panel rebuilds
+            // any bind-time localized projections without requiring the user to reselect it.
+            ScheduleBindSelectedTask();
+        }
+
         OnPropertyChanged(nameof(RunButtonText));
         OnPropertyChanged(nameof(WaitAndStopButtonText));
         OnPropertyChanged(nameof(BatchActionText));
@@ -1563,7 +1581,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             var nextName = (dialogResult.Payload.Text ?? string.Empty).Trim();
             if (nextName.Length == 0)
             {
-                LastErrorMessage = BuildBilingualMessage("任务名不能为空。", "Task name cannot be empty.");
+                LastErrorMessage = Texts.GetOrDefault("TaskQueue.Error.TaskNameMissingShort", "Task name cannot be empty.");
                 return;
             }
 
@@ -1719,6 +1737,22 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         OnPropertyChanged(nameof(SelectedTaskSettingsViewModel));
         OnPropertyChanged(nameof(CanUseAdvancedSettings));
         OnPropertyChanged(nameof(ShowSettingsModeSwitch));
+    }
+
+    private void ResetSelectedTaskSettingsHost()
+    {
+        if (_selectedTaskSettingsHostResetPending)
+        {
+            return;
+        }
+
+        _selectedTaskSettingsHostResetPending = true;
+        OnPropertyChanged(nameof(SelectedTaskSettingsViewModel));
+        Dispatcher.UIThread.Post(() =>
+        {
+            _selectedTaskSettingsHostResetPending = false;
+            OnPropertyChanged(nameof(SelectedTaskSettingsViewModel));
+        });
     }
 
     private void ResetSettingsModeForSelectedTask()
@@ -2369,7 +2403,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
 
                 if (!Runtime.ConfigurationService.TryGetCurrentProfile(out var profile))
                 {
-                    LastErrorMessage = BuildBilingualMessage("当前配置档不存在。", "Current profile is missing.");
+                    LastErrorMessage = Texts.GetOrDefault("TaskQueue.Error.ProfileMissingShort", "Current profile is missing.");
                     await RecordFailedResultAsync(
                         "TaskQueue.AccountSwitch.Profile",
                         UiOperationResult.Fail(UiErrorCode.ProfileMissing, LastErrorMessage),

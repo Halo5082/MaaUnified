@@ -8,6 +8,7 @@ using MAAUnified.Application.Models.TaskParams;
 using MAAUnified.Application.Orchestration;
 using MAAUnified.Application.Services;
 using MAAUnified.Application.Services.Features;
+using MAAUnified.Application.Services.Localization;
 using MAAUnified.CoreBridge;
 
 namespace MAAUnified.Tests;
@@ -128,6 +129,34 @@ public sealed class TaskModuleCFeatureTests
         Assert.True(custom.Success);
         Assert.NotNull(custom.Value);
         Assert.Equal(new[] { "Fight", "Mall", "Award" }, custom.Value!.TaskNames);
+    }
+
+    [Fact]
+    public async Task GetModuleCParamsAsync_LocalizesLoadedMessage_AndMapsLegacyDefaultTaskNamesToComponentTitles()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        fixture.Config.CurrentConfig.GlobalValues["GUI.Localization"] = JsonValue.Create("ja-jp");
+
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Roguelike", "自动肉鸽")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Reclamation", "生息演算")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync("Custom", "自定义任务")).Success);
+
+        var localizer = UiLocalizer.Create("ja-jp");
+        var template = localizer.GetOrDefault("TaskQueue.Status.ParamsLoaded", "Loaded params for `{0}`.", "TaskQueue.Status");
+
+        var roguelike = await fixture.TaskQueue.GetRoguelikeParamsAsync(0);
+        Assert.True(roguelike.Success);
+        Assert.Equal(string.Format(template, localizer["Roguelike.Title"]), roguelike.Message);
+        Assert.DoesNotContain("自动肉鸽", roguelike.Message, StringComparison.Ordinal);
+
+        var reclamation = await fixture.TaskQueue.GetReclamationParamsAsync(1);
+        Assert.True(reclamation.Success);
+        Assert.Equal(string.Format(template, localizer["Reclamation.Title"]), reclamation.Message);
+
+        var custom = await fixture.TaskQueue.GetCustomParamsAsync(2);
+        Assert.True(custom.Success);
+        Assert.Equal(string.Format(template, localizer["Custom.Title"]), custom.Message);
+        Assert.DoesNotContain("自定义任务", custom.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -463,6 +492,7 @@ public sealed class TaskModuleCFeatureTests
             "TaskQueue.Validation.Clean",
             "TaskQueue.Validation.BlockingCount",
             "TaskQueue.Error.BlockingValidation",
+            "TaskQueue.Status.ParamsLoaded",
             "Issue.TaskFieldTypeInvalid",
             "Issue.DelimitedInputParseFailed",
             "Issue.RoguelikeModeInvalid",

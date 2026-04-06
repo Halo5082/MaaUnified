@@ -3982,4 +3982,142 @@
   <data name="Settings.VersionUpdate.SoftwarePlaceholder.Title" xml:space="preserve">
     <value>ソフトウェア更新</value>
   </data>
+  <data name="TaskQueue.Status.ParamsLoaded" xml:space="preserve">
+    <value>`{0}` のパラメータを読み込みました。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckPassed" xml:space="preserve">
+    <value>タスクキューの事前チェックに成功しました。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckWarnings" xml:space="preserve">
+    <value>タスクキューの事前チェックで {0} 件の警告が見つかりました。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradeNotRequired" xml:space="preserve">
+    <value>タスクキューの事前チェックで降格処理は不要でした。</value>
+  </data>
+  <data name="TaskQueue.Status.PrecheckDowngradesApplied" xml:space="preserve">
+    <value>タスクキューの事前チェックで {0} 件の降格を適用しました。</value>
+  </data>
+  <data name="TaskQueue.Status.LoadedTasks" xml:space="preserve">
+    <value>{0} 件のタスクを読み込みました。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskAdded" xml:space="preserve">
+    <value>タスク `{0}` を追加しました。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRenamed" xml:space="preserve">
+    <value>タスク名を `{0}` に変更しました。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskRemoved" xml:space="preserve">
+    <value>タスク `{0}` を削除しました。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskOrderUnchanged" xml:space="preserve">
+    <value>タスクの順序は変更されていません。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskMoved" xml:space="preserve">
+    <value>タスク `{0}` を {1} 番目に移動しました。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.True" xml:space="preserve">
+    <value>タスク `{0}` を有効にしました。</value>
+  </data>
+  <data name="TaskQueue.Status.TaskEnabled.False" xml:space="preserve">
+    <value>タスク `{0}` を無効にしました。</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.True" xml:space="preserve">
+    <value>{0} 件のタスクを有効にしました。</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledBatch.False" xml:space="preserve">
+    <value>{0} 件のタスクを無効にしました。</value>
+  </data>
+  <data name="TaskQueue.Status.TasksEnabledInverted" xml:space="preserve">
+    <value>{0} 件のタスクの有効状態を反転しました。</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdated" xml:space="preserve">
+    <value>`{0}` のパラメータを更新しました。</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsUpdatedPersisted" xml:space="preserve">
+    <value>`{0}` のパラメータを更新して保存しました。</value>
+  </data>
+  <data name="TaskQueue.Status.ValidationPassed" xml:space="preserve">
+    <value>タスク `{0}` は検証に成功しました。</value>
+  </data>
+  <data name="TaskQueue.Status.Saved" xml:space="preserve">
+    <value>タスクキューを保存しました。</value>
+  </data>
+  <data name="TaskQueue.Status.ParamsFlushed" xml:space="preserve">
+    <value>タスクパラメータを書き込みました。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMissing" xml:space="preserve">
+    <value>タスク種別を空にすることはできません。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissing" xml:space="preserve">
+    <value>タスク名を空にすることはできません。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskIndexOutOfRange" xml:space="preserve">
+    <value>タスクインデックス {0} は範囲外です。</value>
+  </data>
+  <data name="TaskQueue.Error.MoveOutOfRange" xml:space="preserve">
+    <value>タスク移動インデックスが範囲外です。</value>
+  </data>
+  <data name="TaskQueue.Error.ParamsMissing" xml:space="preserve">
+    <value>タスクパラメータを null にすることはできません。</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissing" xml:space="preserve">
+    <value>現在のプロファイル `{0}` が見つかりません。</value>
+  </data>
+  <data name="TaskQueue.Error.ProfileMissingShort" xml:space="preserve">
+    <value>現在のプロファイルが見つかりません。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskNameMissingShort" xml:space="preserve">
+    <value>タスク名を空にすることはできません。</value>
+  </data>
+  <data name="TaskQueue.Error.TaskTypeMismatch" xml:space="preserve">
+    <value>選択したタスクは `{0}` ではありません。</value>
+  </data>
+  <data name="TaskQueue.Warning.MallCreditFightDowngraded" xml:space="preserve">
+    <value>`{0}` の信用作戦を無効にしました。現在/前回ステージ選択を使う有効な `{1}` タスクがあるためです。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.StateLoaded" xml:space="preserve">
+    <value>ステージ管理の状態を読み込みました。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.LocalResourcesLoaded" xml:space="preserve">
+    <value>`{0}` のローカルステージリソースを読み込みました。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.WebResourcesLoaded" xml:space="preserve">
+    <value>`{0}` の Web ステージリソースを読み込みました。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigLoaded" xml:space="preserve">
+    <value>ステージ管理設定を読み込みました。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.ConfigSaved" xml:space="preserve">
+    <value>ステージ管理設定を保存しました。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Status.Validated" xml:space="preserve">
+    <value>{0} 件のステージコードを確認しました。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ServiceUnavailable" xml:space="preserve">
+    <value>ステージ管理サービスは初期化されていません。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.InvalidStageCode" xml:space="preserve">
+    <value>無効なステージコード: {0}</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoWebResources" xml:space="preserve">
+    <value>`{1}` 配下に `{0}` の Web ステージリソースが見つかりません。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.NoLocalResources" xml:space="preserve">
+    <value>`{1}` 配下に `{0}` のローカルステージリソースが見つかりません。</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.ReadResources" xml:space="preserve">
+    <value>ステージリソースの読み込みに失敗しました: `{0}`: {1}</value>
+  </data>
+  <data name="Toolbox.Advanced.StageManager.Error.FileNotFound" xml:space="preserve">
+    <value>ファイルが見つかりません: {0}</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.NoProviders" xml:space="preserve">
+    <value>利用可能な外部通知プロバイダーがありません。</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Status.LoadedProviders" xml:space="preserve">
+    <value>{0} 件の外部通知プロバイダーを読み込みました。</value>
+  </data>
+  <data name="Toolbox.Advanced.ExternalNotification.Error.QueryFailed" xml:space="preserve">
+    <value>外部通知プロバイダーの取得に失敗しました。</value>
+  </data>
 </root>

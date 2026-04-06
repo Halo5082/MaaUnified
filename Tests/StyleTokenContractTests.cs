@@ -95,10 +95,89 @@ public sealed class StyleTokenContractTests
 
         Assert.Contains("{DynamicResource MAA.Brush.Wpf.Region25}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.FontSize.SectionTitle}", text, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource MAA.FontSize.TabCompact}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.Size.Action.Height}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.Brush.Wpf.TaskStatus.Running}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.Brush.Wpf.TaskStatus.Success}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.Brush.Wpf.TaskStatus.Error}", text, StringComparison.Ordinal);
+        Assert.Contains("Style Selector=\"TabControl.copilot-nav TabItem\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ControlStyles_ShouldKeepLowResolutionFriendlyMainWindowSizing()
+    {
+        var root = GetMaaUnifiedRoot();
+        var text = File.ReadAllText(Path.Combine(root, "App", "Styles", "ControlStyles.axaml"));
+
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.MainWindow.Width\">1380</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.MainWindow.Height\">900</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.MainWindow.MinWidth\">1080</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.MainWindow.MinHeight\">620</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.MainWindow.LayoutWidth\">1360</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.MainWindow.ContentMaxWidth\">1360</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.Action.Height\">30</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.Action.RunPrimaryHeight\">50</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.TaskQueue.RowHeight\">30</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.Tab.MinHeight\">30</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.TaskQueue.ListPanelWidth\">276</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.TaskQueue.LogPanelWidth\">380</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.Settings.SectionListWidth\">224</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("<x:Double x:Key=\"MAA.Size.Copilot.SidePanelWidth\">420</x:Double>", text, StringComparison.Ordinal);
+        Assert.Contains("Style Selector=\"Button.queue-run\"", text, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Height\" Value=\"{DynamicResource MAA.Size.Action.RunPrimaryHeight}\" />", text, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"MinHeight\" Value=\"{DynamicResource MAA.Size.Tab.MinHeight}\" />", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MainWindow_ShouldUseResponsiveWidthAndCompactHeightLayoutControls()
+    {
+        var root = GetMaaUnifiedRoot();
+        var text = File.ReadAllText(Path.Combine(root, "App", "Views", "MainWindow.axaml.cs"));
+
+        Assert.Contains("CompactLayoutHeightThreshold = 720d", text, StringComparison.Ordinal);
+        Assert.Contains("ResponsiveMarginStageEndWidth = 1160d", text, StringComparison.Ordinal);
+        Assert.Contains("ResponsiveMaxLayoutWidth = 1360d", text, StringComparison.Ordinal);
+        Assert.Contains("ResponsiveContentStageEndWidth = 1464d", text, StringComparison.Ordinal);
+        Assert.Contains("SizeChanged += OnWindowSizeChanged;", text, StringComparison.Ordinal);
+        Assert.Contains("ApplyResponsiveLayoutMetrics(width);", text, StringComparison.Ordinal);
+        Assert.Contains("\"MAA.Size.MainWindow.LayoutWidth\"", text, StringComparison.Ordinal);
+        Assert.Contains("\"MAA.Size.TaskQueue.ListPanelWidth\"", text, StringComparison.Ordinal);
+        Assert.Contains("\"MAA.Size.Settings.SectionListWidth\"", text, StringComparison.Ordinal);
+        Assert.Contains("\"MAA.Size.Copilot.SidePanelWidth\"", text, StringComparison.Ordinal);
+        Assert.Contains("height <= CompactLayoutHeightThreshold", text, StringComparison.Ordinal);
+        Assert.Contains("\"MAA.Thickness.PageMargin\"", text, StringComparison.Ordinal);
+        Assert.Contains("\"MAA.Size.Action.Height\"", text, StringComparison.Ordinal);
+        Assert.Contains("\"MAA.Size.Tab.MinHeight\"", text, StringComparison.Ordinal);
+        Assert.Contains("UpdateAdaptiveLayoutMode();", text, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"MAA.Thickness.PageMargin\"]", text, StringComparison.Ordinal);
+        Assert.Contains("Resources[key] = value;", text, StringComparison.Ordinal);
+        Assert.Contains("Resources.Remove(key);", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MainWindow_ShouldCenterShellContentWithinMaximumWidth()
+    {
+        var root = GetMaaUnifiedRoot();
+        var text = File.ReadAllText(Path.Combine(root, "App", "Views", "MainWindow.axaml"));
+
+        Assert.Contains("x:Name=\"ShellRoot\"", text, StringComparison.Ordinal);
+        Assert.Contains("Width=\"{DynamicResource MAA.Size.MainWindow.LayoutWidth}\"", text, StringComparison.Ordinal);
+        Assert.Contains("MaxWidth=\"{DynamicResource MAA.Size.MainWindow.ContentMaxWidth}\"", text, StringComparison.Ordinal);
+        Assert.Contains("HorizontalAlignment=\"Center\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RootViews_ShouldUseResponsiveMainColumnWidths()
+    {
+        var root = GetMaaUnifiedRoot();
+        var taskQueue = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "TaskQueueView.axaml"));
+        var settings = File.ReadAllText(Path.Combine(root, "App", "Features", "Root", "SettingsView.axaml"));
+        var copilot = File.ReadAllText(Path.Combine(root, "App", "Features", "Advanced", "CopilotView.axaml"));
+
+        Assert.Contains("Width=\"{DynamicResource MAA.Size.TaskQueue.ListPanelWidth}\"", taskQueue, StringComparison.Ordinal);
+        Assert.Contains("Width=\"{DynamicResource MAA.Size.TaskQueue.LogPanelWidth}\"", taskQueue, StringComparison.Ordinal);
+        Assert.Contains("Width=\"{DynamicResource MAA.Size.Settings.SectionListWidth}\"", settings, StringComparison.Ordinal);
+        Assert.Contains("Width=\"{DynamicResource MAA.Size.Copilot.SidePanelWidth}\"", copilot, StringComparison.Ordinal);
     }
 
     [Fact]
