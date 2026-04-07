@@ -283,6 +283,12 @@ public sealed class UiDiagnosticsService
         await _writeLock.WaitAsync(cancellationToken);
         try
         {
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             await File.AppendAllTextAsync(path, line + Environment.NewLine, cancellationToken);
         }
         finally

@@ -95,7 +95,7 @@ public sealed class StyleTokenContractTests
 
         Assert.Contains("{DynamicResource MAA.Brush.Wpf.Region25}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.FontSize.SectionTitle}", text, StringComparison.Ordinal);
-        Assert.Contains("{DynamicResource MAA.FontSize.TabCompact}", text, StringComparison.Ordinal);
+        Assert.Contains("{DynamicResource MAA.FontSize.CopilotNavTab}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.Size.Action.Height}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.Brush.Wpf.TaskStatus.Running}", text, StringComparison.Ordinal);
         Assert.Contains("{DynamicResource MAA.Brush.Wpf.TaskStatus.Success}", text, StringComparison.Ordinal);
@@ -137,7 +137,7 @@ public sealed class StyleTokenContractTests
         Assert.Contains("CompactLayoutHeightThreshold = 720d", text, StringComparison.Ordinal);
         Assert.Contains("ResponsiveMarginStageEndWidth = 1160d", text, StringComparison.Ordinal);
         Assert.Contains("ResponsiveMaxLayoutWidth = 1360d", text, StringComparison.Ordinal);
-        Assert.Contains("ResponsiveContentStageEndWidth = 1464d", text, StringComparison.Ordinal);
+        Assert.Contains("ResponsiveContentStageEndWidth = ResponsiveMarginStageEndWidth + (ResponsiveMaxLayoutWidth - ResponsiveMinLayoutWidth)", text, StringComparison.Ordinal);
         Assert.Contains("SizeChanged += OnWindowSizeChanged;", text, StringComparison.Ordinal);
         Assert.Contains("ApplyResponsiveLayoutMetrics(width);", text, StringComparison.Ordinal);
         Assert.Contains("\"MAA.Size.MainWindow.LayoutWidth\"", text, StringComparison.Ordinal);

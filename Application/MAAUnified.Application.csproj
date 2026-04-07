@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -13,10 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\zh-cn.xaml" Link="AchievementLocalizations\zh-cn.xaml" />
-    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\zh-tw.xaml" Link="AchievementLocalizations\zh-tw.xaml" />
-    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\en-us.xaml" Link="AchievementLocalizations\en-us.xaml" />
-    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\ja-jp.xaml" Link="AchievementLocalizations\ja-jp.xaml" />
-    <EmbeddedResource Include="..\..\MaaWpfGui\Res\Localizations\ko-kr.xaml" Link="AchievementLocalizations\ko-kr.xaml" />
+    <EmbeddedResource Include="Resources\AchievementLocalizations\zh-cn.xaml" Link="AchievementLocalizations\zh-cn.xaml" />
+    <EmbeddedResource Include="Resources\AchievementLocalizations\zh-tw.xaml" Link="AchievementLocalizations\zh-tw.xaml" />
+    <EmbeddedResource Include="Resources\AchievementLocalizations\en-us.xaml" Link="AchievementLocalizations\en-us.xaml" />
+    <EmbeddedResource Include="Resources\AchievementLocalizations\ja-jp.xaml" Link="AchievementLocalizations\ja-jp.xaml" />
+    <EmbeddedResource Include="Resources\AchievementLocalizations\ko-kr.xaml" Link="AchievementLocalizations\ko-kr.xaml" />
   </ItemGroup>
 </Project>

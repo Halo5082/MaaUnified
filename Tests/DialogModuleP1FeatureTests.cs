@@ -70,10 +70,10 @@ public sealed class DialogModuleP1FeatureTests
     }
 
     [Fact]
-    public void DialogTextCatalog_ShouldFallbackNonChineseDialogsToEnglish()
+    public void DialogTextCatalog_ShouldUseLocalizedTextsForSupportedLanguages()
     {
-        Assert.Equal("Warning", DialogTextCatalog.WarningDialogTitle("ja-jp"));
-        Assert.Equal("Close", DialogTextCatalog.ErrorDialogCloseButton("ko-kr"));
+        Assert.Equal("警告", DialogTextCatalog.WarningDialogTitle("ja-jp"));
+        Assert.Equal("끄기", DialogTextCatalog.ErrorDialogCloseButton("ko-kr"));
     }
 
     [Fact]

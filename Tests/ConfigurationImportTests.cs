@@ -668,6 +668,9 @@ public sealed class ConfigurationImportTests
         var profile = service.CurrentConfig.Profiles["Default"];
         Assert.True(profile.Values.ContainsKey("TaskQueue.PostAction"));
         Assert.False(profile.Values.ContainsKey("MainFunction.ActionAfterCompleted"));
+        var persisted = PostActionConfig.FromJson(profile.Values["TaskQueue.PostAction"]);
+        Assert.True(persisted.ExitEmulator);
+        Assert.True(persisted.ExitSelf);
     }
 
     [Fact]

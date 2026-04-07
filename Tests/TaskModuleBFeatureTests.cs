@@ -74,7 +74,7 @@ public sealed class TaskModuleBFeatureTests
     [Fact]
     public async Task QueueEnabledTasks_LegacyEmptyFightStage_NormalizesToCurrentOrLast_AndDisablesMallCreditFight()
     {
-        await using var fixture = await TestFixture.CreateAsync();
+        await using var fixture = await TestFixture.CreateAsync("en-us");
         var profile = fixture.Config.CurrentConfig.Profiles["Default"];
         profile.TaskQueue.Add(new UnifiedTaskItem
         {
@@ -114,13 +114,13 @@ public sealed class TaskModuleBFeatureTests
         Assert.False(mallTask["credit_fight"]?.GetValue<bool>());
 
         var eventLog = await File.ReadAllTextAsync(Path.Combine(fixture.Root, "debug", "avalonia-ui-events.log"));
-        Assert.Contains("Mall credit fight disabled", eventLog, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Disabled Mall credit fight", eventLog, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task GetStartPrecheckWarnings_ReportsMallCreditFightDowngrade_WithoutMutatingTaskParams()
     {
-        await using var fixture = await TestFixture.CreateAsync();
+        await using var fixture = await TestFixture.CreateAsync("en-us");
         var profile = fixture.Config.CurrentConfig.Profiles["Default"];
         profile.TaskQueue.Add(new UnifiedTaskItem
         {
@@ -151,7 +151,7 @@ public sealed class TaskModuleBFeatureTests
         Assert.True(warnings.Success);
         var warning = Assert.Single(warnings.Value ?? []);
         Assert.Equal(UiErrorCode.MallCreditFightDowngraded, warning.Code);
-        Assert.Contains("Mall credit fight disabled", warning.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Disabled Mall credit fight", warning.Message, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Current/Last", warning.Message, StringComparison.OrdinalIgnoreCase);
         Assert.False(warning.Blocking);
         Assert.True(profile.TaskQueue[1].Params["credit_fight"]?.GetValue<bool>());
@@ -160,7 +160,7 @@ public sealed class TaskModuleBFeatureTests
     [Fact]
     public async Task TaskQueuePage_StartAsync_CurrentOrLastFightStage_ShowsPrecheckWarning_AndAppliesDowngrade()
     {
-        await using var fixture = await TestFixture.CreateAsync();
+        await using var fixture = await TestFixture.CreateAsync("en-us");
         var profile = fixture.Config.CurrentConfig.Profiles["Default"];
         profile.TaskQueue.Add(new UnifiedTaskItem
         {
@@ -195,14 +195,14 @@ public sealed class TaskModuleBFeatureTests
 
         Assert.True(vm.IsRunning);
         Assert.True(vm.HasStartPrecheckWarningMessage);
-        Assert.Contains("Mall credit fight disabled", vm.StartPrecheckWarningMessage, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Disabled Mall credit fight", vm.StartPrecheckWarningMessage, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Current/Last", vm.StartPrecheckWarningMessage, StringComparison.OrdinalIgnoreCase);
         Assert.False(profile.TaskQueue[1].Params["credit_fight"]?.GetValue<bool>());
         Assert.Equal(2, fixture.Bridge.AppendedTasks.Count);
 
         var eventLog = await File.ReadAllTextAsync(Path.Combine(fixture.Root, "debug", "avalonia-ui-events.log"));
         Assert.Contains("TaskQueue.Start.PrecheckWarning", eventLog, StringComparison.Ordinal);
-        Assert.Contains("Mall credit fight disabled", eventLog, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Disabled Mall credit fight", eventLog, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -439,12 +439,14 @@ public sealed class TaskModuleBFeatureTests
 
         Assert.True(load.Success);
         Assert.NotNull(load.Value);
-        Assert.Equal(OperatingSystem.IsWindows(), load.Value!.ExitEmulator);
+        Assert.True(load.Value!.ExitEmulator);
         Assert.Equal("echo close-emulator", load.Value.Commands.ExitEmulator);
 
         var profile = fixture.Config.CurrentConfig.Profiles[fixture.Config.CurrentConfig.CurrentProfile];
         Assert.True(profile.Values.ContainsKey("TaskQueue.PostAction"));
         Assert.False(fixture.Config.CurrentConfig.GlobalValues.ContainsKey("TaskQueue.PostAction"));
+        var persisted = PostActionConfig.FromJson(profile.Values["TaskQueue.PostAction"]);
+        Assert.True(persisted.ExitEmulator);
     }
 
     [Fact]
@@ -833,6 +835,50 @@ public sealed class TaskModuleBFeatureTests
         }
 
         Assert.False(withPower.ExitEmulator);
+    }
+
+    [Fact]
+    public async Task PostActionModule_OnNonWindows_PreservesStoredExitEmulator_WhenSavingOtherFields()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        await using var fixture = await TestFixture.CreateAsync();
+        var save = await fixture.PostAction.SaveAsync(new PostActionConfig
+        {
+            ExitEmulator = true,
+            ExitSelf = true,
+            Commands = new PostActionCommandConfig
+            {
+                ExitEmulator = "echo close-emulator",
+            },
+        });
+        Assert.True(save.Success);
+
+        var vm = new PostActionModuleViewModel(fixture.Runtime, new LocalizedTextMap { Language = "en-us" });
+        await vm.InitializeAsync();
+
+        Assert.False(vm.ShowExitEmulator);
+        Assert.False(vm.ExitEmulator);
+        Assert.Equal("echo close-emulator", vm.ExitEmulatorCommand);
+
+        vm.Shutdown = true;
+        vm.ExitSelf = true;
+        var flush = await vm.FlushPendingChangesAsync();
+        Assert.True(flush);
+
+        var load = await fixture.PostAction.LoadAsync();
+        Assert.True(load.Success);
+        Assert.True(load.Value!.ExitEmulator);
+        Assert.True(load.Value.Shutdown);
+        Assert.Equal("echo close-emulator", load.Value.Commands.ExitEmulator);
+
+        var profile = fixture.Config.CurrentConfig.Profiles[fixture.Config.CurrentConfig.CurrentProfile];
+        var persisted = PostActionConfig.FromJson(profile.Values["TaskQueue.PostAction"]);
+        Assert.True(persisted.ExitEmulator);
+        Assert.True(persisted.Shutdown);
     }
 
     [Fact]

@@ -351,21 +351,7 @@ public sealed class PostActionModuleViewModel : ObservableObject
             return;
         }
 
-        var config = result.Value;
-        _persistentConfig = config.Clone();
-        ExitArknights = _persistentConfig.ExitArknights;
-        BackToAndroidHome = _persistentConfig.BackToAndroidHome;
-        ExitEmulator = _persistentConfig.ExitEmulator;
-        ExitSelf = _persistentConfig.ExitSelf;
-        Hibernate = _persistentConfig.Hibernate;
-        Shutdown = _persistentConfig.Shutdown;
-        Sleep = _persistentConfig.Sleep;
-        IfNoOtherMaa = _persistentConfig.IfNoOtherMaa;
-        ExitArknightsCommand = _persistentConfig.Commands.ExitArknights;
-        BackToAndroidHomeCommand = _persistentConfig.Commands.BackToAndroidHome;
-        ExitEmulatorCommand = _persistentConfig.Commands.ExitEmulator;
-        ExitSelfCommand = _persistentConfig.Commands.ExitSelf;
-        _persistentConfig = BuildNormalizedSnapshot();
+        ApplyPersistentConfigSnapshot(result.Value);
         _hasPendingCommandPersist = false;
         _once = false;
         OnPropertyChanged(nameof(Once));
@@ -377,19 +363,7 @@ public sealed class PostActionModuleViewModel : ObservableObject
     public async Task ReloadPersistentConfigAsync(CancellationToken cancellationToken = default)
     {
         _suppressPersist = true;
-        ExitArknights = _persistentConfig.ExitArknights;
-        BackToAndroidHome = _persistentConfig.BackToAndroidHome;
-        ExitEmulator = _persistentConfig.ExitEmulator;
-        ExitSelf = _persistentConfig.ExitSelf;
-        Hibernate = _persistentConfig.Hibernate;
-        Shutdown = _persistentConfig.Shutdown;
-        Sleep = _persistentConfig.Sleep;
-        IfNoOtherMaa = _persistentConfig.IfNoOtherMaa;
-        ExitArknightsCommand = _persistentConfig.Commands.ExitArknights;
-        BackToAndroidHomeCommand = _persistentConfig.Commands.BackToAndroidHome;
-        ExitEmulatorCommand = _persistentConfig.Commands.ExitEmulator;
-        ExitSelfCommand = _persistentConfig.Commands.ExitSelf;
-        _persistentConfig = BuildNormalizedSnapshot();
+        ApplyPersistentConfigSnapshot(_persistentConfig);
         _hasPendingCommandPersist = false;
         _once = false;
         OnPropertyChanged(nameof(Once));
@@ -571,7 +545,10 @@ public sealed class PostActionModuleViewModel : ObservableObject
         {
             persistent.ExitArknights = ExitArknights;
             persistent.BackToAndroidHome = BackToAndroidHome;
-            persistent.ExitEmulator = exitEmulator;
+            if (SupportsExitEmulator)
+            {
+                persistent.ExitEmulator = exitEmulator;
+            }
             persistent.ExitSelf = exitSelf;
             persistent.IfNoOtherMaa = ifNoOtherMaa;
             persistent.Hibernate = hibernate;
@@ -593,10 +570,20 @@ public sealed class PostActionModuleViewModel : ObservableObject
         return _texts.GetOrDefault(token, token);
     }
 
-    private PostActionConfig BuildNormalizedSnapshot()
+    private void ApplyPersistentConfigSnapshot(PostActionConfig config)
     {
-        var snapshot = BuildRuntimeConfig().Clone();
-        snapshot.Once = false;
-        return snapshot;
+        _persistentConfig = config.Clone();
+        ExitArknights = _persistentConfig.ExitArknights;
+        BackToAndroidHome = _persistentConfig.BackToAndroidHome;
+        ExitEmulator = _persistentConfig.ExitEmulator;
+        ExitSelf = _persistentConfig.ExitSelf;
+        Hibernate = _persistentConfig.Hibernate;
+        Shutdown = _persistentConfig.Shutdown;
+        Sleep = _persistentConfig.Sleep;
+        IfNoOtherMaa = _persistentConfig.IfNoOtherMaa;
+        ExitArknightsCommand = _persistentConfig.Commands.ExitArknights;
+        BackToAndroidHomeCommand = _persistentConfig.Commands.BackToAndroidHome;
+        ExitEmulatorCommand = _persistentConfig.Commands.ExitEmulator;
+        ExitSelfCommand = _persistentConfig.Commands.ExitSelf;
     }
 }

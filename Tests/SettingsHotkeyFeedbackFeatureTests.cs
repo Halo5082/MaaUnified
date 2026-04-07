@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using MAAUnified.App.ViewModels.Settings;
+using MAAUnified.App.ViewModels.Infrastructure;
 using MAAUnified.Application.Configuration;
 using MAAUnified.Application.Models;
 using MAAUnified.Application.Orchestration;
@@ -39,7 +40,10 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
         var hotkeys = ParseHotkeys(ReadGlobalString(fixture.Config, ConfigurationKeys.HotKeys));
         Assert.Equal("Ctrl+Alt+L", hotkeys["LinkStart"]);
         Assert.Equal(HotkeyConfigurationCodec.Parse(before).ShowGui, hotkeys["ShowGui"]);
-        Assert.Contains("热键冲突", vm.HotkeyErrorMessage, StringComparison.Ordinal);
+        Assert.Contains(
+            PlatformCapabilityTextMap.FormatErrorCode("zh-cn", PlatformErrorCodes.HotkeyConflict, "ignored"),
+            vm.HotkeyErrorMessage,
+            StringComparison.Ordinal);
         Assert.Contains("1/2", vm.HotkeyStatusMessage, StringComparison.Ordinal);
     }
 
@@ -72,26 +76,29 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
         var hotkeys = ParseHotkeys(ReadGlobalString(fixture.Config, ConfigurationKeys.HotKeys));
         Assert.Equal("Ctrl+Shift+Alt+M", hotkeys["ShowGui"]);
         Assert.Equal("Ctrl+2", hotkeys["LinkStart"]);
-        Assert.Contains("热键格式非法", vm.HotkeyErrorMessage, StringComparison.Ordinal);
+        Assert.Contains(
+            PlatformCapabilityTextMap.FormatErrorCode("zh-cn", PlatformErrorCodes.HotkeyInvalidGesture, "ignored"),
+            vm.HotkeyErrorMessage,
+            StringComparison.Ordinal);
         Assert.Contains("1/2", vm.HotkeyStatusMessage, StringComparison.Ordinal);
     }
 
     [Fact]
     public async Task RegisterHotkeysAsync_MapsHotkeyConflictMessage()
     {
-        await ValidateMappedHotkeyErrorAsync(PlatformErrorCodes.HotkeyConflict, "热键冲突");
+        await ValidateMappedHotkeyErrorAsync(PlatformErrorCodes.HotkeyConflict);
     }
 
     [Fact]
     public async Task RegisterHotkeysAsync_MapsHotkeyInvalidGestureMessage()
     {
-        await ValidateMappedHotkeyErrorAsync(PlatformErrorCodes.HotkeyInvalidGesture, "热键格式非法");
+        await ValidateMappedHotkeyErrorAsync(PlatformErrorCodes.HotkeyInvalidGesture);
     }
 
     [Fact]
     public async Task RegisterHotkeysAsync_MapsHotkeyNotFoundMessage()
     {
-        await ValidateMappedHotkeyErrorAsync(PlatformErrorCodes.HotkeyNotFound, "热键不存在");
+        await ValidateMappedHotkeyErrorAsync(PlatformErrorCodes.HotkeyNotFound);
     }
 
     [Fact]
@@ -126,7 +133,10 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
         await vm.RegisterHotkeysAsync();
 
         Assert.True(vm.HasHotkeyWarningMessage);
-        Assert.Contains("热键已降级为窗口级", vm.HotkeyWarningMessage, StringComparison.Ordinal);
+        Assert.Contains(
+            PlatformCapabilityTextMap.FormatErrorCode("zh-cn", PlatformErrorCodes.HotkeyFallback, fallbackCapability.Message),
+            vm.HotkeyWarningMessage,
+            StringComparison.Ordinal);
         var eventLog = await File.ReadAllTextAsync(fixture.Diagnostics.EventLogPath);
         Assert.Contains("Settings.Hotkey.Fallback", eventLog, StringComparison.Ordinal);
         var platformLog = await File.ReadAllTextAsync(fixture.Diagnostics.PlatformEventLogPath);
@@ -248,7 +258,7 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
         Assert.Equal("At least one modifier key is required.", vm.ShowGuiHotkeyState.WarningMessage);
     }
 
-    private static async Task ValidateMappedHotkeyErrorAsync(string errorCode, string expectedLocalized)
+    private static async Task ValidateMappedHotkeyErrorAsync(string errorCode)
     {
         var hotkeyService = new ScriptedHotkeyService();
         hotkeyService.EnqueueRegisterResult(
@@ -261,7 +271,10 @@ public sealed class SettingsHotkeyFeedbackFeatureTests
 
         await vm.RegisterHotkeysAsync();
 
-        Assert.Contains(expectedLocalized, vm.HotkeyErrorMessage, StringComparison.Ordinal);
+        Assert.Contains(
+            PlatformCapabilityTextMap.FormatErrorCode("zh-cn", errorCode, "failed"),
+            vm.HotkeyErrorMessage,
+            StringComparison.Ordinal);
     }
 
     private static IReadOnlyDictionary<string, string> ParseHotkeys(string raw)

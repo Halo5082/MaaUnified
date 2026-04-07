@@ -13,6 +13,12 @@ Single-directory implementation root for the new Avalonia frontend replacement.
 - `CI/`: standalone CI workflow template.
 - `Docs/`: parity matrix, migration, preview, rollback, and import report sample.
 
+## Standalone readiness
+
+- `global.json` is colocated in `src/MAAUnified/` so the UI subtree can pin the .NET 10 SDK when split into its own repository.
+- App icon and UI-owned static assets now live under `App/Assets/`.
+- Achievement localization snapshots copied from the legacy WPF frontend now live under `Application/Resources/AchievementLocalizations/`.
+
 ## Locked behavior
 
 - Config write target: `config/avalonia.json`

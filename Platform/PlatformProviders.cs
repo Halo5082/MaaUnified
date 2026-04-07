@@ -2654,6 +2654,15 @@ public sealed class WindowsOverlayCapabilityService : IOverlayCapabilityService,
 
     private void EnterPreviewMode(string message, string action, string? errorCode)
     {
+        // Avoid duplicate Preview notifications when concurrent sync callbacks
+        // observe the same loss/fallback after the first state transition.
+        if (_selectedTarget == nint.Zero
+            && string.Equals(_lastSyncIssue, message, StringComparison.Ordinal)
+            && (_attachSyncTimer is null || string.Equals(action, "target-lost", StringComparison.Ordinal)))
+        {
+            return;
+        }
+
         _selectedTarget = nint.Zero;
         _consecutiveSyncFailures = 0;
         _lastSyncIssue = message;

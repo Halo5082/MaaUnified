@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - "src/MAAUnified"
       - "src/MAAUnified/**"
       - "src/MaaCore/**"
       - "src/MaaUtils/**"
@@ -16,6 +17,7 @@ on:
     branches:
       - dev
     paths:
+      - "src/MAAUnified"
       - "src/MAAUnified/**"
       - "src/MaaCore/**"
       - "src/MaaUtils/**"
@@ -57,13 +59,13 @@ jobs:
           - name: linux-x64
             os: ubuntu-latest
             rid: linux-x64
-            self_contained: false
+            self_contained: true
             cmake_preset: linux-publish-x64
             maadeps_triplet: x64-linux
           - name: macos-x64
             os: macos-latest
             rid: osx-x64
-            self_contained: false
+            self_contained: true
             cmake_preset: macos-publish-x64
             maadeps_triplet: x64-osx
 
@@ -76,7 +78,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Setup Python
         uses: actions/setup-python@v6

@@ -48,8 +48,7 @@ public sealed class CopilotViewStructureContractTests
         Assert.Contains("<controls:CheckComboBox", xaml, StringComparison.Ordinal);
         Assert.Contains("HeaderText=\"{Binding SelectedConnectConfigOption.DisplayName}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ItemsSource=\"{Binding ConnectConfigOptions}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("SelectedValueBinding=\"{Binding Value}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("SelectedValue=\"{Binding SelectedConnectConfigValue}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SelectedItem=\"{Binding SelectedConnectConfigOption, Mode=TwoWay}\"", xaml, StringComparison.Ordinal);
     }
 
     [Fact]

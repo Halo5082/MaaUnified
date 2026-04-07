@@ -2127,7 +2127,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
         if (profile.Values.TryGetValue(PostActionConfigKey, out var node) && node is not null)
         {
             var parsed = PostActionConfig.FromJson(node);
-            var normalized = NormalizeForCurrentPlatform(parsed, out var changed);
+            var normalized = NormalizeForPersistentStorage(parsed, out var changed);
             if (changed)
             {
                 profile.Values[PostActionConfigKey] = normalized.ToJson();
@@ -2140,7 +2140,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
         if (_configService.CurrentConfig.GlobalValues.TryGetValue(PostActionConfigKey, out var globalStructuredNode) && globalStructuredNode is not null)
         {
             var parsed = PostActionConfig.FromJson(globalStructuredNode);
-            var normalized = NormalizeForCurrentPlatform(parsed, out _);
+            var normalized = NormalizeForPersistentStorage(parsed, out _);
             profile.Values[PostActionConfigKey] = normalized.ToJson();
             _configService.CurrentConfig.GlobalValues.Remove(PostActionConfigKey);
             await _configService.SaveAsync(cancellationToken);
@@ -2211,7 +2211,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                         : "Failed to parse legacy completion action.");
         }
 
-        var normalizedMigratedConfig = NormalizeForCurrentPlatform(migratedConfig, out _);
+        var normalizedMigratedConfig = NormalizeForPersistentStorage(migratedConfig, out _);
         var migrated = normalizedMigratedConfig.ToJson();
         profile.Values[PostActionConfigKey] = migrated;
         profile.Values.Remove(ConfigurationKeys.PostActions);
@@ -2238,7 +2238,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                 $"Current profile `{_configService.CurrentConfig.CurrentProfile}` not found.");
         }
 
-        var persistentConfig = NormalizeForCurrentPlatform(config, out _);
+        var persistentConfig = NormalizeForPersistentStorage(config, out _);
         persistentConfig.Once = false;
         profile.Values[PostActionConfigKey] = persistentConfig.ToJson();
         _configService.CurrentConfig.GlobalValues.Remove(PostActionConfigKey);
@@ -2253,7 +2253,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
     public Task<UiOperationResult<PostActionPreview>> GetCapabilityPreviewAsync(PostActionConfig config, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var effectiveConfig = NormalizeForCurrentPlatform(config, out _);
+        var effectiveConfig = NormalizeForRuntime(config, out _);
         var warnings = new List<string>();
         var unsupported = new List<string>();
 
@@ -2291,7 +2291,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
     public async Task<UiOperationResult<PostActionPreview>> ValidateSelectionAsync(PostActionConfig config, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var effectiveConfig = NormalizeForCurrentPlatform(config, out _);
+        var effectiveConfig = NormalizeForRuntime(config, out _);
         var warnings = new List<string>();
         if (effectiveConfig.IfNoOtherMaa && !(effectiveConfig.Hibernate || effectiveConfig.Shutdown || effectiveConfig.Sleep))
         {
@@ -2336,7 +2336,7 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
             config = configOverride.Clone();
         }
 
-        config = NormalizeForCurrentPlatform(config, out _);
+        config = NormalizeForRuntime(config, out _);
 
         if (!config.HasAnyAction())
         {
@@ -2743,16 +2743,10 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
     private static bool IsPowerAction(PostActionType action)
         => action is PostActionType.Hibernate or PostActionType.Shutdown or PostActionType.Sleep;
 
-    private static PostActionConfig NormalizeForCurrentPlatform(PostActionConfig source, out bool changed)
+    private static PostActionConfig NormalizeForPersistentStorage(PostActionConfig source, out bool changed)
     {
         var normalized = source.Clone();
         changed = false;
-
-        if (!OperatingSystem.IsWindows() && normalized.ExitEmulator)
-        {
-            normalized.ExitEmulator = false;
-            changed = true;
-        }
 
         if (OperatingSystem.IsMacOS() && normalized.Hibernate)
         {
@@ -2762,6 +2756,19 @@ public sealed class PostActionFeatureService : IPostActionFeatureService
                 normalized.Sleep = true;
             }
 
+            changed = true;
+        }
+
+        return normalized;
+    }
+
+    private static PostActionConfig NormalizeForRuntime(PostActionConfig source, out bool changed)
+    {
+        var normalized = NormalizeForPersistentStorage(source, out changed);
+
+        if (!OperatingSystem.IsWindows() && normalized.ExitEmulator)
+        {
+            normalized.ExitEmulator = false;
             changed = true;
         }
 

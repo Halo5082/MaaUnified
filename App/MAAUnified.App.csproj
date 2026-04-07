@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == '' and '$(RuntimeIdentifiers)' == ''">win-x64</RuntimeIdentifiers>
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifiers Condition="'$(RuntimeIdentifier)' == '' and '$(RuntimeIdentifiers)' == ''">win-x64;linux-x64;osx-x64</RuntimeIdentifiers>
     <OutputType>WinExe</OutputType>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>MAAUnified</AssemblyName>
     <RootNamespace>MAAUnified.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>..\..\MaaWpfGui\newlogo.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\Brand\newlogo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,6 +25,5 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
-    <AvaloniaResource Include="..\..\MaaWpfGui\newlogo.ico" Link="Assets\newlogo.ico" />
   </ItemGroup>
 </Project>
