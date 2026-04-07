@@ -27,6 +27,119 @@ dotnet test Tests/MAAUnified.Tests.csproj -c Release
 
 在 `MaaAssistantArknights` 宿主仓库中联调时，请先进入 `src/MAAUnified/` 后再执行上述命令。
 
+## 本地构建（主仓库 + submodule）
+
+适用场景：
+- 你是从 `MaaAssistantArknights` 主仓开始 clone，并通过 `git submodule` 拉取了 `src/MAAUnified`
+- 你希望在宿主仓内本地构建完整可运行目录，而不只是单独 `dotnet run` 前端
+
+通用依赖：
+- .NET `10` SDK
+- `git`
+- `python3` 或 `python`
+- `cmake`
+- `ninja`
+- C/C++ 工具链
+
+Linux 运行前提：
+- 必须有可用图形会话（`DISPLAY` 或 `WAYLAND_DISPLAY`）
+- 如果在纯 SSH TTY 等无图形环境启动，应用会直接退出
+
+### 1. 拉取主仓并初始化 submodule
+
+```bash
+git clone https://github.com/Halo5082/MaaAssistantArknights.git
+cd MaaAssistantArknights
+
+git submodule sync --recursive
+git submodule update --init --depth 1 src/MAAUnified src/MaaUtils
+
+git submodule status
+git -C src/MAAUnified remote -v
+git -C src/MAAUnified rev-parse --short HEAD
+```
+
+补充说明：
+- 当前 `.gitmodules` 中 `src/MAAUnified` 的 URL 是 `git@github.com:Halo5082/MaaUnified.git`，默认走 SSH；如果你的环境没有配置 GitHub SSH，需要先配置 SSH，或改成你可访问的地址后再 `git submodule sync`
+- `git submodule update --init` 检出的是主仓当前锁定的 submodule 提交，`src/MAAUnified` 处于 detached HEAD 是正常现象
+- 如果你只是想复现主仓当前状态，到这里即可；如果你要继续开发 `MAAUnified` 并切到 UI 仓最新主线，再执行：
+
+```bash
+git -C src/MAAUnified fetch origin
+git -C src/MAAUnified switch main || git -C src/MAAUnified switch -c main --track origin/main
+git -C src/MAAUnified pull --ff-only origin main
+```
+
+### 2. Linux x64 本地构建
+
+```bash
+cd /path/to/MaaAssistantArknights
+
+# 1) 还原 C# 依赖
+dotnet restore src/MAAUnified/App/MAAUnified.App.csproj
+
+# 2) 下载 MaaDeps（原生依赖）
+python3 tools/maadeps-download.py x64-linux
+
+# 3) 构建并安装 MaaCore runtime（产物在 install/，含 resource/）
+cmake --preset linux-publish-x64 --fresh -DINSTALL_PYTHON=OFF
+cmake --build --preset linux-publish-x64
+cmake --install build --config RelWithDebInfo
+
+# 4) 发布 Avalonia app（Linux 包内置 .NET runtime）
+dotnet publish src/MAAUnified/App/MAAUnified.App.csproj -c Release -r linux-x64 --self-contained true --no-restore -o publish
+
+# 5) 合并 runtime 到发布目录
+cp -a install/. publish/
+
+# 6) 运行
+cd publish
+./MAAUnified
+```
+
+### 3. Windows x64 本地构建
+
+```powershell
+cd C:\path\to\MaaAssistantArknights
+
+git submodule sync --recursive
+git submodule update --init --depth 1 src\MAAUnified src\MaaUtils
+
+dotnet restore src\MAAUnified\App\MAAUnified.App.csproj
+python tools\maadeps-download.py x64-windows
+
+cmake --preset windows-publish-x64 --fresh -DINSTALL_PYTHON=OFF
+cmake --build --preset windows-publish-x64 --config RelWithDebInfo
+cmake --install build --config RelWithDebInfo
+
+dotnet publish src\MAAUnified\App\MAAUnified.App.csproj -c Release -r win-x64 --self-contained true --no-restore -o publish
+Copy-Item install\* publish\ -Recurse -Force
+```
+
+### 4. macOS x64 本地构建
+
+```bash
+cd /path/to/MaaAssistantArknights
+
+git submodule sync --recursive
+git submodule update --init --depth 1 src/MAAUnified src/MaaUtils
+
+dotnet restore src/MAAUnified/App/MAAUnified.App.csproj
+python3 tools/maadeps-download.py x64-osx
+
+cmake --preset macos-publish-x64 --fresh -DINSTALL_PYTHON=OFF
+cmake --build --preset macos-publish-x64
+cmake --install build --config RelWithDebInfo
+
+dotnet publish src/MAAUnified/App/MAAUnified.App.csproj -c Release -r osx-x64 --self-contained true --no-restore -o publish
+cp -a install/. publish/
+```
+
+常见问题：
+- 如果你之前在同一个 `build/` 目录切换过不同 generator，CMake 可能会报 generator 不匹配；优先使用 `cmake --preset ... --fresh`
+- `publish/` 目录需要同时包含应用本体、MaaCore 动态库和 `resource/`；因此 `cp -a install/. publish/` 或 `Copy-Item install\* publish\` 这一步不能省
+- 如果只想做 UI 层快速迭代，不依赖宿主仓打包产物，也可以继续使用上面的独立形态命令：`dotnet run --project App/MAAUnified.App.csproj`
+
 ## 配置约定
 
 - 主配置文件：`config/avalonia.json`
