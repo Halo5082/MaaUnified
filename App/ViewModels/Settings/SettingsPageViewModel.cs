@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -5410,14 +5411,7 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
     private static (string UiVersion, string BuildTime) BuildVersionUpdateUiMetadata()
     {
         var assembly = typeof(SettingsPageViewModel).Assembly;
-        var informationalVersion = assembly
-            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), inherit: false)
-            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
-            .FirstOrDefault()
-            ?.InformationalVersion;
-        var uiVersion = string.IsNullOrWhiteSpace(informationalVersion)
-            ? assembly.GetName().Version?.ToString() ?? "unknown"
-            : informationalVersion.Split('+')[0];
+        var uiVersion = ResolveDisplayVersion(assembly);
 
         var buildTime = "unknown";
         try
@@ -5434,6 +5428,16 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
         }
 
         return (uiVersion, buildTime);
+    }
+
+    private static string ResolveDisplayVersion(Assembly assembly)
+    {
+        var informationalVersion = assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+        return string.IsNullOrWhiteSpace(informationalVersion)
+            ? assembly.GetName().Version?.ToString() ?? "unknown"
+            : informationalVersion.Split('+')[0];
     }
 
     private async Task<T?> ApplyResultNoDialogAsync<T>(
@@ -5491,10 +5495,11 @@ public sealed partial class SettingsPageViewModel : PageViewModelBase
 
     private static string BuildAboutVersionInfo()
     {
-        var assembly = typeof(SettingsPageViewModel).Assembly.GetName();
-        var version = assembly.Version?.ToString() ?? "unknown";
+        var assembly = typeof(SettingsPageViewModel).Assembly;
+        var assemblyName = assembly.GetName();
+        var version = ResolveDisplayVersion(assembly);
         return
-            $"{assembly.Name} {version} | .NET {Environment.Version} | {RuntimeInformation.OSDescription}";
+            $"{assemblyName.Name} {version} | .NET {Environment.Version} | {RuntimeInformation.OSDescription}";
     }
 
     private string ResolveCoreVersionOrUnknown()

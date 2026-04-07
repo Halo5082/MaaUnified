@@ -92,6 +92,8 @@ public sealed class SettingsModuleCM2FeatureTests
         await vm.InitializeAsync();
 
         Assert.False(string.IsNullOrWhiteSpace(vm.AboutVersionInfo));
+        Assert.Contains("pre-alpha", vm.AboutVersionInfo, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("pre-alpha", vm.UpdatePanelUiVersion, StringComparison.OrdinalIgnoreCase);
 
         await vm.RefreshAchievementPolicyAsync();
         Assert.Contains("当前策略", vm.AchievementPolicySummary, StringComparison.Ordinal);

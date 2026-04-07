@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <VersionPrefix Condition="'$(VersionPrefix)' == ''">1.0.0</VersionPrefix>
+    <VersionSuffix Condition="'$(VersionSuffix)' == ''">pre-alpha</VersionSuffix>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">1.0.0.0</AssemblyVersion>
+    <FileVersion Condition="'$(FileVersion)' == ''">1.0.0.0</FileVersion>
+  </PropertyGroup>
+</Project>

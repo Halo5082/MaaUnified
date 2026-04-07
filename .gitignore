@@ -1,0 +1,16 @@
+# Build outputs
+**/bin/
+**/obj/
+**/.avalonia-build-tasks/
+**/TestResults/
+
+# IDE and local user state
+.vs/
+.idea/
+*.user
+*.rsuser
+*.suo
+*.userprefs
+
+# OS noise
+.DS_Store
