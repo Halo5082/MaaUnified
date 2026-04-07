@@ -1359,6 +1359,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         string scope,
         Func<CancellationToken, Task<UiOperationResult>> mutationAsync,
         Func<CancellationToken, Task>? onSuccessAsync = null,
+        bool resetBindingsBeforeReload = false,
         CancellationToken cancellationToken = default)
     {
         if (!await EnsureEditableAsync(scope, cancellationToken))
@@ -1379,6 +1380,11 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             if (!await ApplyResultAsync(result, scope, cancellationToken))
             {
                 return false;
+            }
+
+            if (resetBindingsBeforeReload)
+            {
+                ResetBindingsForStructuralQueueMutation();
             }
 
             await ReloadTasksAsync(cancellationToken);
@@ -1495,6 +1501,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         await ExecuteQueueMutationAsync(
             "TaskQueue.AddTask",
             ct => Runtime.TaskQueueFeatureService.AddTaskAsync(normalizedTaskType, taskName, true, ct),
+            resetBindingsBeforeReload: true,
             cancellationToken: cancellationToken);
     }
 
@@ -1516,6 +1523,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         await ExecuteQueueMutationAsync(
             "TaskQueue.RemoveTask",
             ct => Runtime.TaskQueueFeatureService.RemoveTaskAsync(index, ct),
+            resetBindingsBeforeReload: true,
             cancellationToken: cancellationToken);
     }
 
@@ -1631,6 +1639,7 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
             "TaskQueue.MoveTask",
             ct => Runtime.TaskQueueFeatureService.MoveTaskAsync(from, to, ct),
             ct => SelectTaskByIndexAsync(to, ct),
+            resetBindingsBeforeReload: true,
             cancellationToken);
     }
 
@@ -3345,6 +3354,13 @@ public sealed class TaskQueuePageViewModel : PageViewModelBase
         ReclamationModule.ClearBinding();
         CustomModule.ClearBinding();
         ResetSelectedTaskValidationSummary();
+    }
+
+    private void ResetBindingsForStructuralQueueMutation()
+    {
+        CancelTypedModuleAutoSave();
+        CancelPendingBinding();
+        ClearTaskModuleBindings();
     }
 
     private async Task<bool> SaveBoundTaskModulesAsync(CancellationToken cancellationToken = default)

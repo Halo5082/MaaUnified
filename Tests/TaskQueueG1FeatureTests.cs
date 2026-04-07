@@ -627,6 +627,102 @@ public sealed class TaskQueueG1FeatureTests
     }
 
     [Fact]
+    public async Task TaskQueuePage_RemoveSelectedRoguelikeTask_ShouldNotPersistStaleTypedBinding()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.StartUp, "startup-a")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Roguelike, "rogue-b")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = vm.Tasks[1];
+        await vm.WaitForPendingBindingAsync();
+
+        vm.RoguelikeModule.StartsCount = 2;
+        Assert.True(vm.RoguelikeModule.IsDirty);
+
+        await vm.RemoveSelectedTaskAsync();
+        await vm.WaitForPendingBindingAsync();
+        await Task.Delay(700);
+
+        var queue = await fixture.TaskQueue.GetCurrentTaskQueueAsync();
+        Assert.True(queue.Success);
+        Assert.NotNull(queue.Value);
+        Assert.Single(queue.Value!);
+        Assert.Equal(TaskModuleTypes.StartUp, queue.Value[0].Type);
+
+        var errorLog = File.Exists(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            ? await File.ReadAllTextAsync(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            : string.Empty;
+        Assert.DoesNotContain("[TaskQueue.Roguelike.Save]", errorLog, StringComparison.Ordinal);
+        Assert.DoesNotContain("TaskTypeMismatch", errorLog, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TaskQueuePage_RemoveSelectedMallTask_ShouldNotPersistStaleIndexedBinding()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.StartUp, "startup-a")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Mall, "mall-b")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = vm.Tasks[1];
+        await vm.WaitForPendingBindingAsync();
+
+        vm.MallModule.VisitFriends = !vm.MallModule.VisitFriends;
+
+        await vm.RemoveSelectedTaskAsync();
+        await vm.WaitForPendingBindingAsync();
+        await Task.Delay(700);
+
+        var queue = await fixture.TaskQueue.GetCurrentTaskQueueAsync();
+        Assert.True(queue.Success);
+        Assert.NotNull(queue.Value);
+        Assert.Single(queue.Value!);
+        Assert.Equal(TaskModuleTypes.StartUp, queue.Value[0].Type);
+
+        var errorLog = File.Exists(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            ? await File.ReadAllTextAsync(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            : string.Empty;
+        Assert.DoesNotContain("TaskModule.UpdateParams", errorLog, StringComparison.Ordinal);
+        Assert.DoesNotContain("TaskNotFound", errorLog, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TaskQueuePage_MoveSelectedRoguelikeTask_ShouldNotPersistStaleTypedBinding()
+    {
+        await using var fixture = await TestFixture.CreateAsync();
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.StartUp, "startup-a")).Success);
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Roguelike, "rogue-b")).Success);
+
+        var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+        await vm.InitializeAsync();
+        vm.SelectedTask = vm.Tasks[1];
+        await vm.WaitForPendingBindingAsync();
+
+        vm.RoguelikeModule.StartsCount = 3;
+        Assert.True(vm.RoguelikeModule.IsDirty);
+
+        await vm.MoveSelectedTaskToAsync(0);
+        await vm.WaitForPendingBindingAsync();
+        await Task.Delay(700);
+
+        var queue = await fixture.TaskQueue.GetCurrentTaskQueueAsync();
+        Assert.True(queue.Success);
+        Assert.NotNull(queue.Value);
+        Assert.Equal(2, queue.Value!.Count);
+        Assert.Equal(TaskModuleTypes.Roguelike, queue.Value[0].Type);
+        Assert.Equal(3, queue.Value[0].Params["starts_count"]?.GetValue<int>());
+
+        var errorLog = File.Exists(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            ? await File.ReadAllTextAsync(fixture.Runtime.DiagnosticsService.ErrorLogPath)
+            : string.Empty;
+        Assert.DoesNotContain("[TaskQueue.Roguelike.Save]", errorLog, StringComparison.Ordinal);
+        Assert.DoesNotContain("TaskTypeMismatch", errorLog, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task TaskQueuePage_TaskEnabledToggle_ShouldPersistToService()
     {
         await using var fixture = await TestFixture.CreateAsync();
