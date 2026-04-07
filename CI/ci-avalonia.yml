@@ -73,7 +73,8 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Fetch required submodules
-        run: git submodule update --init --depth 1 src/MaaUtils
+        shell: bash
+        run: bash ./.github/scripts/sync-optional-submodules.sh --init --depth 1 src/MAAUnified src/MaaUtils
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5

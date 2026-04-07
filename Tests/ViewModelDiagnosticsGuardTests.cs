@@ -8,10 +8,10 @@ public sealed class ViewModelDiagnosticsGuardTests
         var repoRoot = ResolveRepoRoot();
         var targets = new[]
         {
-            Path.Combine(repoRoot, "src", "MAAUnified", "App", "ViewModels", "MainShellViewModel.cs"),
-            Path.Combine(repoRoot, "src", "MAAUnified", "App", "ViewModels", "TaskQueue", "TaskQueuePageViewModel.cs"),
-            Path.Combine(repoRoot, "src", "MAAUnified", "App", "ViewModels", "Copilot", "CopilotPageViewModel.cs"),
-            Path.Combine(repoRoot, "src", "MAAUnified", "App", "ViewModels", "Settings", "SettingsPageViewModel.cs"),
+            Path.Combine(repoRoot, "App", "ViewModels", "MainShellViewModel.cs"),
+            Path.Combine(repoRoot, "App", "ViewModels", "TaskQueue", "TaskQueuePageViewModel.cs"),
+            Path.Combine(repoRoot, "App", "ViewModels", "Copilot", "CopilotPageViewModel.cs"),
+            Path.Combine(repoRoot, "App", "ViewModels", "Settings", "SettingsPageViewModel.cs"),
         };
 
         var violations = new List<string>();
@@ -44,19 +44,6 @@ public sealed class ViewModelDiagnosticsGuardTests
 
     private static string ResolveRepoRoot()
     {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            var appDir = Path.Combine(current.FullName, "src", "MAAUnified", "App");
-            var testsDir = Path.Combine(current.FullName, "src", "MAAUnified", "Tests");
-            if (Directory.Exists(appDir) && Directory.Exists(testsDir))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Repository root not found from test base directory.");
+        return TestRepoLayout.GetMaaUnifiedRoot();
     }
 }

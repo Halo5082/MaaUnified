@@ -394,19 +394,6 @@ public sealed class ToolboxModuleO3FeatureTests
 
     private static string GetMaaUnifiedRoot()
     {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            var appDir = Path.Combine(current.FullName, "App");
-            var testsDir = Path.Combine(current.FullName, "Tests");
-            if (Directory.Exists(appDir) && Directory.Exists(testsDir))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate src/MAAUnified root.");
+        return TestRepoLayout.GetMaaUnifiedRoot();
     }
 }

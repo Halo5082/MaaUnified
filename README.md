@@ -1,6 +1,9 @@
 # MAAUnified
 
-Single-directory implementation root for the new Avalonia frontend replacement.
+Standalone-first Avalonia frontend for MAA. This tree is designed to work in two modes:
+
+- standalone UI repo root for daily frontend development;
+- `MaaAssistantArknights` host-repo integration root when mounted as `src/MAAUnified` submodule.
 
 ## Directory map
 
@@ -10,14 +13,41 @@ Single-directory implementation root for the new Avalonia frontend replacement.
 - `Platform/`: tray/notification/hotkey/autostart/file-dialog/overlay capability layer.
 - `Compat/`: WPF baseline compatibility mapping and legacy configuration keys.
 - `Tests/`: config import and contract tests.
-- `CI/`: standalone CI workflow template.
+- `CI/`: host-repo and standalone CI workflow templates.
 - `Docs/`: parity matrix, migration, preview, rollback, and import report sample.
+
+## Repo Modes
+
+- Standalone repo:
+  use this directory as the repo root; build from `App/` and `Tests/`.
+- Host repo:
+  consume this tree from `MaaAssistantArknights/src/MAAUnified`; keep host-owned `MaaCore`, `resource/`, packaging, and release logic in the parent repo.
 
 ## Standalone readiness
 
-- `global.json` is colocated in `src/MAAUnified/` so the UI subtree can pin the .NET 10 SDK when split into its own repository.
+- `global.json` is colocated here so the UI repo can pin the .NET 10 SDK without relying on the parent repo.
 - App icon and UI-owned static assets now live under `App/Assets/`.
 - Achievement localization snapshots copied from the legacy WPF frontend now live under `Application/Resources/AchievementLocalizations/`.
+
+## Test Layout
+
+- Default tests should run in both standalone and host-repo layouts.
+- Tests marked with `HostRepoFact` require the parent `MaaAssistantArknights` repo layout and host-owned resources; they are skipped automatically in standalone clones.
+
+## CI Templates
+
+- `CI/ci-avalonia.yml`:
+  host-repo template that builds `MAAUnified` together with host-owned MaaCore runtime packaging.
+- `CI/ci-standalone.yml`:
+  standalone UI-repo template that only restores, builds, and tests the frontend tree itself.
+- The host workflow template is tolerant of both layouts during migration:
+  it skips `src/MAAUnified` submodule sync until the parent repo actually converts that path into a gitlink.
+
+## Development Flow
+
+1. Develop and commit UI changes in the standalone `MAAUnified` repo.
+2. Push to your fork and open a PR to the official `MAAUnified` repo.
+3. After the UI PR lands, bump the `src/MAAUnified` submodule pointer in the host repo and open the host-repo PR.
 
 ## Locked behavior
 

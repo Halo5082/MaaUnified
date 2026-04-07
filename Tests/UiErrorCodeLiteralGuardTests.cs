@@ -18,8 +18,8 @@ public sealed class UiErrorCodeLiteralGuardTests
         var repoRoot = ResolveRepoRoot();
         var targets = new[]
         {
-            Path.Combine(repoRoot, "src", "MAAUnified", "App", "ViewModels"),
-            Path.Combine(repoRoot, "src", "MAAUnified", "Application"),
+            Path.Combine(repoRoot, "App", "ViewModels"),
+            Path.Combine(repoRoot, "Application"),
         };
 
         var failLiteralViolations = new List<string>();
@@ -53,19 +53,6 @@ public sealed class UiErrorCodeLiteralGuardTests
 
     private static string ResolveRepoRoot()
     {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            var appDir = Path.Combine(current.FullName, "src", "MAAUnified", "App");
-            var applicationDir = Path.Combine(current.FullName, "src", "MAAUnified", "Application");
-            if (Directory.Exists(appDir) && Directory.Exists(applicationDir))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Repository root not found from test base directory.");
+        return TestRepoLayout.GetMaaUnifiedRoot();
     }
 }

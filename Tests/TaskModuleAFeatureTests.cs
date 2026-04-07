@@ -808,9 +808,9 @@ public sealed class TaskModuleAFeatureTests
     public void ThemeSmoke_ModuleAViewsUseDynamicResources()
     {
         var root = ResolveRepoRoot();
-        var startUpView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "StartUpTaskView.axaml"));
-        var fightView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "FightSettingsView.axaml"));
-        var recruitView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "RecruitSettingsView.axaml"));
+        var startUpView = File.ReadAllText(Path.Combine(root, "App", "Features", "TaskQueue", "StartUpTaskView.axaml"));
+        var fightView = File.ReadAllText(Path.Combine(root, "App", "Features", "TaskQueue", "FightSettingsView.axaml"));
+        var recruitView = File.ReadAllText(Path.Combine(root, "App", "Features", "TaskQueue", "RecruitSettingsView.axaml"));
 
         Assert.Contains("DynamicResource", startUpView);
         Assert.Contains("DynamicResource", fightView);
@@ -824,24 +824,7 @@ public sealed class TaskModuleAFeatureTests
 
     private static string ResolveRepoRoot()
     {
-        var current = AppContext.BaseDirectory;
-        for (var i = 0; i < 12; i++)
-        {
-            if (Directory.Exists(Path.Combine(current, "src", "MAAUnified")))
-            {
-                return current;
-            }
-
-            var parent = Directory.GetParent(current);
-            if (parent is null)
-            {
-                break;
-            }
-
-            current = parent.FullName;
-        }
-
-        throw new DirectoryNotFoundException("Failed to locate repo root containing src/MAAUnified.");
+        return TestRepoLayout.GetMaaUnifiedRoot();
     }
 
     private static string[] GetRequiredLocalizationKeys()

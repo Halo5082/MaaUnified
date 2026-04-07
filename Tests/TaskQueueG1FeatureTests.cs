@@ -222,7 +222,7 @@ public sealed class TaskQueueG1FeatureTests
         Assert.Equal("Reclamation", vm.AddTaskMenuReclamationText);
     }
 
-    [Fact]
+    [HostRepoFact]
     public async Task TaskQueuePage_SetLanguage_ShouldKeepRoguelikeCoreCharStableAndRebuildLocalizedOptions()
     {
         await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
@@ -248,7 +248,7 @@ public sealed class TaskQueueG1FeatureTests
         Assert.DoesNotContain(zhDisplayText, vm.RoguelikeModule.CoreCharNameOptions);
     }
 
-    [Fact]
+    [HostRepoFact]
     public async Task RoguelikeCoreChar_LegacyDisplayText_ShouldNormalizeToStableValueAfterSave()
     {
         await using var fixture = await TestFixture.CreateAsync(language: "en-us");
@@ -281,7 +281,7 @@ public sealed class TaskQueueG1FeatureTests
         Assert.Equal(stableCoreChar, persisted["core_char"]?.GetValue<string>());
     }
 
-    [Fact]
+    [HostRepoFact]
     public async Task RoguelikeCoreChar_WhenBattleDataCacheWasPrimedEmpty_ShouldReloadAfterResourcesBecomeAvailable()
     {
         await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
@@ -963,25 +963,7 @@ public sealed class TaskQueueG1FeatureTests
 
     private static string ResolveRepoRoot()
     {
-        var current = AppContext.BaseDirectory;
-        for (var i = 0; i < 12; i++)
-        {
-            if (Directory.Exists(Path.Combine(current, "src", "MAAUnified"))
-                && File.Exists(Path.Combine(current, "resource", "battle_data.json")))
-            {
-                return current;
-            }
-
-            var parent = Directory.GetParent(current);
-            if (parent is null)
-            {
-                break;
-            }
-
-            current = parent.FullName;
-        }
-
-        throw new DirectoryNotFoundException("Failed to locate repo root containing src/MAAUnified and resource/battle_data.json.");
+        return TestRepoLayout.GetHostRepoRoot();
     }
 
     private sealed class TestFixture : IAsyncDisposable

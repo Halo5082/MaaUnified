@@ -197,20 +197,7 @@ public sealed class SettingsViewStructureContractTests
 
     private static string GetMaaUnifiedRoot()
     {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            var appDir = Path.Combine(current.FullName, "App");
-            var testsDir = Path.Combine(current.FullName, "Tests");
-            if (Directory.Exists(appDir) && Directory.Exists(testsDir))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Cannot locate src/MAAUnified root from test runtime path.");
+        return TestRepoLayout.GetMaaUnifiedRoot();
     }
 
     private static HashSet<string> EnumerateCurrentSettingsLocalizationKeys(string root)

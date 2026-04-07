@@ -6,8 +6,7 @@ public sealed class ConfigurationWriteEntryGuardTests
     public void StoreSaveAsync_ShouldOnlyBeCalledInUnifiedConfigurationServiceSaveCore()
     {
         var repoRoot = ResolveRepoRoot();
-        var sourceRoot = Path.Combine(repoRoot, "src", "MAAUnified");
-        var files = EnumerateSourceFiles(sourceRoot, includeTests: false);
+        var files = EnumerateSourceFiles(repoRoot, includeTests: false);
 
         var hits = new List<string>();
         foreach (var file in files)
@@ -28,7 +27,7 @@ public sealed class ConfigurationWriteEntryGuardTests
         Assert.All(
             hits,
             hit => Assert.StartsWith(
-                Path.Combine("src", "MAAUnified", "Application", "Services", "UnifiedConfigurationService.cs"),
+                Path.Combine("Application", "Services", "UnifiedConfigurationService.cs"),
                 hit,
                 StringComparison.Ordinal));
     }
@@ -37,8 +36,7 @@ public sealed class ConfigurationWriteEntryGuardTests
     public void AvaloniaJsonConfigStore_ShouldOnlyBeConstructedByRuntimeFactory()
     {
         var repoRoot = ResolveRepoRoot();
-        var sourceRoot = Path.Combine(repoRoot, "src", "MAAUnified");
-        var files = EnumerateSourceFiles(sourceRoot, includeTests: false);
+        var files = EnumerateSourceFiles(repoRoot, includeTests: false);
 
         var hits = new List<string>();
         foreach (var file in files)
@@ -57,7 +55,7 @@ public sealed class ConfigurationWriteEntryGuardTests
 
         var hit = Assert.Single(hits);
         Assert.StartsWith(
-            Path.Combine("src", "MAAUnified", "Application", "Services", "MAAUnifiedRuntime.cs"),
+            Path.Combine("Application", "Services", "MAAUnifiedRuntime.cs"),
             hit,
             StringComparison.Ordinal);
     }
@@ -74,19 +72,6 @@ public sealed class ConfigurationWriteEntryGuardTests
 
     private static string ResolveRepoRoot()
     {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            var appDir = Path.Combine(current.FullName, "src", "MAAUnified", "App");
-            var testsDir = Path.Combine(current.FullName, "src", "MAAUnified", "Tests");
-            if (Directory.Exists(appDir) && Directory.Exists(testsDir))
-            {
-                return current.FullName;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Repository root not found from test base directory.");
+        return TestRepoLayout.GetMaaUnifiedRoot();
     }
 }

@@ -446,9 +446,9 @@ public sealed class TaskModuleCFeatureTests
     public void TaskModuleCViews_AreBindingBased_NoStaticBusinessDefaults()
     {
         var root = ResolveRepoRoot();
-        var roguelikeView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "RoguelikeSettingsView.axaml"));
-        var reclamationView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "ReclamationSettingsView.axaml"));
-        var customView = File.ReadAllText(Path.Combine(root, "src", "MAAUnified", "App", "Features", "TaskQueue", "CustomSettingsView.axaml"));
+        var roguelikeView = File.ReadAllText(Path.Combine(root, "App", "Features", "TaskQueue", "RoguelikeSettingsView.axaml"));
+        var reclamationView = File.ReadAllText(Path.Combine(root, "App", "Features", "TaskQueue", "ReclamationSettingsView.axaml"));
+        var customView = File.ReadAllText(Path.Combine(root, "App", "Features", "TaskQueue", "CustomSettingsView.axaml"));
 
         Assert.Contains("SelectedValue=\"{Binding Theme}\"", roguelikeView);
         Assert.Contains("SelectedValue=\"{Binding Mode}\"", roguelikeView);
@@ -513,24 +513,7 @@ public sealed class TaskModuleCFeatureTests
 
     private static string ResolveRepoRoot()
     {
-        var current = AppContext.BaseDirectory;
-        for (var i = 0; i < 12; i++)
-        {
-            if (Directory.Exists(Path.Combine(current, "src", "MAAUnified")))
-            {
-                return current;
-            }
-
-            var parent = Directory.GetParent(current);
-            if (parent is null)
-            {
-                break;
-            }
-
-            current = parent.FullName;
-        }
-
-        throw new DirectoryNotFoundException("Failed to locate repo root containing src/MAAUnified.");
+        return TestRepoLayout.GetMaaUnifiedRoot();
     }
 
     private sealed class TestFixture : IAsyncDisposable
