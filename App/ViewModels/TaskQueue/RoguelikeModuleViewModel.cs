@@ -1494,7 +1494,11 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
     {
         lock (BattleDataCacheLock)
         {
-            _battleDataCache ??= LoadBattleDataCache();
+            if (_battleDataCache is null || (_battleDataCache.IsEmpty && ResolveBattleDataFilePath() is not null))
+            {
+                _battleDataCache = LoadBattleDataCache();
+            }
+
             return _battleDataCache;
         }
     }
@@ -1919,6 +1923,8 @@ public sealed class RoguelikeModuleViewModel : TypedTaskModuleViewModelBase<Rogu
         }
 
         public IReadOnlyDictionary<string, BattleDataCharacter> AliasIndex { get; }
+
+        public bool IsEmpty => AliasIndex.Count == 0;
 
         public bool TryGetCharacterByAlias(string alias, out BattleDataCharacter character)
         {

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Reflection;
 using System.Text.Json.Nodes;
 using System.Threading.Channels;
 using Avalonia;
@@ -278,6 +279,30 @@ public sealed class TaskQueueG1FeatureTests
 
         var persisted = (await fixture.TaskQueue.GetTaskParamsAsync(0)).Value!;
         Assert.Equal(stableCoreChar, persisted["core_char"]?.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task RoguelikeCoreChar_WhenBattleDataCacheWasPrimedEmpty_ShouldReloadAfterResourcesBecomeAvailable()
+    {
+        await using var fixture = await TestFixture.CreateAsync(language: "zh-cn");
+        Assert.True((await fixture.TaskQueue.AddTaskAsync(TaskModuleTypes.Roguelike, "rogue")).Success);
+        EnsureRoguelikeCoreCharResourceFilesAvailable();
+
+        var originalCache = GetRoguelikeBattleDataCache();
+        SetRoguelikeBattleDataCacheToEmpty();
+        try
+        {
+            var vm = new TaskQueuePageViewModel(fixture.Runtime, new ConnectionGameSharedStateViewModel());
+            await vm.InitializeAsync();
+            vm.SelectedTask = Assert.Single(vm.Tasks);
+            await vm.WaitForPendingBindingAsync();
+
+            Assert.NotEmpty(vm.RoguelikeModule.CoreCharOptions);
+        }
+        finally
+        {
+            RestoreRoguelikeBattleDataCache(originalCache);
+        }
     }
 
     [Fact]
@@ -812,6 +837,32 @@ public sealed class TaskQueueG1FeatureTests
         }
 
         File.Copy(sourcePath, targetPath, overwrite: false);
+    }
+
+    private static object? GetRoguelikeBattleDataCache()
+    {
+        return GetRoguelikeBattleDataCacheField().GetValue(null);
+    }
+
+    private static void SetRoguelikeBattleDataCacheToEmpty()
+    {
+        var battleDataCacheType = typeof(RoguelikeModuleViewModel).GetNestedType("BattleDataCache", BindingFlags.NonPublic)
+            ?? throw new MissingMemberException(typeof(RoguelikeModuleViewModel).FullName, "BattleDataCache");
+        var emptyField = battleDataCacheType.GetField("Empty", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new MissingFieldException(battleDataCacheType.FullName, "Empty");
+
+        GetRoguelikeBattleDataCacheField().SetValue(null, emptyField.GetValue(null));
+    }
+
+    private static void RestoreRoguelikeBattleDataCache(object? cache)
+    {
+        GetRoguelikeBattleDataCacheField().SetValue(null, cache);
+    }
+
+    private static FieldInfo GetRoguelikeBattleDataCacheField()
+    {
+        return typeof(RoguelikeModuleViewModel).GetField("_battleDataCache", BindingFlags.NonPublic | BindingFlags.Static)
+            ?? throw new MissingFieldException(typeof(RoguelikeModuleViewModel).FullName, "_battleDataCache");
     }
 
     private static string ResolveRepoRoot()
